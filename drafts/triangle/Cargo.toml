@@ -1,0 +1,12 @@
+[package]
+name = "draft-triangle"
+edition.workspace = true
+publish = false
+
+[dependencies]
+winit.workspace = true
+bytemuck = { workspace = true, features = ["derive"] }
+wgpu = { workspace = true, features = ["spirv"] }
+glam = { workspace = true, features = ["bytemuck"] }
+env_logger.workspace = true
+pollster.workspace = true
