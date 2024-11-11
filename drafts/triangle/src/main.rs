@@ -1,5 +1,5 @@
-use std::{borrow::Cow, sync::Arc};
-use wgpu::{Device, Queue, RenderPipeline, Surface, SurfaceConfiguration};
+use std::sync::Arc;
+use wgpu::{include_spirv, Device, Queue, RenderPipeline, Surface, SurfaceConfiguration};
 use winit::{
 	application::ApplicationHandler,
 	event::{DeviceEvent, DeviceId, WindowEvent},
@@ -51,12 +51,6 @@ impl RenderState {
 			.await
 			.expect("Failed to create device");
 
-		// Load the shaders from disk
-		let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-			label: None,
-			source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl"))),
-		});
-
 		let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
 			label: None,
 			bind_group_layouts: &[],
@@ -66,18 +60,22 @@ impl RenderState {
 		let swapchain_capabilities = surface.get_capabilities(&adapter);
 		let swapchain_format = swapchain_capabilities.formats[0];
 
+		// Load the shaders from disk
+		let vert_shader = device.create_shader_module(include_spirv!("../shader/vertex.spv"));
+		let frag_shader = device.create_shader_module(include_spirv!("../shader/fragment.spv"));
+
 		let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
 			label: None,
 			layout: Some(&pipeline_layout),
 			vertex: wgpu::VertexState {
-				module: &shader,
-				entry_point: Some("vs_main"),
+				module: &vert_shader,
+				entry_point: None,
 				buffers: &[],
 				compilation_options: Default::default(),
 			},
 			fragment: Some(wgpu::FragmentState {
-				module: &shader,
-				entry_point: Some("fs_main"),
+				module: &frag_shader,
+				entry_point: None,
 				compilation_options: Default::default(),
 				targets: &[Some(swapchain_format.into())],
 			}),
@@ -226,9 +224,11 @@ impl ApplicationHandler<StateInitializationEvent> for Application {
 							.surface
 							.get_current_texture()
 							.expect("Failed to acquire next swap chain texture");
+
 						let view = frame
 							.texture
 							.create_view(&wgpu::TextureViewDescriptor::default());
+
 						let mut encoder = renderer
 							.device
 							.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
@@ -239,7 +239,7 @@ impl ApplicationHandler<StateInitializationEvent> for Application {
 									view: &view,
 									resolve_target: None,
 									ops: wgpu::Operations {
-										load: wgpu::LoadOp::Clear(wgpu::Color::GREEN),
+										load: wgpu::LoadOp::Clear(wgpu::Color::BLUE),
 										store: wgpu::StoreOp::Store,
 									},
 								})],
