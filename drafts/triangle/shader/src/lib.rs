@@ -38,5 +38,5 @@ pub fn vertex(
 /// to render a simple gradient.
 #[spirv(fragment)]
 pub fn fragment(in_uv: Vec2, frag_color: &mut Vec4) {
-	*frag_color = Vec4::new(in_uv.x, 1.0 - in_uv.y, 0.0, 1.0);
+	*frag_color = Vec4::new(1.0 - in_uv.x, 1.0 - in_uv.y, 0.0, 1.0);
 }
