@@ -71,9 +71,9 @@ impl Renderer {
 pub trait Application<UserEvent> {
 	fn init(&mut self, renderer: &Renderer);
 	fn render(&self, renderer: &Renderer);
-	fn window_event(&mut self, event: winit::event::WindowEvent);
-	fn device_event(&mut self, event: winit::event::DeviceEvent);
-	fn user_event(&mut self, event: UserEvent);
+	fn window_event(&mut self, event: winit::event::WindowEvent) -> bool;
+	fn device_event(&mut self, event: winit::event::DeviceEvent) -> bool;
+	fn user_event(&mut self, event: UserEvent) -> bool;
 }
 
 enum WindowState {
@@ -97,34 +97,79 @@ where
 	app: App,
 }
 
-impl<UserEvent, App> ApplicationRunner<UserEvent, App>
+pub struct ApplicationHandle<UserEvent>
 where
+	UserEvent: 'static,
+{
+	event_loop_proxy: EventLoopProxy<CustomEvent<UserEvent>>,
+}
+
+impl<UserEvent> ApplicationHandle<UserEvent> {
+	pub fn send_event(
+		&self,
+		event: UserEvent,
+	) -> Result<(), winit::event_loop::EventLoopClosed<CustomEvent<UserEvent>>> {
+		self
+			.event_loop_proxy
+			.send_event(CustomEvent::UserEvent(event))
+	}
+}
+
+pub struct ApplicationStarter<UserEvent, App>
+where
+	UserEvent: 'static,
 	App: Application<UserEvent>,
 {
-	pub fn start(app: App) {
-		#[cfg(not(target_arch = "wasm32"))]
-		env_logger::init();
+	app: ApplicationRunner<UserEvent, App>,
+	event_loop: EventLoop<CustomEvent<UserEvent>>,
+}
 
-		#[cfg(target_arch = "wasm32")]
-		{
-			std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-			console_log::init().expect("could not initialize logger");
-		}
-
-		let event_loop = EventLoop::<CustomEvent<UserEvent>>::with_user_event()
-			.build()
-			.unwrap();
-
-		let event_loop_proxy = event_loop.create_proxy();
-
-		let mut runner = Self {
-			state: WindowState::Uninitialized,
-			event_loop_proxy,
-			app,
-		};
-
-		let _ = event_loop.run_app(&mut runner);
+impl<UserEvent, App> ApplicationStarter<UserEvent, App>
+where
+	UserEvent: std::marker::Send,
+	App: Application<UserEvent> + std::marker::Send + 'static,
+{
+	pub fn start(self) {
+		let event_loop = self.event_loop;
+		let mut app = self.app;
+		let _ = event_loop.run_app(&mut app);
 	}
+
+	pub fn get_handle(&self) -> ApplicationHandle<UserEvent> {
+		ApplicationHandle {
+			event_loop_proxy: self.app.event_loop_proxy.clone(),
+		}
+	}
+}
+
+pub fn create_app<UserEvent, App: Application<UserEvent> + 'static>(
+	app: App,
+) -> ApplicationStarter<UserEvent, App> {
+	#[cfg(not(target_arch = "wasm32"))]
+	env_logger::init();
+
+	#[cfg(target_arch = "wasm32")]
+	{
+		std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+		console_log::init().expect("could not initialize logger");
+	}
+
+	let event_loop = EventLoop::<CustomEvent<UserEvent>>::with_user_event()
+		.build()
+		.unwrap();
+
+	let event_loop_proxy = event_loop.create_proxy();
+
+	let runner = ApplicationRunner {
+		state: WindowState::Uninitialized,
+		event_loop_proxy,
+		app,
+	};
+
+	return ApplicationStarter {
+		app: runner,
+		event_loop,
+	};
 }
 
 impl<UserEvent, App> ApplicationHandler<CustomEvent<UserEvent>>
@@ -201,7 +246,11 @@ where
 				self.state = WindowState::Initialized(renderer);
 			}
 			CustomEvent::UserEvent(user_event) => {
-				self.app.user_event(user_event);
+				if let WindowState::Initialized(renderer) = &self.state {
+					if self.app.user_event(user_event) {
+						renderer.window.request_redraw();
+					}
+				}
 			}
 		}
 	}
@@ -234,7 +283,9 @@ where
 
 					WindowEvent::CloseRequested => event_loop.exit(),
 					rest => {
-						self.app.window_event(rest);
+						if self.app.window_event(rest) {
+							window.request_redraw();
+						};
 					}
 				};
 			}
@@ -248,6 +299,10 @@ where
 		_device_id: DeviceId,
 		event: DeviceEvent,
 	) {
-		self.app.device_event(event);
+		if let WindowState::Initialized(renderer) = &mut self.state {
+			if self.app.device_event(event) {
+				renderer.window.request_redraw();
+			}
+		}
 	}
 }

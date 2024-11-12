@@ -1,8 +1,9 @@
-use trival_renderer::{Application, ApplicationRunner, Renderer};
+use trival_renderer::{create_app, Application, Renderer};
 use wgpu::include_spirv;
 
 struct InitializedState {
 	pipeline: wgpu::RenderPipeline,
+	color: wgpu::Color,
 }
 
 #[derive(Default)]
@@ -10,7 +11,7 @@ struct App {
 	state: Option<InitializedState>,
 }
 
-struct UserEvent;
+struct UserEvent(wgpu::Color);
 
 impl Application<UserEvent> for App {
 	fn init(&mut self, ctx: &Renderer) {
@@ -59,7 +60,10 @@ impl Application<UserEvent> for App {
 				cache: None,
 			});
 
-		self.state = Some(InitializedState { pipeline });
+		self.state = Some(InitializedState {
+			pipeline,
+			color: wgpu::Color::BLUE,
+		});
 	}
 
 	fn render(&self, renderer: &Renderer) {
@@ -83,7 +87,7 @@ impl Application<UserEvent> for App {
 					view: &view,
 					resolve_target: None,
 					ops: wgpu::Operations {
-						load: wgpu::LoadOp::Clear(wgpu::Color::BLUE),
+						load: wgpu::LoadOp::Clear(state.color),
 						store: wgpu::StoreOp::Store,
 					},
 				})],
@@ -99,11 +103,32 @@ impl Application<UserEvent> for App {
 		frame.present();
 	}
 
-	fn user_event(&mut self, _event: UserEvent) {}
-	fn window_event(&mut self, _event: winit::event::WindowEvent) {}
-	fn device_event(&mut self, _event: winit::event::DeviceEvent) {}
+	fn user_event(&mut self, event: UserEvent) -> bool {
+		let state = self.state.as_mut().unwrap();
+		state.color = event.0;
+		true
+	}
+
+	fn window_event(&mut self, _event: winit::event::WindowEvent) -> bool {
+		false
+	}
+	fn device_event(&mut self, _event: winit::event::DeviceEvent) -> bool {
+		false
+	}
 }
 
 pub fn main() {
-	ApplicationRunner::start(App::default());
+	let app = create_app(App::default());
+	let handle = app.get_handle();
+
+	std::thread::spawn(move || loop {
+		std::thread::sleep(std::time::Duration::from_secs(2));
+		let _ = handle.send_event(UserEvent(wgpu::Color::RED));
+		std::thread::sleep(std::time::Duration::from_secs(2));
+		let _ = handle.send_event(UserEvent(wgpu::Color::GREEN));
+		std::thread::sleep(std::time::Duration::from_secs(2));
+		let _ = handle.send_event(UserEvent(wgpu::Color::BLUE));
+	});
+
+	app.start();
 }
