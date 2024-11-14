@@ -1,5 +1,5 @@
 [package]
-name = "trival_renderer"
+name = "trival_painter"
 edition.workspace = true
 publish = false
 

@@ -1,4 +1,4 @@
-use trival_renderer::{create_app, Application, Renderer};
+use trival_painter::{create_app, Application, Painter};
 use winit::event::{DeviceEvent, WindowEvent};
 
 struct App {
@@ -19,14 +19,14 @@ impl App {
 }
 
 impl Application<()> for App {
-	fn render(&self, renderer: &Renderer) -> std::result::Result<(), wgpu::SurfaceError> {
-		let frame = renderer.surface.get_current_texture()?;
+	fn render(&self, painter: &Painter) -> std::result::Result<(), wgpu::SurfaceError> {
+		let frame = painter.surface.get_current_texture()?;
 
 		let view = frame
 			.texture
 			.create_view(&wgpu::TextureViewDescriptor::default());
 
-		let mut encoder = renderer
+		let mut encoder = painter
 			.device
 			.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 		{
@@ -46,34 +46,34 @@ impl Application<()> for App {
 			});
 		}
 
-		renderer.queue.submit(Some(encoder.finish()));
+		painter.queue.submit(Some(encoder.finish()));
 		frame.present();
 
 		Ok(())
 	}
 
-	fn window_event(&mut self, event: WindowEvent, renderer: &Renderer) {
+	fn window_event(&mut self, event: WindowEvent, painter: &Painter) {
 		match event {
 			WindowEvent::CursorMoved {
 				device_id: _,
 				position,
 			} => {
-				let size = renderer.window.inner_size();
+				let size = painter.canvas_size();
 				self.color = wgpu::Color {
 					r: position.x / size.width as f64,
 					g: position.y / size.height as f64,
 					b: 0.3,
 					a: 1.0,
 				};
-				renderer.request_redraw();
+				painter.redraw();
 			}
 			_ => {}
 		}
 	}
 
-	fn init(&mut self, _renderer: &Renderer) {}
-	fn device_event(&mut self, _event: DeviceEvent, _renderer: &Renderer) {}
-	fn user_event(&mut self, _event: (), _renderer: &Renderer) {}
+	fn init(&mut self, _painter: &Painter) {}
+	fn device_event(&mut self, _event: DeviceEvent, _painter: &Painter) {}
+	fn user_event(&mut self, _event: (), _painter: &Painter) {}
 }
 
 pub fn main() {

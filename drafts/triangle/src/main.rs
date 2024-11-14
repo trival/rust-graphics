@@ -1,4 +1,4 @@
-use trival_renderer::{create_app, Application, Renderer};
+use trival_painter::{create_app, Application, Painter};
 use wgpu::include_spirv;
 use winit::event::{DeviceEvent, WindowEvent};
 
@@ -15,10 +15,10 @@ struct App {
 struct UserEvent(wgpu::Color);
 
 impl Application<UserEvent> for App {
-	fn init(&mut self, ctx: &Renderer) {
+	fn init(&mut self, painter: &Painter) {
 		// Initialize the app
 
-		let pipeline_layout = ctx
+		let pipeline_layout = painter
 			.device
 			.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
 				label: None,
@@ -26,18 +26,18 @@ impl Application<UserEvent> for App {
 				push_constant_ranges: &[],
 			});
 
-		let swapchain_capabilities = ctx.surface.get_capabilities(&ctx.adapter);
-		let swapchain_format = swapchain_capabilities.formats[0];
+		let capabilities = painter.surface.get_capabilities(&painter.adapter);
+		let format = capabilities.formats[0];
 
 		// Load the shaders from disk
-		let vert_shader = ctx
+		let vert_shader = painter
 			.device
 			.create_shader_module(include_spirv!("../shader/vertex.spv"));
-		let frag_shader = ctx
+		let frag_shader = painter
 			.device
 			.create_shader_module(include_spirv!("../shader/fragment.spv"));
 
-		let pipeline = ctx
+		let pipeline = painter
 			.device
 			.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
 				label: None,
@@ -52,7 +52,7 @@ impl Application<UserEvent> for App {
 					module: &frag_shader,
 					entry_point: None,
 					compilation_options: Default::default(),
-					targets: &[Some(swapchain_format.into())],
+					targets: &[Some(format.into())],
 				}),
 				primitive: wgpu::PrimitiveState::default(),
 				depth_stencil: None,
@@ -67,15 +67,15 @@ impl Application<UserEvent> for App {
 		});
 	}
 
-	fn render(&self, renderer: &Renderer) -> std::result::Result<(), wgpu::SurfaceError> {
+	fn render(&self, painter: &Painter) -> std::result::Result<(), wgpu::SurfaceError> {
 		let state = self.state.as_ref().unwrap();
-		let frame = renderer.surface.get_current_texture()?;
+		let frame = painter.surface.get_current_texture()?;
 
 		let view = frame
 			.texture
 			.create_view(&wgpu::TextureViewDescriptor::default());
 
-		let mut encoder = renderer
+		let mut encoder = painter
 			.device
 			.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 		{
@@ -97,20 +97,20 @@ impl Application<UserEvent> for App {
 			rpass.draw(0..3, 0..1);
 		}
 
-		renderer.queue.submit(Some(encoder.finish()));
+		painter.queue.submit(Some(encoder.finish()));
 		frame.present();
 
 		Ok(())
 	}
 
-	fn user_event(&mut self, event: UserEvent, renderer: &Renderer) {
+	fn user_event(&mut self, event: UserEvent, painter: &Painter) {
 		let state = self.state.as_mut().unwrap();
 		state.color = event.0;
-		renderer.request_redraw();
+		painter.redraw();
 	}
 
-	fn window_event(&mut self, _event: WindowEvent, _renderer: &Renderer) {}
-	fn device_event(&mut self, _event: DeviceEvent, _renderer: &Renderer) {}
+	fn window_event(&mut self, _event: WindowEvent, _painter: &Painter) {}
+	fn device_event(&mut self, _event: DeviceEvent, _painter: &Painter) {}
 }
 
 pub fn main() {

@@ -8,25 +8,25 @@ use winit::{
 	window::{Window, WindowId},
 };
 
-mod renderer;
-pub use renderer::Renderer;
+mod painter;
+pub use painter::Painter;
 
 pub trait Application<UserEvent> {
-	fn init(&mut self, renderer: &Renderer);
-	fn render(&self, renderer: &Renderer) -> Result<(), SurfaceError>;
-	fn window_event(&mut self, event: WindowEvent, renderer: &Renderer);
-	fn device_event(&mut self, event: DeviceEvent, renderer: &Renderer);
-	fn user_event(&mut self, event: UserEvent, renderer: &Renderer);
+	fn init(&mut self, painter: &Painter);
+	fn render(&self, painter: &Painter) -> Result<(), SurfaceError>;
+	fn window_event(&mut self, event: WindowEvent, painter: &Painter);
+	fn device_event(&mut self, event: DeviceEvent, painter: &Painter);
+	fn user_event(&mut self, event: UserEvent, painter: &Painter);
 }
 
 enum WindowState {
 	Uninitialized,
 	Initializing,
-	Initialized(Renderer),
+	Initialized(Painter),
 }
 
 pub enum CustomEvent<UserEvent> {
-	StateInitializationEvent(Renderer),
+	StateInitializationEvent(Painter),
 	UserEvent(UserEvent),
 }
 
@@ -152,16 +152,16 @@ where
 			// 	.expect("Couldn't append canvas to document body.");
 		}
 
-		let renderer_future = Renderer::new(window);
+		let renderer_future = Painter::new(window);
 
 		#[cfg(target_arch = "wasm32")]
 		{
 			let event_loop_proxy = self.event_loop_proxy.clone();
 			spawn_local(async move {
-				let renderer = renderer_future.await;
+				let painter = renderer_future.await;
 
 				event_loop_proxy
-					.send_event(CustomEvent(renderer))
+					.send_event(CustomEvent(painter))
 					.unwrap_or_else(|_| {
 						panic!("Failed to send initialization event");
 					});
@@ -170,11 +170,11 @@ where
 
 		#[cfg(not(target_arch = "wasm32"))]
 		{
-			let renderer = pollster::block_on(renderer_future);
+			let painter = pollster::block_on(renderer_future);
 
 			self
 				.event_loop_proxy
-				.send_event(CustomEvent::StateInitializationEvent(renderer))
+				.send_event(CustomEvent::StateInitializationEvent(painter))
 				.unwrap_or_else(|_| {
 					panic!("Failed to send initialization event");
 				});
@@ -183,14 +183,14 @@ where
 
 	fn user_event(&mut self, _event_loop: &ActiveEventLoop, event: CustomEvent<UserEvent>) {
 		match event {
-			CustomEvent::StateInitializationEvent(renderer) => {
-				renderer.window.request_redraw();
-				self.app.init(&renderer);
-				self.state = WindowState::Initialized(renderer);
+			CustomEvent::StateInitializationEvent(painter) => {
+				painter.redraw();
+				self.app.init(&painter);
+				self.state = WindowState::Initialized(painter);
 			}
 			CustomEvent::UserEvent(user_event) => {
-				if let WindowState::Initialized(renderer) = &self.state {
-					self.app.user_event(user_event, renderer);
+				if let WindowState::Initialized(painter) = &self.state {
+					self.app.user_event(user_event, painter);
 				}
 			}
 		}
@@ -203,23 +203,23 @@ where
 		event: WindowEvent,
 	) {
 		match &mut self.state {
-			WindowState::Initialized(renderer) => {
+			WindowState::Initialized(painter) => {
 				match event {
 					WindowEvent::Resized(new_size) => {
 						// Reconfigure the surface with the new size
-						renderer.resize(new_size);
+						painter.resize(new_size);
 						// On macos the window needs to be redrawn manually after resizing
-						renderer.request_redraw();
+						painter.redraw();
 					}
 
 					WindowEvent::RedrawRequested => {
-						match self.app.render(renderer) {
+						match self.app.render(painter) {
 							Ok(_) => {}
 							// Reconfigure the surface if it's lost or outdated
 							Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
-								renderer.resize(PhysicalSize {
-									width: renderer.config.width,
-									height: renderer.config.height,
+								painter.resize(PhysicalSize {
+									width: painter.config.width,
+									height: painter.config.height,
 								});
 							}
 							// The system is out of memory, we should probably quit
@@ -237,7 +237,7 @@ where
 
 					WindowEvent::CloseRequested => event_loop.exit(),
 					rest => {
-						self.app.window_event(rest, renderer);
+						self.app.window_event(rest, painter);
 					}
 				};
 			}
@@ -251,8 +251,8 @@ where
 		_device_id: DeviceId,
 		event: DeviceEvent,
 	) {
-		if let WindowState::Initialized(renderer) = &mut self.state {
-			self.app.device_event(event, renderer);
+		if let WindowState::Initialized(painter) = &mut self.state {
+			self.app.device_event(event, painter);
 		}
 	}
 }

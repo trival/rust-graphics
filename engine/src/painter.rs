@@ -3,16 +3,16 @@ use std::sync::Arc;
 use wgpu::{Adapter, Device, Queue, Surface, SurfaceConfiguration};
 use winit::window::Window;
 
-pub struct Renderer {
+pub struct Painter {
 	pub surface: Surface<'static>,
 	pub config: SurfaceConfiguration,
 	pub adapter: Adapter,
 	pub device: Device,
 	pub queue: Queue,
-	pub window: Arc<Window>,
+	window: Arc<Window>,
 }
 
-impl Renderer {
+impl Painter {
 	pub async fn new(window: Arc<Window>) -> Self {
 		let mut size = window.inner_size();
 		size.width = size.width.max(1);
@@ -65,7 +65,7 @@ impl Renderer {
 		}
 	}
 
-	pub fn request_redraw(&self) {
+	pub fn redraw(&self) {
 		self.window.request_redraw();
 	}
 
@@ -73,5 +73,9 @@ impl Renderer {
 		self.config.width = new_size.width.max(1);
 		self.config.height = new_size.height.max(1);
 		self.surface.configure(&self.device, &self.config);
+	}
+
+	pub fn canvas_size(&self) -> winit::dpi::PhysicalSize<u32> {
+		self.window.inner_size()
 	}
 }
