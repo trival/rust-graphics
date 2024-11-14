@@ -8,5 +8,6 @@ winit.workspace = true
 bytemuck = { workspace = true, features = ["derive"] }
 wgpu = { workspace = true, features = ["spirv"] }
 glam = { workspace = true, features = ["bytemuck"] }
+log.workspace = true
 env_logger.workspace = true
 pollster.workspace = true

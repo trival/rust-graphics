@@ -1,5 +1,6 @@
 use trival_renderer::{create_app, Application, Renderer};
 use wgpu::include_spirv;
+use winit::event::{DeviceEvent, WindowEvent};
 
 struct InitializedState {
 	pipeline: wgpu::RenderPipeline,
@@ -66,12 +67,9 @@ impl Application<UserEvent> for App {
 		});
 	}
 
-	fn render(&self, renderer: &Renderer) {
+	fn render(&self, renderer: &Renderer) -> std::result::Result<(), wgpu::SurfaceError> {
 		let state = self.state.as_ref().unwrap();
-		let frame = renderer
-			.surface
-			.get_current_texture()
-			.expect("Failed to acquire next swap chain texture");
+		let frame = renderer.surface.get_current_texture()?;
 
 		let view = frame
 			.texture
@@ -101,20 +99,18 @@ impl Application<UserEvent> for App {
 
 		renderer.queue.submit(Some(encoder.finish()));
 		frame.present();
+
+		Ok(())
 	}
 
-	fn user_event(&mut self, event: UserEvent) -> bool {
+	fn user_event(&mut self, event: UserEvent, renderer: &Renderer) {
 		let state = self.state.as_mut().unwrap();
 		state.color = event.0;
-		true
+		renderer.request_redraw();
 	}
 
-	fn window_event(&mut self, _event: winit::event::WindowEvent) -> bool {
-		false
-	}
-	fn device_event(&mut self, _event: winit::event::DeviceEvent) -> bool {
-		false
-	}
+	fn window_event(&mut self, _event: WindowEvent, _renderer: &Renderer) {}
+	fn device_event(&mut self, _event: DeviceEvent, _renderer: &Renderer) {}
 }
 
 pub fn main() {

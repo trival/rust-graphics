@@ -1,79 +1,22 @@
 use std::sync::Arc;
-use wgpu::{Adapter, Device, Queue, Surface, SurfaceConfiguration};
+use wgpu::SurfaceError;
 use winit::{
 	application::ApplicationHandler,
+	dpi::PhysicalSize,
 	event::{DeviceEvent, DeviceId, WindowEvent},
 	event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy},
 	window::{Window, WindowId},
 };
 
-pub struct Renderer {
-	pub window: Arc<Window>,
-	pub surface: Surface<'static>,
-	pub adapter: Adapter,
-	pub config: SurfaceConfiguration,
-	pub device: Device,
-	pub queue: Queue,
-}
-
-impl Renderer {
-	async fn new(window: Arc<Window>) -> Self {
-		let mut size = window.inner_size();
-		size.width = size.width.max(1);
-		size.height = size.height.max(1);
-
-		let instance = wgpu::Instance::default();
-
-		let surface = instance.create_surface(window.clone()).unwrap();
-		let adapter = instance
-			.request_adapter(&wgpu::RequestAdapterOptions {
-				power_preference: wgpu::PowerPreference::default(),
-				force_fallback_adapter: false,
-				// Request an adapter which can render to our surface
-				compatible_surface: Some(&surface),
-			})
-			.await
-			.expect("Failed to find an appropriate adapter");
-
-		// Create the logical device and command queue
-		let (device, queue) = adapter
-			.request_device(
-				&wgpu::DeviceDescriptor {
-					label: None,
-					required_features: wgpu::Features::empty(),
-					// Make sure we use the texture resolution limits from the adapter, so we can support images the size of the swapchain.
-					required_limits: wgpu::Limits::downlevel_webgl2_defaults()
-						.using_resolution(adapter.limits()),
-					memory_hints: wgpu::MemoryHints::MemoryUsage,
-				},
-				None,
-			)
-			.await
-			.expect("Failed to create device");
-
-		let config = surface
-			.get_default_config(&adapter, size.width, size.height)
-			.unwrap();
-
-		surface.configure(&device, &config);
-
-		Self {
-			surface,
-			config,
-			adapter,
-			device,
-			queue,
-			window: window.clone(),
-		}
-	}
-}
+mod renderer;
+pub use renderer::Renderer;
 
 pub trait Application<UserEvent> {
 	fn init(&mut self, renderer: &Renderer);
-	fn render(&self, renderer: &Renderer);
-	fn window_event(&mut self, event: winit::event::WindowEvent) -> bool;
-	fn device_event(&mut self, event: winit::event::DeviceEvent) -> bool;
-	fn user_event(&mut self, event: UserEvent) -> bool;
+	fn render(&self, renderer: &Renderer) -> Result<(), SurfaceError>;
+	fn window_event(&mut self, event: WindowEvent, renderer: &Renderer);
+	fn device_event(&mut self, event: DeviceEvent, renderer: &Renderer);
+	fn user_event(&mut self, event: UserEvent, renderer: &Renderer);
 }
 
 enum WindowState {
@@ -247,9 +190,7 @@ where
 			}
 			CustomEvent::UserEvent(user_event) => {
 				if let WindowState::Initialized(renderer) = &self.state {
-					if self.app.user_event(user_event) {
-						renderer.window.request_redraw();
-					}
+					self.app.user_event(user_event, renderer);
 				}
 			}
 		}
@@ -263,29 +204,40 @@ where
 	) {
 		match &mut self.state {
 			WindowState::Initialized(renderer) => {
-				let window = renderer.window.as_ref();
-
 				match event {
 					WindowEvent::Resized(new_size) => {
 						// Reconfigure the surface with the new size
-						renderer.config.width = new_size.width.max(1);
-						renderer.config.height = new_size.height.max(1);
-						renderer
-							.surface
-							.configure(&renderer.device, &renderer.config);
+						renderer.resize(new_size);
 						// On macos the window needs to be redrawn manually after resizing
-						window.request_redraw();
+						renderer.request_redraw();
 					}
 
 					WindowEvent::RedrawRequested => {
-						self.app.render(renderer);
+						match self.app.render(renderer) {
+							Ok(_) => {}
+							// Reconfigure the surface if it's lost or outdated
+							Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
+								renderer.resize(PhysicalSize {
+									width: renderer.config.width,
+									height: renderer.config.height,
+								});
+							}
+							// The system is out of memory, we should probably quit
+							Err(wgpu::SurfaceError::OutOfMemory) => {
+								log::error!("OutOfMemory");
+								event_loop.exit();
+							}
+
+							// This happens when the a frame takes too long to present
+							Err(wgpu::SurfaceError::Timeout) => {
+								log::warn!("Surface timeout")
+							}
+						}
 					}
 
 					WindowEvent::CloseRequested => event_loop.exit(),
 					rest => {
-						if self.app.window_event(rest) {
-							window.request_redraw();
-						};
+						self.app.window_event(rest, renderer);
 					}
 				};
 			}
@@ -300,9 +252,7 @@ where
 		event: DeviceEvent,
 	) {
 		if let WindowState::Initialized(renderer) = &mut self.state {
-			if self.app.device_event(event) {
-				renderer.window.request_redraw();
-			}
+			self.app.device_event(event, renderer);
 		}
 	}
 }

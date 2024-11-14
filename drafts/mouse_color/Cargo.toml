@@ -1,0 +1,17 @@
+[package]
+name = "draft-mouse-color"
+edition.workspace = true
+publish = false
+
+[dependencies]
+wgpu = { workspace = true, features = ["spirv"] }
+glam = { workspace = true, features = ["bytemuck"] }
+winit.workspace = true
+trival_renderer.workspace = true
+
+# Enable a small amount of optimization in the dev profile.
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
