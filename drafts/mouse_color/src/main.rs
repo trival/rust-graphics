@@ -1,33 +1,25 @@
 use trival_renderer::{create_app, Application, Renderer};
 use winit::event::{DeviceEvent, WindowEvent};
 
-struct InitializedState {
+struct App {
 	color: wgpu::Color,
 }
 
-#[derive(Default)]
-struct App {
-	state: Option<InitializedState>,
-}
-
-struct UserEvent(wgpu::Color);
-
-impl Application<UserEvent> for App {
-	fn init(&mut self, _ctx: &Renderer) {
-		// Initialize the app
-
-		self.state = Some(InitializedState {
+impl App {
+	fn new() -> Self {
+		Self {
 			color: wgpu::Color {
-				r: 0.1,
-				g: 0.2,
+				r: 0.3,
+				g: 0.3,
 				b: 0.3,
 				a: 1.0,
 			},
-		});
+		}
 	}
+}
 
+impl Application<()> for App {
 	fn render(&self, renderer: &Renderer) -> std::result::Result<(), wgpu::SurfaceError> {
-		let state = self.state.as_ref().unwrap();
 		let frame = renderer.surface.get_current_texture()?;
 
 		let view = frame
@@ -44,7 +36,7 @@ impl Application<UserEvent> for App {
 					view: &view,
 					resolve_target: None,
 					ops: wgpu::Operations {
-						load: wgpu::LoadOp::Clear(state.color),
+						load: wgpu::LoadOp::Clear(self.color),
 						store: wgpu::StoreOp::Store,
 					},
 				})],
@@ -60,12 +52,6 @@ impl Application<UserEvent> for App {
 		Ok(())
 	}
 
-	fn user_event(&mut self, event: UserEvent, renderer: &Renderer) {
-		let state = self.state.as_mut().unwrap();
-		state.color = event.0;
-		renderer.request_redraw();
-	}
-
 	fn window_event(&mut self, event: WindowEvent, renderer: &Renderer) {
 		match event {
 			WindowEvent::CursorMoved {
@@ -73,8 +59,7 @@ impl Application<UserEvent> for App {
 				position,
 			} => {
 				let size = renderer.window.inner_size();
-				let state = self.state.as_mut().unwrap();
-				state.color = wgpu::Color {
+				self.color = wgpu::Color {
 					r: position.x / size.width as f64,
 					g: position.y / size.height as f64,
 					b: 0.3,
@@ -85,9 +70,12 @@ impl Application<UserEvent> for App {
 			_ => {}
 		}
 	}
+
+	fn init(&mut self, _renderer: &Renderer) {}
 	fn device_event(&mut self, _event: DeviceEvent, _renderer: &Renderer) {}
+	fn user_event(&mut self, _event: (), _renderer: &Renderer) {}
 }
 
 pub fn main() {
-	create_app(App::default()).start();
+	create_app(App::new()).start();
 }
