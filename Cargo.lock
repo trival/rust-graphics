@@ -429,7 +429,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f25c0e292a7ca6d6498557ff1df68f32c99850012b6ea401cf8daf771f22ff53"
 
 [[package]]
-name = "draft-mouse-color"
+name = "draft_mouse_color"
 version = "0.0.0"
 dependencies = [
  "glam 0.29.2",
@@ -439,13 +439,43 @@ dependencies = [
 ]
 
 [[package]]
-name = "draft-triangle"
+name = "draft_polygons"
+version = "0.0.0"
+dependencies = [
+ "bytemuck",
+ "draft_polygons_shader",
+ "glam 0.29.2",
+ "trival_painter",
+ "wgpu",
+ "winit",
+]
+
+[[package]]
+name = "draft_polygons_shader"
+version = "0.0.0"
+dependencies = [
+ "bytemuck",
+ "glam 0.29.2",
+ "spirv-std",
+ "trival_painter",
+]
+
+[[package]]
+name = "draft_triangle"
 version = "0.0.0"
 dependencies = [
  "glam 0.29.2",
  "trival_painter",
  "wgpu",
  "winit",
+]
+
+[[package]]
+name = "draft_triangle_shader"
+version = "0.0.0"
+dependencies = [
+ "glam 0.29.2",
+ "spirv-std",
 ]
 
 [[package]]
@@ -810,6 +840,22 @@ name = "log"
 version = "0.4.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a7a70ba024b9dc04c27ea2f0c0548feb474ec5c54bba33a7f72f873a39d07b24"
+
+[[package]]
+name = "macro_rules_attribute"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a82271f7bc033d84bbca59a3ce3e4159938cb08a9c3aebbe54d215131518a13"
+dependencies = [
+ "macro_rules_attribute-proc_macro",
+ "paste",
+]
+
+[[package]]
+name = "macro_rules_attribute-proc_macro"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8dd856d451cc0da70e2ef2ce95a18e39a93b7558bedf10201ad28503f918568"
 
 [[package]]
 name = "malloc_buf"
@@ -1463,14 +1509,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "shader-triangle-base"
-version = "0.1.0"
-dependencies = [
- "glam 0.29.2",
- "spirv-std",
-]
-
-[[package]]
 name = "shlex"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1703,6 +1741,7 @@ dependencies = [
  "env_logger",
  "glam 0.29.2",
  "log",
+ "macro_rules_attribute",
  "pollster",
  "wgpu",
  "winit",

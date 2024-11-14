@@ -1,5 +1,5 @@
 [package]
-name = "draft_triangle"
+name = "draft_polygons"
 edition.workspace = true
 
 [dependencies]
@@ -7,3 +7,5 @@ wgpu = { workspace = true, features = ["spirv"] }
 glam = { workspace = true, features = ["bytemuck"] }
 winit.workspace = true
 trival_painter.workspace = true
+draft_polygons_shader = { path = "./shader" }
+bytemuck = { workspace = true, features = ["derive"] }

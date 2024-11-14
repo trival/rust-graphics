@@ -11,3 +11,4 @@ glam = { workspace = true, features = ["bytemuck"] }
 log.workspace = true
 env_logger.workspace = true
 pollster.workspace = true
+macro_rules_attribute = "0.2.0"

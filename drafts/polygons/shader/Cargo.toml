@@ -1,5 +1,5 @@
 [package]
-name = "draft_triangle_shader"
+name = "draft_polygons_shader"
 edition.workspace = true
 
 [lib]
@@ -15,4 +15,6 @@ glam = { version = "0.29", default-features = false, features = ["libm"] }
 
 # dependencies for CPU code
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
-glam.workspace = true
+glam = { workspace = true, features = ["bytemuck"] }
+bytemuck = { workspace = true, features = ["derive"] }
+trival_painter.workspace = true

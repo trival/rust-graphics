@@ -1,20 +1,35 @@
+use draft_polygons_shader::Vertex;
+use glam::vec3;
 use trival_painter::{create_app, Application, Painter};
-use wgpu::include_spirv;
+use wgpu::{include_spirv, util::DeviceExt};
 use winit::event::{DeviceEvent, WindowEvent};
 
 struct InitializedState {
 	pipeline: wgpu::RenderPipeline,
-	color: wgpu::Color,
+	buffer: wgpu::Buffer,
 }
+
+const VERTICES: &[Vertex] = &[
+	Vertex {
+		position: vec3(0.0, 0.5, 0.0),
+		color: vec3(1.0, 0.0, 0.0),
+	},
+	Vertex {
+		position: vec3(-0.5, -0.5, 0.0),
+		color: vec3(0.0, 1.0, 0.0),
+	},
+	Vertex {
+		position: vec3(0.5, -0.5, 0.0),
+		color: vec3(0.0, 0.0, 1.0),
+	},
+];
 
 #[derive(Default)]
 struct App {
 	state: Option<InitializedState>,
 }
 
-struct UserEvent(wgpu::Color);
-
-impl Application<UserEvent> for App {
+impl Application<()> for App {
 	fn init(&mut self, painter: &Painter) {
 		// Initialize the app
 
@@ -25,9 +40,6 @@ impl Application<UserEvent> for App {
 				bind_group_layouts: &[],
 				push_constant_ranges: &[],
 			});
-
-		// let capabilities = painter.surface.get_capabilities(&painter.adapter);
-		// let format = capabilities.formats[0];
 
 		// Load the shaders from disk
 		let vert_shader = painter
@@ -45,7 +57,11 @@ impl Application<UserEvent> for App {
 				vertex: wgpu::VertexState {
 					module: &vert_shader,
 					entry_point: None,
-					buffers: &[],
+					buffers: &[wgpu::VertexBufferLayout {
+						array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+						step_mode: wgpu::VertexStepMode::Vertex,
+						attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
+					}],
 					compilation_options: Default::default(),
 				},
 				fragment: Some(wgpu::FragmentState {
@@ -58,17 +74,22 @@ impl Application<UserEvent> for App {
 						write_mask: wgpu::ColorWrites::ALL,
 					})],
 				}),
-				primitive: wgpu::PrimitiveState::default(),
+				primitive: Default::default(),
 				depth_stencil: None,
-				multisample: wgpu::MultisampleState::default(),
+				multisample: Default::default(),
 				multiview: None,
 				cache: None,
 			});
 
-		self.state = Some(InitializedState {
-			pipeline,
-			color: wgpu::Color::BLUE,
-		});
+		let buffer = painter
+			.device
+			.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+				label: Some("Vertex Buffer"),
+				contents: bytemuck::cast_slice(VERTICES),
+				usage: wgpu::BufferUsages::VERTEX,
+			});
+
+		self.state = Some(InitializedState { pipeline, buffer });
 	}
 
 	fn render(&self, painter: &Painter) -> std::result::Result<(), wgpu::SurfaceError> {
@@ -89,7 +110,7 @@ impl Application<UserEvent> for App {
 					view: &view,
 					resolve_target: None,
 					ops: wgpu::Operations {
-						load: wgpu::LoadOp::Clear(state.color),
+						load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
 						store: wgpu::StoreOp::Store,
 					},
 				})],
@@ -98,6 +119,7 @@ impl Application<UserEvent> for App {
 				occlusion_query_set: None,
 			});
 			rpass.set_pipeline(&state.pipeline);
+			rpass.set_vertex_buffer(0, state.buffer.slice(..));
 			rpass.draw(0..3, 0..1);
 		}
 
@@ -107,28 +129,11 @@ impl Application<UserEvent> for App {
 		Ok(())
 	}
 
-	fn user_event(&mut self, event: UserEvent, painter: &Painter) {
-		let state = self.state.as_mut().unwrap();
-		state.color = event.0;
-		painter.redraw();
-	}
-
+	fn user_event(&mut self, _event: (), _painter: &Painter) {}
 	fn window_event(&mut self, _event: WindowEvent, _painter: &Painter) {}
 	fn device_event(&mut self, _event: DeviceEvent, _painter: &Painter) {}
 }
 
 pub fn main() {
-	let app = create_app(App::default());
-	let handle = app.get_handle();
-
-	std::thread::spawn(move || loop {
-		std::thread::sleep(std::time::Duration::from_secs(2));
-		let _ = handle.send_event(UserEvent(wgpu::Color::RED));
-		std::thread::sleep(std::time::Duration::from_secs(2));
-		let _ = handle.send_event(UserEvent(wgpu::Color::GREEN));
-		std::thread::sleep(std::time::Duration::from_secs(2));
-		let _ = handle.send_event(UserEvent(wgpu::Color::BLUE));
-	});
-
-	app.start();
+	create_app(App::default()).start();
 }
