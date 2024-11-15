@@ -8,6 +8,7 @@ members = [
 	"drafts/polygons/shader",
 	"drafts/mouse_color",
 	"engine",
+	"libs-wasm",
 ]
 
 [workspace.package]
