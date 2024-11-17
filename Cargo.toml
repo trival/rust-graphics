@@ -7,6 +7,8 @@ members = [
 	"drafts/polygons",
 	"drafts/polygons/shader",
 	"drafts/mouse_color",
+	"drafts/shader_image",
+	"drafts/shader_image/shader",
 	"engine",
 	"libs-wasm",
 ]
@@ -24,6 +26,8 @@ winit = "0.30.5"
 env_logger = "0.11"
 pollster = "0.4.0"
 log = "0.4"
+png = "0.17.14"
+flume = "0.11.1"
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]

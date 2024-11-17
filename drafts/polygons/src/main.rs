@@ -1,5 +1,5 @@
-use draft_polygons_shader::Vertex;
 use glam::vec3;
+use shader::Vertex;
 use trival_painter::{create_app, Application, Painter};
 use wgpu::{include_spirv, util::DeviceExt};
 use winit::event::{DeviceEvent, WindowEvent};

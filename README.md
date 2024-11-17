@@ -9,4 +9,6 @@ To compile, run `cargo gpu build` in the crate directory.
 Unfortunately this does not work with the workspace `glam` dependency. Thus
 `glam` needs to be defined separately in the `Cargo.toml` for the spirv target.
 
+To watch compile, install `watchexec` and run `watchexec -r -e rs cargo gpu build` in the shader crate directory.
+
 These crates can also be used from CPU Rust code, just like any other crate.
