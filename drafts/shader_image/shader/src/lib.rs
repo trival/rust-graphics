@@ -1,23 +1,40 @@
 //! Ported to Rust from <https://github.com/Tw1ddle/Sky-Shader/blob/master/src/shaders/glsl/sky.fragment>
 #![allow(unexpected_cfgs)]
 #![cfg_attr(target_arch = "spirv", no_std)]
-// HACK(eddyb) can't easily see warnings otherwise from `spirv-builder` builds.
-#![deny(warnings)]
 
 use glam::{vec2, vec4, Vec2, Vec4};
+#[cfg(target_arch = "spirv")]
+use spirv_std::num_traits::Float;
 use spirv_std::spirv;
 
 #[spirv(fragment)]
-pub fn main_fs(output: &mut Vec4) {
-	*output = vec4(0.0, 0.0, 1.0, 1.0);
+pub fn main_fs(uv: Vec2, output: &mut Vec4) {
+	let tile_size = vec2(6.0, 10.0);
+	let gap_size = tile_size * 0.02;
+	let mut tile = uv * tile_size;
+	let y_offet = tile.y.floor() % 2.0;
+	if y_offet == 1.0 {
+		tile.x += 0.5;
+	}
+	tile -= gap_size * 0.5;
+	let tile = tile - tile.floor();
+	*output = if tile.x >= 1.0 - gap_size.x || tile.y >= 1.0 - gap_size.y {
+		vec4(0.4, 0.6, 0.9, 1.0)
+	} else {
+		vec4(1.0, 0.8, 0.5, 1.0)
+	}
 }
 
 #[spirv(vertex)]
-pub fn main_vs(#[spirv(vertex_index)] vert_idx: i32, #[spirv(position)] builtin_pos: &mut Vec4) {
+pub fn main_vs(
+	#[spirv(vertex_index)] vert_idx: i32,
+	#[spirv(position)] builtin_pos: &mut Vec4,
+	uv: &mut Vec2,
+) {
 	// Create a "full screen triangle" by mapping the vertex index.
 	// ported from https://www.saschawillems.de/blog/2016/08/13/vulkan-tutorial-on-rendering-a-fullscreen-quad-without-buffers/
-	let uv = vec2(((vert_idx << 1) & 2) as f32, (vert_idx & 2) as f32);
-	let pos = 2.0 * uv - Vec2::ONE;
+	*uv = vec2(((vert_idx << 1) & 2) as f32, (vert_idx & 2) as f32);
+	let pos = *uv * 2.0 - Vec2::ONE;
 
 	*builtin_pos = pos.extend(0.0).extend(1.0);
 }
