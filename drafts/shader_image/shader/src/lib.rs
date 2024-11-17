@@ -9,7 +9,7 @@ use spirv_std::spirv;
 
 #[spirv(fragment)]
 pub fn main_fs(uv: Vec2, output: &mut Vec4) {
-	let tile_size = vec2(6.0, 10.0);
+	let tile_size = vec2(6.0, 12.0);
 	let gap_size = tile_size * 0.02;
 	let mut tile = uv * tile_size;
 	let y_offet = tile.y.floor() % 2.0;
