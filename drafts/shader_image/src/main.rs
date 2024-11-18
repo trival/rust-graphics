@@ -173,7 +173,7 @@ pub fn main() {
 
 	let path = std::env::args()
 		.nth(2)
-		.unwrap_or_else(|| "please_don't_git_push_me.png".to_string());
+		.unwrap_or_else(|| "output.png".to_string());
 
 	pollster::block_on(run(Some(path)));
 }

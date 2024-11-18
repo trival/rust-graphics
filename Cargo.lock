@@ -475,6 +475,7 @@ dependencies = [
  "bytemuck",
  "draft_polygons_shader",
  "glam 0.29.2",
+ "png",
  "trival_painter",
  "wgpu",
  "winit",

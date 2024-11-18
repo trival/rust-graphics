@@ -9,3 +9,4 @@ winit.workspace = true
 trival_painter.workspace = true
 shader = { path = "./shader", package = "draft_polygons_shader" }
 bytemuck = { workspace = true, features = ["derive"] }
+png.workspace = true

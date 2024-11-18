@@ -31,10 +31,7 @@ pub fn main_vs(
 	#[spirv(position)] builtin_pos: &mut Vec4,
 	uv: &mut Vec2,
 ) {
-	// Create a "full screen triangle" by mapping the vertex index.
-	// ported from https://www.saschawillems.de/blog/2016/08/13/vulkan-tutorial-on-rendering-a-fullscreen-quad-without-buffers/
 	*uv = vec2(((vert_idx << 1) & 2) as f32, (vert_idx & 2) as f32);
 	let pos = *uv * 2.0 - Vec2::ONE;
-
 	*builtin_pos = pos.extend(0.0).extend(1.0);
 }
