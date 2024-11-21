@@ -8,7 +8,9 @@ use winit::{
 	window::{Window, WindowId},
 };
 
-mod painter;
+mod form;
+pub mod painter;
+mod sketch;
 pub use painter::Painter;
 
 pub trait Application<UserEvent> {
@@ -294,4 +296,15 @@ pub mod macros {
 	}
 
 	pub use ::macro_rules_attribute::apply;
+
+	#[macro_export]
+	macro_rules! hashmap {
+    () => {
+        ::std::collections::HashMap::new()
+    };
+
+    ($($key:expr => $value:expr),+ $(,)?) => {
+        ::std::collections::HashMap::from([ $(($key, $value)),* ])
+    };
+}
 }

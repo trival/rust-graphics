@@ -1,7 +1,8 @@
 use glam::{vec2, vec3, Vec2, Vec3};
-use trival_painter::macros::*;
+use trival_painter::painter::{Form, FormDescriptor, Shade, ShadeDescriptor};
 use trival_painter::{create_app, Application, Painter};
-use wgpu::{include_spirv, util::DeviceExt};
+use trival_painter::{hashmap, macros::*};
+use wgpu::{include_spirv, VertexFormat::*};
 use winit::event::{DeviceEvent, WindowEvent};
 
 #[apply(gpu_data)]
@@ -12,8 +13,8 @@ pub struct Vertex {
 }
 
 struct InitializedState {
-	pipeline: wgpu::RenderPipeline,
-	buffer: wgpu::Buffer,
+	form: Form,
+	shade: Shade,
 	diffuse_bind_group: wgpu::BindGroup,
 }
 
@@ -43,14 +44,6 @@ struct App {
 impl Application<()> for App {
 	fn init(&mut self, painter: &Painter) {
 		// Initialize the app
-
-		let buffer = painter
-			.device
-			.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-				label: Some("Vertex Buffer"),
-				contents: bytemuck::cast_slice(VERTICES),
-				usage: wgpu::BufferUsages::VERTEX,
-			});
 
 		let tex_bytes = include_bytes!("../texture.png");
 		let mut reader = png::Decoder::new(std::io::Cursor::new(tex_bytes))
@@ -125,32 +118,7 @@ impl Application<()> for App {
 			..Default::default()
 		});
 
-		let texture_bind_group_layout =
-			painter
-				.device
-				.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-					entries: &[
-						wgpu::BindGroupLayoutEntry {
-							binding: 0,
-							visibility: wgpu::ShaderStages::FRAGMENT,
-							ty: wgpu::BindingType::Texture {
-								multisampled: false,
-								view_dimension: wgpu::TextureViewDimension::D2,
-								sample_type: wgpu::TextureSampleType::Float { filterable: true },
-							},
-							count: None,
-						},
-						wgpu::BindGroupLayoutEntry {
-							binding: 1,
-							visibility: wgpu::ShaderStages::FRAGMENT,
-							// This should match the filterable field of the
-							// corresponding Texture entry above.
-							ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-							count: None,
-						},
-					],
-					label: Some("texture_bind_group_layout"),
-				});
+		let texture_bind_group_layout = painter.create_uniform_layout_sampled_texture_2d();
 
 		let diffuse_bind_group = painter
 			.device
@@ -169,97 +137,32 @@ impl Application<()> for App {
 				label: Some("diffuse_bind_group"),
 			});
 
-		let pipeline_layout = painter
-			.device
-			.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-				label: None,
-				bind_group_layouts: &[&texture_bind_group_layout],
-				push_constant_ranges: &[],
-			});
+		let shade = painter.create_shade(ShadeDescriptor {
+			vertex_shader: include_spirv!("../shader/vertex.spv"),
+			fragment_shader: include_spirv!("../shader/fragment.spv"),
+			vertex_format: vec![Float32x3, Float32x3, Float32x2],
+			uniform_layout: &[&texture_bind_group_layout],
+		});
 
-		// Load the shaders from disk
-		let vert_shader = painter
-			.device
-			.create_shader_module(include_spirv!("../shader/vertex.spv"));
-		let frag_shader = painter
-			.device
-			.create_shader_module(include_spirv!("../shader/fragment.spv"));
-
-		let pipeline = painter
-			.device
-			.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-				label: None,
-				layout: Some(&pipeline_layout),
-				vertex: wgpu::VertexState {
-					module: &vert_shader,
-					entry_point: None,
-					buffers: &[wgpu::VertexBufferLayout {
-						array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
-						step_mode: wgpu::VertexStepMode::Vertex,
-						attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x2],
-					}],
-					compilation_options: Default::default(),
-				},
-				fragment: Some(wgpu::FragmentState {
-					module: &frag_shader,
-					entry_point: None,
-					compilation_options: Default::default(),
-					targets: &[Some(wgpu::ColorTargetState {
-						format: painter.config.format, // for direct rendering into te surface
-						blend: Some(wgpu::BlendState::REPLACE),
-						write_mask: wgpu::ColorWrites::ALL,
-					})],
-				}),
-				primitive: Default::default(),
-				depth_stencil: None,
-				multisample: Default::default(),
-				multiview: None,
-				cache: None,
-			});
+		let form = painter.create_form(FormDescriptor {
+			vertex_buffer: VERTICES,
+			index_buffer: None,
+		});
 
 		self.state = Some(InitializedState {
-			pipeline,
-			buffer,
+			form,
+			shade,
 			diffuse_bind_group,
 		});
 	}
 
 	fn render(&self, painter: &Painter) -> std::result::Result<(), wgpu::SurfaceError> {
 		let state = self.state.as_ref().unwrap();
-		let frame = painter.surface.get_current_texture()?;
-
-		let view = frame
-			.texture
-			.create_view(&wgpu::TextureViewDescriptor::default());
-
-		let mut encoder = painter
-			.device
-			.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-		{
-			let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-				label: None,
-				color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-					view: &view,
-					resolve_target: None,
-					ops: wgpu::Operations {
-						load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-						store: wgpu::StoreOp::Store,
-					},
-				})],
-				depth_stencil_attachment: None,
-				timestamp_writes: None,
-				occlusion_query_set: None,
-			});
-			rpass.set_pipeline(&state.pipeline);
-			rpass.set_bind_group(0, &state.diffuse_bind_group, &[]);
-			rpass.set_vertex_buffer(0, state.buffer.slice(..));
-			rpass.draw(0..3, 0..1);
-		}
-
-		painter.queue.submit(Some(encoder.finish()));
-		frame.present();
-
-		Ok(())
+		painter.draw(
+			&state.form,
+			&state.shade,
+			hashmap! { 0 => &state.diffuse_bind_group },
+		)
 	}
 
 	fn user_event(&mut self, _event: (), _painter: &Painter) {}

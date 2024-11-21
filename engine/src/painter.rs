@@ -1,7 +1,74 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use wgpu::{Adapter, Device, Queue, Surface, SurfaceConfiguration};
 use winit::window::Window;
+
+pub struct Form {
+	vertex_buffer: wgpu::Buffer,
+	index_buffer: Option<wgpu::Buffer>,
+}
+
+pub struct FormDescriptor<'a, T>
+where
+	T: bytemuck::Pod + bytemuck::Zeroable,
+{
+	pub vertex_buffer: &'a [T],
+	pub index_buffer: Option<&'a [u32]>,
+}
+
+pub struct Shade {
+	pipeline: wgpu::RenderPipeline,
+}
+
+pub struct ShadeDescriptor<'a, Format: Into<FormFormat>> {
+	pub vertex_shader: wgpu::ShaderModuleDescriptor<'a>,
+	pub fragment_shader: wgpu::ShaderModuleDescriptor<'a>,
+	pub vertex_format: Format,
+	pub uniform_layout: &'a [&'a wgpu::BindGroupLayout],
+}
+
+pub struct FormFormat {
+	stride: u64,
+	attributes: Vec<wgpu::VertexAttribute>,
+}
+
+pub fn attrib(location: u32, format: wgpu::VertexFormat, offset: u64) -> wgpu::VertexAttribute {
+	wgpu::VertexAttribute {
+		shader_location: location,
+		format,
+		offset,
+	}
+}
+
+impl Into<FormFormat> for &[wgpu::VertexFormat] {
+	fn into(self) -> FormFormat {
+		let mut stride = 0;
+		let mut attributes = Vec::with_capacity(self.len());
+		let mut location = 0;
+		for format in self {
+			attributes.push(attrib(location, *format, stride));
+			stride += format.size();
+			location += 1;
+		}
+
+		FormFormat { attributes, stride }
+	}
+}
+
+impl Into<FormFormat> for Vec<wgpu::VertexFormat> {
+	fn into(self) -> FormFormat {
+		self.as_slice().into()
+	}
+}
+
+impl Into<FormFormat> for wgpu::VertexFormat {
+	fn into(self) -> FormFormat {
+		FormFormat {
+			attributes: vec![attrib(0, self, 0)],
+			stride: self.size(),
+		}
+	}
+}
 
 pub struct Painter {
 	pub surface: Surface<'static>,
@@ -78,4 +145,202 @@ impl Painter {
 	pub fn canvas_size(&self) -> winit::dpi::PhysicalSize<u32> {
 		self.window.inner_size()
 	}
+
+	pub fn update_form<T>(&self, form: &mut Form, descriptor: FormDescriptor<T>)
+	where
+		T: bytemuck::Pod,
+	{
+		self.queue.write_buffer(
+			&form.vertex_buffer,
+			0,
+			bytemuck::cast_slice(descriptor.vertex_buffer),
+		);
+
+		if let Some(index_data) = descriptor.index_buffer {
+			let index_buffer =
+				form
+					.index_buffer
+					.get_or_insert(self.device.create_buffer(&wgpu::BufferDescriptor {
+						label: None,
+						usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
+						size: get_padded_size(index_data.len() as u64 * std::mem::size_of::<u32>() as u64),
+						mapped_at_creation: false,
+					}));
+
+			self.queue.write_buffer(
+				index_buffer,
+				0,
+				bytemuck::cast_slice(descriptor.index_buffer.unwrap()),
+			);
+		}
+	}
+
+	pub fn create_form_with_size(&self, size: u64) -> Form {
+		let vertex_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
+			label: None,
+			usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+			size: get_padded_size(size),
+			mapped_at_creation: false,
+		});
+
+		Form {
+			vertex_buffer,
+			index_buffer: None,
+		}
+	}
+
+	pub fn create_form<T>(&self, descriptor: FormDescriptor<T>) -> Form
+	where
+		T: bytemuck::Pod,
+	{
+		let mut form = self.create_form_with_size(
+			descriptor.vertex_buffer.len() as u64 * std::mem::size_of::<T>() as u64,
+		);
+
+		self.update_form(&mut form, descriptor);
+
+		form
+	}
+
+	pub fn create_shade<Format: Into<FormFormat>>(
+		&self,
+		descriptor: ShadeDescriptor<Format>,
+	) -> Shade {
+		let pipeline_layout = self
+			.device
+			.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+				label: None,
+				bind_group_layouts: descriptor.uniform_layout,
+				push_constant_ranges: &[],
+			});
+
+		let format = descriptor.vertex_format.into();
+
+		let vertex_shader = self.device.create_shader_module(descriptor.vertex_shader);
+		let fragment_shader = self.device.create_shader_module(descriptor.fragment_shader);
+
+		let pipeline = self
+			.device
+			.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+				label: None,
+				layout: Some(&pipeline_layout),
+				vertex: wgpu::VertexState {
+					module: &vertex_shader,
+					entry_point: None,
+					buffers: &[wgpu::VertexBufferLayout {
+						array_stride: format.stride,
+						step_mode: wgpu::VertexStepMode::Vertex,
+						attributes: &format.attributes,
+					}],
+					compilation_options: Default::default(),
+				},
+				fragment: Some(wgpu::FragmentState {
+					module: &fragment_shader,
+					entry_point: None,
+					targets: &[Some(wgpu::ColorTargetState {
+						format: self.config.format,
+						blend: Some(wgpu::BlendState::REPLACE),
+						write_mask: wgpu::ColorWrites::ALL,
+					})],
+					compilation_options: Default::default(),
+				}),
+				primitive: wgpu::PrimitiveState {
+					topology: wgpu::PrimitiveTopology::TriangleList,
+					strip_index_format: None,
+					front_face: wgpu::FrontFace::Ccw,
+					cull_mode: Some(wgpu::Face::Back),
+					// Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
+					polygon_mode: wgpu::PolygonMode::Fill,
+					unclipped_depth: false,
+					conservative: false,
+				},
+				depth_stencil: None,
+				multisample: wgpu::MultisampleState::default(),
+				multiview: None,
+				cache: None,
+			});
+
+		Shade { pipeline }
+	}
+
+	pub fn create_uniform_layout_sampled_texture_2d(&self) -> wgpu::BindGroupLayout {
+		self
+			.device
+			.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+				entries: &[
+					wgpu::BindGroupLayoutEntry {
+						binding: 0,
+						visibility: wgpu::ShaderStages::FRAGMENT,
+						ty: wgpu::BindingType::Texture {
+							multisampled: false,
+							view_dimension: wgpu::TextureViewDimension::D2,
+							sample_type: wgpu::TextureSampleType::Float { filterable: true },
+						},
+						count: None,
+					},
+					wgpu::BindGroupLayoutEntry {
+						binding: 1,
+						visibility: wgpu::ShaderStages::FRAGMENT,
+						// This should match the filterable field of the
+						// corresponding Texture entry above.
+						ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+						count: None,
+					},
+				],
+				label: None,
+			})
+	}
+
+	pub fn draw<'a>(
+		&self,
+		form: &Form,
+		shade: &Shade,
+		uniforms: HashMap<u32, impl Into<Option<&'a wgpu::BindGroup>>>,
+	) -> std::result::Result<(), wgpu::SurfaceError> {
+		let frame = self.surface.get_current_texture()?;
+
+		let view = frame
+			.texture
+			.create_view(&wgpu::TextureViewDescriptor::default());
+
+		let mut encoder = self
+			.device
+			.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+		{
+			let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+				label: None,
+				color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+					view: &view,
+					resolve_target: None,
+					ops: wgpu::Operations {
+						load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+						store: wgpu::StoreOp::Store,
+					},
+				})],
+				depth_stencil_attachment: None,
+				timestamp_writes: None,
+				occlusion_query_set: None,
+			});
+			rpass.set_pipeline(&shade.pipeline);
+			for (index, bind_group) in uniforms {
+				rpass.set_bind_group(index, bind_group.into(), &[]);
+			}
+			rpass.set_vertex_buffer(0, form.vertex_buffer.slice(..));
+			rpass.draw(0..3, 0..1);
+		}
+
+		self.queue.submit(Some(encoder.finish()));
+		frame.present();
+
+		Ok(())
+	}
+}
+
+fn get_padded_size(unpadded_size: u64) -> u64 {
+	// Valid vulkan usage is
+	// 1. buffer size must be a multiple of COPY_BUFFER_ALIGNMENT.
+	// 2. buffer size must be greater than 0.
+	// Therefore we round the value up to the nearest multiple, and ensure it's at least COPY_BUFFER_ALIGNMENT.
+	let align_mask = wgpu::COPY_BUFFER_ALIGNMENT - 1;
+	((unpadded_size + align_mask) & !align_mask).max(wgpu::COPY_BUFFER_ALIGNMENT)
 }
