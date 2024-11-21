@@ -1,0 +1,11 @@
+[package]
+name = "draft_cube"
+edition.workspace = true
+
+[dependencies]
+wgpu = { workspace = true, features = ["spirv"] }
+glam = { workspace = true, features = ["bytemuck"] }
+winit.workspace = true
+trival_painter.workspace = true
+bytemuck = { workspace = true, features = ["derive"] }
+png.workspace = true

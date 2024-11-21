@@ -459,6 +459,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f25c0e292a7ca6d6498557ff1df68f32c99850012b6ea401cf8daf771f22ff53"
 
 [[package]]
+name = "draft_cube"
+version = "0.0.0"
+dependencies = [
+ "bytemuck",
+ "glam 0.29.2",
+ "png",
+ "trival_painter",
+ "wgpu",
+ "winit",
+]
+
+[[package]]
+name = "draft_cube_shader"
+version = "0.0.0"
+dependencies = [
+ "spirv-std",
+]
+
+[[package]]
 name = "draft_mouse_color"
 version = "0.0.0"
 dependencies = [

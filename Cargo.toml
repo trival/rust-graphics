@@ -9,6 +9,8 @@ members = [
 	"drafts/mouse_color",
 	"drafts/shader_image",
 	"drafts/shader_image/shader",
+	"drafts/cube",
+	"drafts/cube/shader",
 	"engine",
 	"libs-wasm",
 ]
