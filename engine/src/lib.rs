@@ -14,7 +14,7 @@ mod sketch;
 pub use painter::Painter;
 
 pub trait Application<UserEvent> {
-	fn init(&mut self, painter: &Painter);
+	fn init(&mut self, painter: &mut Painter);
 	fn render(&self, painter: &Painter) -> Result<(), SurfaceError>;
 	fn window_event(&mut self, event: WindowEvent, painter: &Painter);
 	fn device_event(&mut self, event: DeviceEvent, painter: &Painter);
@@ -185,9 +185,9 @@ where
 
 	fn user_event(&mut self, _event_loop: &ActiveEventLoop, event: CustomEvent<UserEvent>) {
 		match event {
-			CustomEvent::StateInitializationEvent(painter) => {
+			CustomEvent::StateInitializationEvent(mut painter) => {
 				painter.redraw();
-				self.app.init(&painter);
+				self.app.init(&mut painter);
 				self.state = WindowState::Initialized(painter);
 			}
 			CustomEvent::UserEvent(user_event) => {

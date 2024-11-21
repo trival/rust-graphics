@@ -71,7 +71,7 @@ impl Application<()> for App {
 		}
 	}
 
-	fn init(&mut self, _painter: &Painter) {}
+	fn init(&mut self, _painter: &mut Painter) {}
 	fn device_event(&mut self, _event: DeviceEvent, _painter: &Painter) {}
 	fn user_event(&mut self, _event: (), _painter: &Painter) {}
 }

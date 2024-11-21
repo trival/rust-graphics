@@ -15,7 +15,7 @@ struct App {
 struct UserEvent(wgpu::Color);
 
 impl Application<UserEvent> for App {
-	fn init(&mut self, painter: &Painter) {
+	fn init(&mut self, painter: &mut Painter) {
 		// Initialize the app
 
 		let pipeline_layout = painter

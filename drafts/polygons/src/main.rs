@@ -34,7 +34,7 @@ struct App {
 }
 
 impl Application<()> for App {
-	fn init(&mut self, painter: &Painter) {
+	fn init(&mut self, painter: &mut Painter) {
 		// Initialize the app
 
 		let buffer = painter

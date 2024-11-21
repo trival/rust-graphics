@@ -3,12 +3,15 @@ use std::{collections::HashMap, sync::Arc};
 use wgpu::{Adapter, Device, Queue, Surface, SurfaceConfiguration};
 use winit::window::Window;
 
-pub struct Form {
+struct FormStorage {
 	vertex_buffer: wgpu::Buffer,
 	index_buffer: Option<wgpu::Buffer>,
 }
 
-pub struct FormDescriptor<'a, T>
+#[derive(Clone, Copy)]
+pub struct Form(usize);
+
+pub struct FormProps<'a, T>
 where
 	T: bytemuck::Pod + bytemuck::Zeroable,
 {
@@ -16,11 +19,14 @@ where
 	pub index_buffer: Option<&'a [u32]>,
 }
 
-pub struct Shade {
+pub struct ShadeStorage {
 	pipeline: wgpu::RenderPipeline,
 }
 
-pub struct ShadeDescriptor<'a, Format: Into<FormFormat>> {
+#[derive(Clone, Copy)]
+pub struct Shade(usize);
+
+pub struct ShadeProps<'a, Format: Into<FormFormat>> {
 	pub vertex_shader: wgpu::ShaderModuleDescriptor<'a>,
 	pub fragment_shader: wgpu::ShaderModuleDescriptor<'a>,
 	pub vertex_format: Format,
@@ -70,6 +76,25 @@ impl Into<FormFormat> for wgpu::VertexFormat {
 	}
 }
 
+struct TextureStorage {
+	texture: wgpu::Texture,
+	uniform: wgpu::BindGroup,
+}
+
+#[derive(Clone, Copy)]
+pub struct Texture(usize);
+
+pub struct Texture2DProps<'a> {
+	pub width: u32,
+	pub height: u32,
+	pub format: wgpu::TextureFormat,
+	pub data: &'a [u8],
+	pub address_mode_u: wgpu::AddressMode,
+	pub address_mode_v: wgpu::AddressMode,
+	pub mag_filter: wgpu::FilterMode,
+	pub min_filter: wgpu::FilterMode,
+}
+
 pub struct Painter {
 	pub surface: Surface<'static>,
 	pub config: SurfaceConfiguration,
@@ -77,6 +102,9 @@ pub struct Painter {
 	pub device: Device,
 	pub queue: Queue,
 	window: Arc<Window>,
+	forms: Vec<FormStorage>,
+	shades: Vec<ShadeStorage>,
+	textures: Vec<TextureStorage>,
 }
 
 impl Painter {
@@ -129,6 +157,9 @@ impl Painter {
 			device,
 			queue,
 			window: window.clone(),
+			forms: Vec::with_capacity(8),
+			shades: Vec::with_capacity(8),
+			textures: Vec::with_capacity(8),
 		}
 	}
 
@@ -146,20 +177,21 @@ impl Painter {
 		self.window.inner_size()
 	}
 
-	pub fn update_form<T>(&self, form: &mut Form, descriptor: FormDescriptor<T>)
+	pub fn update_form<T>(&mut self, form: &Form, props: FormProps<T>)
 	where
 		T: bytemuck::Pod,
 	{
+		let f = &mut self.forms[form.0];
+
 		self.queue.write_buffer(
-			&form.vertex_buffer,
+			&f.vertex_buffer,
 			0,
-			bytemuck::cast_slice(descriptor.vertex_buffer),
+			bytemuck::cast_slice(props.vertex_buffer),
 		);
 
-		if let Some(index_data) = descriptor.index_buffer {
+		if let Some(index_data) = props.index_buffer {
 			let index_buffer =
-				form
-					.index_buffer
+				f.index_buffer
 					.get_or_insert(self.device.create_buffer(&wgpu::BufferDescriptor {
 						label: None,
 						usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
@@ -170,12 +202,12 @@ impl Painter {
 			self.queue.write_buffer(
 				index_buffer,
 				0,
-				bytemuck::cast_slice(descriptor.index_buffer.unwrap()),
+				bytemuck::cast_slice(props.index_buffer.unwrap()),
 			);
 		}
 	}
 
-	pub fn create_form_with_size(&self, size: u64) -> Form {
+	pub fn create_form_with_size(&mut self, size: u64) -> Form {
 		let vertex_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
 			label: None,
 			usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
@@ -183,41 +215,42 @@ impl Painter {
 			mapped_at_creation: false,
 		});
 
-		Form {
+		let f = FormStorage {
 			vertex_buffer,
 			index_buffer: None,
-		}
+		};
+
+		let i = self.forms.len();
+		self.forms.push(f);
+
+		return Form(i);
 	}
 
-	pub fn create_form<T>(&self, descriptor: FormDescriptor<T>) -> Form
+	pub fn create_form<T>(&mut self, props: FormProps<T>) -> Form
 	where
 		T: bytemuck::Pod,
 	{
-		let mut form = self.create_form_with_size(
-			descriptor.vertex_buffer.len() as u64 * std::mem::size_of::<T>() as u64,
-		);
+		let form = self
+			.create_form_with_size(props.vertex_buffer.len() as u64 * std::mem::size_of::<T>() as u64);
 
-		self.update_form(&mut form, descriptor);
+		self.update_form(&form, props);
 
 		form
 	}
 
-	pub fn create_shade<Format: Into<FormFormat>>(
-		&self,
-		descriptor: ShadeDescriptor<Format>,
-	) -> Shade {
+	pub fn create_shade<Format: Into<FormFormat>>(&mut self, props: ShadeProps<Format>) -> Shade {
 		let pipeline_layout = self
 			.device
 			.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
 				label: None,
-				bind_group_layouts: descriptor.uniform_layout,
+				bind_group_layouts: props.uniform_layout,
 				push_constant_ranges: &[],
 			});
 
-		let format = descriptor.vertex_format.into();
+		let format = props.vertex_format.into();
 
-		let vertex_shader = self.device.create_shader_module(descriptor.vertex_shader);
-		let fragment_shader = self.device.create_shader_module(descriptor.fragment_shader);
+		let vertex_shader = self.device.create_shader_module(props.vertex_shader);
+		let fragment_shader = self.device.create_shader_module(props.fragment_shader);
 
 		let pipeline = self
 			.device
@@ -260,10 +293,103 @@ impl Painter {
 				cache: None,
 			});
 
-		Shade { pipeline }
+		let s = ShadeStorage { pipeline };
+
+		let i = self.shades.len();
+		self.shades.push(s);
+
+		Shade(i)
 	}
 
-	pub fn create_uniform_layout_sampled_texture_2d(&self) -> wgpu::BindGroupLayout {
+	pub fn create_texture_2d<'a>(&mut self, props: Texture2DProps<'a>) -> Texture {
+		let texture_size = wgpu::Extent3d {
+			width: props.width,
+			height: props.height,
+			depth_or_array_layers: 1,
+		};
+
+		let texture = self.device.create_texture(&wgpu::TextureDescriptor {
+			// All textures are stored as 3D, we represent our 2D texture
+			// by setting depth to 1.
+			size: texture_size,
+			mip_level_count: 1, // We'll talk about this a little later
+			sample_count: 1,
+			dimension: wgpu::TextureDimension::D2,
+			// Most images are stored using sRGB, so we need to reflect that here.
+			format: props.format,
+			// TEXTURE_BINDING tells wgpu that we want to use this texture in shaders
+			// COPY_DST means that we want to copy data to this texture
+			usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+			label: None,
+			// This is the same as with the SurfaceConfig. It
+			// specifies what texture formats can be used to
+			// create TextureViews for this texture. The base
+			// texture format (Rgba8UnormSrgb in this case) is
+			// always supported. Note that using a different
+			// texture format is not supported on the WebGL2
+			// backend.
+			view_formats: &[],
+		});
+
+		self.queue.write_texture(
+			// Tells wgpu where to copy the pixel data
+			wgpu::ImageCopyTexture {
+				texture: &texture,
+				mip_level: 0,
+				origin: wgpu::Origin3d::ZERO,
+				aspect: wgpu::TextureAspect::All,
+			},
+			// The actual pixel data
+			props.data,
+			// The layout of the texture
+			wgpu::ImageDataLayout {
+				offset: 0,
+				bytes_per_row: Some(4 * props.width),
+				rows_per_image: Some(props.height),
+			},
+			texture_size,
+		);
+
+		// We don't need to configure the texture view much, so let's
+		// let wgpu define it.
+		let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+		let sampler = self.device.create_sampler(&wgpu::SamplerDescriptor {
+			address_mode_u: props.address_mode_u,
+			address_mode_v: props.address_mode_v,
+			address_mode_w: wgpu::AddressMode::ClampToEdge,
+			mag_filter: props.mag_filter,
+			min_filter: props.min_filter,
+			mipmap_filter: wgpu::FilterMode::Nearest,
+			..Default::default()
+		});
+
+		let bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+			layout: &self.get_texture_2d_uniform_layout(),
+			entries: &[
+				wgpu::BindGroupEntry {
+					binding: 0,
+					resource: wgpu::BindingResource::TextureView(&view),
+				},
+				wgpu::BindGroupEntry {
+					binding: 1,
+					resource: wgpu::BindingResource::Sampler(&sampler),
+				},
+			],
+			label: None,
+		});
+
+		let tex = TextureStorage {
+			texture,
+			uniform: bind_group,
+		};
+
+		let i = self.textures.len();
+		self.textures.push(tex);
+
+		Texture(i)
+	}
+
+	pub fn get_texture_2d_uniform_layout(&self) -> wgpu::BindGroupLayout {
 		self
 			.device
 			.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -291,12 +417,19 @@ impl Painter {
 			})
 	}
 
+	pub fn get_texture_uniform(&self, texture: &Texture) -> &wgpu::BindGroup {
+		&self.textures[texture.0].uniform
+	}
+
 	pub fn draw<'a>(
 		&self,
 		form: &Form,
 		shade: &Shade,
 		uniforms: HashMap<u32, impl Into<Option<&'a wgpu::BindGroup>>>,
 	) -> std::result::Result<(), wgpu::SurfaceError> {
+		let f = &self.forms[form.0];
+		let s = &self.shades[shade.0];
+
 		let frame = self.surface.get_current_texture()?;
 
 		let view = frame
@@ -321,11 +454,11 @@ impl Painter {
 				timestamp_writes: None,
 				occlusion_query_set: None,
 			});
-			rpass.set_pipeline(&shade.pipeline);
+			rpass.set_pipeline(&s.pipeline);
 			for (index, bind_group) in uniforms {
 				rpass.set_bind_group(index, bind_group.into(), &[]);
 			}
-			rpass.set_vertex_buffer(0, form.vertex_buffer.slice(..));
+			rpass.set_vertex_buffer(0, f.vertex_buffer.slice(..));
 			rpass.draw(0..3, 0..1);
 		}
 
