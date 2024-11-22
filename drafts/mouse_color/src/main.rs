@@ -1,5 +1,8 @@
-use trival_painter::{create_app, Application, Painter};
-use winit::event::{DeviceEvent, WindowEvent};
+use trivalibs::{
+	painter::{create_canvas_app, CanvasApp, Painter},
+	wgpu,
+	winit::event::{DeviceEvent, WindowEvent},
+};
 
 struct App {
 	color: wgpu::Color,
@@ -18,7 +21,7 @@ impl App {
 	}
 }
 
-impl Application<()> for App {
+impl CanvasApp<()> for App {
 	fn render(&self, painter: &Painter) -> std::result::Result<(), wgpu::SurfaceError> {
 		let frame = painter.surface.get_current_texture()?;
 
@@ -77,5 +80,5 @@ impl Application<()> for App {
 }
 
 pub fn main() {
-	create_app(App::new()).start();
+	create_canvas_app(App::new()).start();
 }

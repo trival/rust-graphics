@@ -1,6 +1,8 @@
-use trival_painter::{create_app, Application, Painter};
-use wgpu::include_spirv;
-use winit::event::{DeviceEvent, WindowEvent};
+use trivalibs::{
+	painter::{create_canvas_app, CanvasApp, Painter},
+	wgpu::{self, include_spirv},
+	winit::event::{DeviceEvent, WindowEvent},
+};
 
 struct InitializedState {
 	pipeline: wgpu::RenderPipeline,
@@ -14,7 +16,7 @@ struct App {
 
 struct UserEvent(wgpu::Color);
 
-impl Application<UserEvent> for App {
+impl CanvasApp<UserEvent> for App {
 	fn init(&mut self, painter: &mut Painter) {
 		// Initialize the app
 
@@ -118,7 +120,7 @@ impl Application<UserEvent> for App {
 }
 
 pub fn main() {
-	let app = create_app(App::default());
+	let app = create_canvas_app(App::default());
 	let handle = app.get_handle();
 
 	std::thread::spawn(move || loop {

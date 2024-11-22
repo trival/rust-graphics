@@ -1,10 +1,13 @@
 #![no_std]
 #![allow(unexpected_cfgs)]
 
-use glam::{vec4, Vec2, Vec3, Vec4};
+#[cfg(target_arch = "spirv")]
+use spirv_std::glam::{vec2, vec4, Vec2, Vec3, Vec4};
 use spirv_std::{glam::vec2, spirv, Image, Sampler};
 #[cfg(not(target_arch = "spirv"))]
-use trival_painter::macros::*;
+use trivalibs::glam::{vec4, Vec2, Vec3, Vec4};
+#[cfg(not(target_arch = "spirv"))]
+use trivalibs::macros::*;
 
 #[cfg(not(target_arch = "spirv"))]
 #[apply(gpu_data)]

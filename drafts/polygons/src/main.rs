@@ -1,8 +1,13 @@
-use glam::{vec2, vec3};
 use shader::Vertex;
-use trival_painter::{create_app, Application, Painter};
-use wgpu::{include_spirv, util::DeviceExt};
-use winit::event::{DeviceEvent, WindowEvent};
+use trivalibs::painter::create_canvas_app;
+use trivalibs::painter::CanvasApp;
+use trivalibs::painter::Painter;
+use trivalibs::prelude::*;
+use trivalibs::wgpu;
+use trivalibs::wgpu::include_spirv;
+use trivalibs::wgpu::util::DeviceExt;
+use trivalibs::winit::event::DeviceEvent;
+use trivalibs::winit::event::WindowEvent;
 
 struct InitializedState {
 	pipeline: wgpu::RenderPipeline,
@@ -33,7 +38,7 @@ struct App {
 	state: Option<InitializedState>,
 }
 
-impl Application<()> for App {
+impl CanvasApp<()> for App {
 	fn init(&mut self, painter: &mut Painter) {
 		// Initialize the app
 
@@ -261,5 +266,5 @@ impl Application<()> for App {
 }
 
 pub fn main() {
-	create_app(App::default()).start();
+	create_canvas_app(App::default()).start();
 }

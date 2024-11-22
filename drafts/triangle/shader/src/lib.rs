@@ -1,6 +1,8 @@
 #![no_std]
-use glam::{vec2, vec4, Vec2, Vec4};
-use spirv_std::spirv;
+use spirv_std::{
+	glam::{vec2, vec4, Vec2, Vec4},
+	spirv,
+};
 
 pub const CLIP_SPACE_COORD_QUAD_CCW: [Vec4; 6] = {
 	let tl = vec4(-1.0, 1.0, 0.5, 1.0);

@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use wgpu::include_spirv;
+use trivalibs::wgpu::{self, include_spirv};
 
 fn output_image_native(image_data: Vec<u8>, texture_dims: (usize, usize), path: String) {
 	let mut png_data = Vec::<u8>::with_capacity(image_data.len());

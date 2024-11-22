@@ -1,9 +1,14 @@
-use glam::{vec2, vec3, Vec2, Vec3};
-use trival_painter::painter::{Form, FormProps, Shade, ShadeProps, Texture, Texture2DProps};
-use trival_painter::{create_app, Application, Painter};
-use trival_painter::{hashmap, macros::*};
-use wgpu::{include_spirv, VertexFormat::*};
-use winit::event::{DeviceEvent, WindowEvent};
+use trivalibs::{
+	hashmap,
+	painter::{
+		create_canvas_app,
+		painter::{Form, FormProps, Shade, ShadeProps, Texture, Texture2DProps},
+		CanvasApp, Painter,
+	},
+	prelude::*,
+	wgpu::{self, include_spirv, VertexFormat::*},
+	winit::event::{DeviceEvent, WindowEvent},
+};
 
 #[apply(gpu_data)]
 pub struct Vertex {
@@ -41,7 +46,7 @@ struct App {
 	state: Option<InitializedState>,
 }
 
-impl Application<()> for App {
+impl CanvasApp<()> for App {
 	fn init(&mut self, painter: &mut Painter) {
 		// Initialize the app
 
@@ -101,5 +106,5 @@ impl Application<()> for App {
 }
 
 pub fn main() {
-	create_app(App::default()).start();
+	create_canvas_app(App::default()).start();
 }

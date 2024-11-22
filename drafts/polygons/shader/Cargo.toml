@@ -9,12 +9,7 @@ crate-type = ["rlib", "cdylib"]
 [dependencies]
 spirv-std = { version = "0.9" }
 
-# dependencies for GPU code
-[target.'cfg(target_arch = "spirv")'.dependencies]
-glam = { version = "0.29", default-features = false, features = ["libm"] }
-
 # dependencies for CPU code
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
-glam = { workspace = true, features = ["bytemuck"] }
+trivalibs.workspace = true
 bytemuck = { workspace = true, features = ["derive"] }
-trival_painter.workspace = true

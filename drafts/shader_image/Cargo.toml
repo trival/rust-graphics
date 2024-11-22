@@ -3,10 +3,7 @@ name = "draft_shader_image"
 edition.workspace = true
 
 [dependencies]
-wgpu = { workspace = true, features = ["spirv"] }
-glam = { workspace = true, features = ["bytemuck"] }
-winit.workspace = true
-trival_painter.workspace = true
+trivalibs.workspace = true
 log.workspace = true
 png.workspace = true
 pollster.workspace = true

@@ -3,10 +3,7 @@ name = "draft_polygons"
 edition.workspace = true
 
 [dependencies]
-wgpu = { workspace = true, features = ["spirv"] }
-glam = { workspace = true, features = ["bytemuck"] }
-winit.workspace = true
-trival_painter.workspace = true
+trivalibs.workspace = true
 shader = { path = "./shader", package = "draft_polygons_shader" }
-bytemuck = { workspace = true, features = ["derive"] }
 png.workspace = true
+bytemuck.workspace = true

@@ -2,8 +2,8 @@
 #![allow(unexpected_cfgs)]
 #![cfg_attr(target_arch = "spirv", no_std)]
 
-use glam::{vec2, vec4, Vec2, Vec4};
-#[cfg(target_arch = "spirv")]
+use spirv_std::glam::{vec2, vec4, Vec2, Vec4};
+#[allow(unused_imports)]
 use spirv_std::num_traits::Float;
 use spirv_std::spirv;
 

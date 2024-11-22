@@ -3,7 +3,4 @@ name = "draft_triangle"
 edition.workspace = true
 
 [dependencies]
-wgpu = { workspace = true, features = ["spirv"] }
-glam = { workspace = true, features = ["bytemuck"] }
-winit.workspace = true
-trival_painter.workspace = true
+trivalibs.workspace = true

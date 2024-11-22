@@ -1,5 +1,4 @@
 #![no_std]
-#![allow(unexpected_cfgs)]
 
 use spirv_std::{
 	glam::{Vec2, Vec3, Vec4},
@@ -29,5 +28,5 @@ pub fn fragment(
 	frag_color: &mut Vec4,
 ) {
 	let col = tex.sample(*sampler, in_uv);
-	*frag_color = col * in_color.extend(1.0);
+	*frag_color = (1.0 - col) * in_color.extend(1.0);
 }
