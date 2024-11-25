@@ -2,7 +2,7 @@ use trivalibs::{
 	hashmap,
 	painter::{
 		create_canvas_app,
-		painter::{Form, FormProps, Shade, ShadeProps, Texture, Texture2DProps},
+		painter::{Form, FormProps, SamplerProps, Shade, ShadeProps, Texture2DProps},
 		CanvasApp, Painter,
 	},
 	prelude::*,
@@ -20,7 +20,7 @@ pub struct Vertex {
 struct InitializedState {
 	form: Form,
 	shade: Shade,
-	texture: Texture,
+	tex_uniform: wgpu::BindGroup,
 }
 
 const VERTICES: &[Vertex] = &[
@@ -61,16 +61,21 @@ impl CanvasApp<()> for App {
 		// Grab the bytes of the image.
 		let tex_rgba = &buf[..info.buffer_size()];
 
-		let texture = painter.create_texture_2d(Texture2DProps {
+		let texture = painter.create_texture_2d(&Texture2DProps {
 			width: info.width,
 			height: info.height,
 			format: wgpu::TextureFormat::Rgba8UnormSrgb,
-			data: tex_rgba,
+			usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+		});
+
+		let sampler = painter.create_sampler(&SamplerProps {
 			address_mode_u: wgpu::AddressMode::ClampToEdge,
 			address_mode_v: wgpu::AddressMode::ClampToEdge,
 			mag_filter: wgpu::FilterMode::Linear,
 			min_filter: wgpu::FilterMode::Linear,
 		});
+
+		painter.fill_texture_2d(&texture, tex_rgba);
 
 		let shade = painter.create_shade(ShadeProps {
 			vertex_shader: include_spirv!("../shader/vertex.spv"),
@@ -79,7 +84,7 @@ impl CanvasApp<()> for App {
 			uniform_layout: &[&painter.get_texture_2d_uniform_layout()],
 		});
 
-		let form = painter.create_form(FormProps {
+		let form = painter.create_form(&FormProps {
 			vertex_buffer: VERTICES,
 			index_buffer: None,
 		});
@@ -87,7 +92,7 @@ impl CanvasApp<()> for App {
 		self.state = Some(InitializedState {
 			form,
 			shade,
-			texture,
+			tex_uniform: painter.get_texture_2d_uniform(&texture, &sampler),
 		});
 	}
 
@@ -96,7 +101,7 @@ impl CanvasApp<()> for App {
 		painter.draw(
 			&state.form,
 			&state.shade,
-			hashmap! { 0 => painter.get_texture_uniform(&state.texture)  },
+			hashmap! { 0 => &state.tex_uniform  },
 		)
 	}
 
