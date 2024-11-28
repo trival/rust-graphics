@@ -1,8 +1,9 @@
+use geom::create_ball1_geom;
 use trivalibs::{
 	hashmap,
 	painter::{
 		create_canvas_app,
-		painter::{Form, FormProps, SamplerProps, Shade, ShadeProps, Texture2DProps},
+		painter::{Form, SamplerProps, Shade, ShadeProps, Texture2DProps},
 		CanvasApp, Painter,
 	},
 	prelude::*,
@@ -10,11 +11,13 @@ use trivalibs::{
 	winit::event::{DeviceEvent, WindowEvent},
 };
 
+mod geom;
+
 #[apply(gpu_data)]
 pub struct Vertex {
 	pub position: Vec3,
 	pub color: Vec3,
-	pub uv: Vec2,
+	pub normal: Vec3,
 }
 
 struct InitializedState {
@@ -22,24 +25,6 @@ struct InitializedState {
 	shade: Shade,
 	tex_uniform: wgpu::BindGroup,
 }
-
-const VERTICES: &[Vertex] = &[
-	Vertex {
-		position: vec3(0.0, 0.5, 0.0),
-		color: vec3(1.0, 0.0, 0.0),
-		uv: vec2(0.5, 1.0),
-	},
-	Vertex {
-		position: vec3(-0.5, -0.5, 0.0),
-		color: vec3(0.0, 1.0, 0.0),
-		uv: vec2(0.0, 0.0),
-	},
-	Vertex {
-		position: vec3(0.5, -0.5, 0.0),
-		color: vec3(0.0, 0.0, 1.0),
-		uv: vec2(1.0, 0.0),
-	},
-];
 
 #[derive(Default)]
 struct App {
@@ -80,14 +65,15 @@ impl CanvasApp<()> for App {
 		let shade = painter.create_shade(ShadeProps {
 			vertex_shader: include_spirv!("../shader/vertex.spv"),
 			fragment_shader: include_spirv!("../shader/fragment.spv"),
-			vertex_format: vec![Float32x3, Float32x3, Float32x2],
+			vertex_format: vec![Float32x3, Float32x3, Float32x3],
 			uniform_layout: &[&painter.get_texture_2d_uniform_layout()],
 		});
 
-		let form = painter.create_form(&FormProps {
-			vertex_buffer: VERTICES,
-			index_buffer: None,
-		});
+		let buf = create_ball1_geom();
+
+		let form = painter
+			.create_form_with_size((buf.vertex_count * 3 * std::mem::size_of::<Vec3>() as u32) as u64);
+		painter.update_form_buffer(&form, buf);
 
 		self.state = Some(InitializedState {
 			form,

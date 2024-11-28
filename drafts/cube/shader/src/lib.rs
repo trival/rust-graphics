@@ -1,32 +1,25 @@
 #![no_std]
 
 use spirv_std::{
-	glam::{Vec2, Vec3, Vec4},
-	spirv, Image, Sampler,
+	glam::{Vec3, Vec4},
+	spirv,
 };
 
 #[spirv(vertex)]
 pub fn vertex(
 	position: Vec3,
 	color: Vec3,
-	uv: Vec2,
+	normal: Vec3,
 	#[spirv(position)] clip_pos: &mut Vec4,
 	out_color: &mut Vec3,
-	out_uv: &mut Vec2,
+	out_norm: &mut Vec3,
 ) {
 	*out_color = color;
-	*out_uv = uv;
+	*out_norm = normal;
 	*clip_pos = position.extend(1.0);
 }
 
 #[spirv(fragment)]
-pub fn fragment(
-	in_color: Vec3,
-	in_uv: Vec2,
-	#[spirv(descriptor_set = 0, binding = 0)] tex: &Image!(2D, type=f32, sampled),
-	#[spirv(descriptor_set = 0, binding = 1)] sampler: &Sampler,
-	frag_color: &mut Vec4,
-) {
-	let col = tex.sample(*sampler, in_uv);
-	*frag_color = (1.0 - col) * in_color.extend(1.0);
+pub fn fragment(in_color: Vec3, _in_norm: Vec3, frag_color: &mut Vec4) {
+	*frag_color = in_color.extend(1.0);
 }
