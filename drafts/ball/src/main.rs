@@ -3,7 +3,9 @@ use trivalibs::{
 	hashmap,
 	painter::{
 		create_canvas_app,
-		painter::{Form, Shade, ShadeProps, Uniform},
+		form::Form,
+		shade::{Shade, ShadeProps},
+		uniform::Uniform,
 		CanvasApp, Painter,
 	},
 	prelude::*,
@@ -68,7 +70,7 @@ impl CanvasApp<()> for App {
 
 		// painter.fill_texture_2d(&texture, tex_rgba);
 
-		let uniform_layout = painter.get_uniform_buffer_layout(wgpu::ShaderStages::VERTEX);
+		let uniform_layout = painter.get_uniform_layout_buffered(wgpu::ShaderStages::VERTEX);
 
 		let shade = painter.create_shade(ShadeProps {
 			vertex_shader: include_spirv!("../shader/vertex.spv"),
@@ -100,7 +102,7 @@ impl CanvasApp<()> for App {
 
 		let mat = t.model_view_proj_mat(&cam);
 
-		let uniform = painter.create_uniform_buffer(&uniform_layout, mat);
+		let uniform = painter.create_uniform_buffered(&uniform_layout, mat);
 
 		self.state = Some(InitializedState {
 			form: ball_form,
