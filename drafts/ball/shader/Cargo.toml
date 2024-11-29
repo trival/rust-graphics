@@ -1,5 +1,5 @@
 [package]
-name = "draft_cube_shader"
+name = "draft_ball_shader"
 edition.workspace = true
 
 [lib]

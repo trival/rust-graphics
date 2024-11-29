@@ -22,7 +22,7 @@ impl App {
 }
 
 impl CanvasApp<()> for App {
-	fn render(&self, painter: &Painter) -> std::result::Result<(), wgpu::SurfaceError> {
+	fn render(&mut self, painter: &Painter) -> std::result::Result<(), wgpu::SurfaceError> {
 		let frame = painter.surface.get_current_texture()?;
 
 		let view = frame

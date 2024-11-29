@@ -73,7 +73,7 @@ impl CanvasApp<UserEvent> for App {
 		});
 	}
 
-	fn render(&self, painter: &Painter) -> std::result::Result<(), wgpu::SurfaceError> {
+	fn render(&mut self, painter: &Painter) -> std::result::Result<(), wgpu::SurfaceError> {
 		let state = self.state.as_ref().unwrap();
 		let frame = painter.surface.get_current_texture()?;
 

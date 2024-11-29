@@ -1,30 +1,30 @@
 #![no_std]
 #![allow(unexpected_cfgs)]
 
-use spirv_std::glam::{Mat3, Mat4, Vec3, Vec4};
+use spirv_std::glam::{Mat4, Vec3, Vec4};
 use spirv_std::spirv;
 
 #[spirv(vertex)]
 pub fn vertex(
 	position: Vec3,
 	color: Vec3,
-	normal: Vec3,
+	_normal: Vec3,
 	#[spirv(uniform, descriptor_set = 0, binding = 0)] mvp_mat: &Mat4,
-	#[spirv(uniform, descriptor_set = 1, binding = 0)] normal_mat: &Mat3,
+	// #[spirv(uniform, descriptor_set = 1, binding = 0)] normal_mat: &Mat3,
 	// #[spirv(descriptor_set = 0, binding = 2)] light_dir: &Vec3,
 	#[spirv(position)] clip_pos: &mut Vec4,
 	out_color: &mut Vec3,
-	out_norm: &mut Vec3,
+	// out_norm: &mut Vec3,
 ) {
 	*out_color = color;
-	*out_norm = *normal_mat * normal;
+	// *out_norm = *normal_mat * normal;
 	*clip_pos = *mvp_mat * position.extend(1.0);
 }
 
 #[spirv(fragment)]
 pub fn fragment(
 	in_color: Vec3,
-	_in_norm: Vec3,
+	// _in_norm: Vec3,
 	// #[spirv(descriptor_set = 0, binding = 0)] tex: &Image!(2D, type=f32, sampled),
 	// #[spirv(descriptor_set = 0, binding = 1)] sampler: &Sampler,
 	frag_color: &mut Vec4,

@@ -1,10 +1,9 @@
 use geom::create_ball_geom;
-use std::num::NonZeroU64;
 use trivalibs::{
 	hashmap,
 	painter::{
 		create_canvas_app,
-		painter::{Form, Shade, ShadeProps},
+		painter::{Form, Shade, ShadeProps, Uniform},
 		CanvasApp, Painter,
 	},
 	prelude::*,
@@ -13,7 +12,7 @@ use trivalibs::{
 		scene::SceneObject,
 		transform::Transform,
 	},
-	wgpu::{self, include_spirv, util::DeviceExt, VertexFormat::*},
+	wgpu::{self, include_spirv, VertexFormat::*},
 	winit::event::{DeviceEvent, WindowEvent},
 };
 
@@ -30,7 +29,7 @@ struct InitializedState {
 	form: Form,
 	shade: Shade,
 	// tex_uniform: wgpu::BindGroup,
-	cam_uniforms: wgpu::BindGroup,
+	mvp_uniform: Uniform<Mat4>,
 }
 
 #[derive(Default)]
@@ -69,6 +68,15 @@ impl CanvasApp<()> for App {
 
 		// painter.fill_texture_2d(&texture, tex_rgba);
 
+		let uniform_layout = painter.get_uniform_buffer_layout(wgpu::ShaderStages::VERTEX);
+
+		let shade = painter.create_shade(ShadeProps {
+			vertex_shader: include_spirv!("../shader/vertex.spv"),
+			fragment_shader: include_spirv!("../shader/fragment.spv"),
+			vertex_format: vec![Float32x3, Float32x3, Float32x3],
+			uniform_layout: &[&uniform_layout],
+		});
+
 		let ball_buf = create_ball_geom();
 
 		let ball_form = painter.create_form_with_size(
@@ -83,72 +91,33 @@ impl CanvasApp<()> for App {
 			..default()
 		});
 
-		let t = Transform::default();
+		let t = Transform::from_translation(vec3(0.0, 0.0, -20.0));
 
-		let uniforms = shader::Uniforms {
-			mvp_mat: cam.view_proj_mat(),
-			normal_mat: Mat4::from_mat3(t.view_normal_mat(&cam)),
-		};
+		// let uniforms = shader::Uniforms {
+		// 	mvp_mat: cam.view_proj_mat(),
+		// 	normal_mat: Mat4::from_mat3(t.view_normal_mat(&cam)),
+		// };
 
-		let uniforms_buffer = painter
-			.device
-			.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-				label: Some("Camera Buffer"),
-				contents: bytemuck::cast_slice(&[uniforms]),
-				usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-			});
+		let mat = t.model_view_proj_mat(&cam);
 
-		let uniforms_bind_group_layout =
-			painter
-				.device
-				.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-					entries: &[wgpu::BindGroupLayoutEntry {
-						binding: 0,
-						visibility: wgpu::ShaderStages::VERTEX,
-						ty: wgpu::BindingType::Buffer {
-							ty: wgpu::BufferBindingType::Uniform,
-							has_dynamic_offset: false,
-							min_binding_size: (NonZeroU64::new(std::mem::size_of::<shader::Uniforms>() as u64)),
-						},
-						count: None,
-					}],
-					label: Some("uniforms_bind_group_layout"),
-				});
-
-		let uniforms_bind_group = painter
-			.device
-			.create_bind_group(&wgpu::BindGroupDescriptor {
-				layout: &uniforms_bind_group_layout,
-				entries: &[wgpu::BindGroupEntry {
-					binding: 0,
-					resource: uniforms_buffer.as_entire_binding(),
-				}],
-				label: Some("camera_bind_group"),
-			});
-
-		let shade = painter.create_shade(ShadeProps {
-			vertex_shader: include_spirv!("../shader/vertex.spv"),
-			fragment_shader: include_spirv!("../shader/fragment.spv"),
-			vertex_format: vec![Float32x3, Float32x3, Float32x3],
-			uniform_layout: &[&uniforms_bind_group_layout],
-		});
+		let uniform = painter.create_uniform_buffer(&uniform_layout, mat);
 
 		self.state = Some(InitializedState {
 			form: ball_form,
 			shade,
 			// tex_uniform: painter.get_texture_2d_uniform(&texture, &sampler),
-			cam_uniforms: uniforms_bind_group,
+			mvp_uniform: uniform,
 		});
 	}
 
-	fn render(&self, painter: &Painter) -> std::result::Result<(), wgpu::SurfaceError> {
+	fn render(&mut self, painter: &Painter) -> std::result::Result<(), wgpu::SurfaceError> {
 		let state = self.state.as_ref().unwrap();
 		painter.draw(
 			&state.form,
 			&state.shade,
 			hashmap! {
 				// 0 => &state.tex_uniform,
-				0 => &state.cam_uniforms
+				0 => &state.mvp_uniform
 			},
 		)
 	}
