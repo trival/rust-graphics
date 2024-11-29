@@ -474,6 +474,7 @@ name = "draft_cube"
 version = "0.0.0"
 dependencies = [
  "bytemuck",
+ "draft_cube_shader",
  "png",
  "trivalibs",
 ]

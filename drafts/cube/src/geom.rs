@@ -29,7 +29,7 @@ fn vert(pos: Vec3, color: Vec3) -> Vertex {
 	Vertex { pos, color }
 }
 
-pub fn create_ball1_geom() -> RenderableBuffer {
+pub fn create_ball_geom() -> RenderableBuffer {
 	let mut grid = make_grid_with_coord_ops(CIRCLE_COLS_COORD_OPS);
 	let mut col1 = vec![];
 	let mut y = -5.0;
@@ -83,7 +83,7 @@ pub fn create_ball1_geom() -> RenderableBuffer {
 
 #[test]
 fn test_ball1() {
-	let res = create_ball1_geom();
+	let res = create_ball_geom();
 	// println!("{:?}", res);
 	assert!(res.vertex_buffer.len() > 0);
 	println!("buffer len: {}", res.vertex_buffer.len());
