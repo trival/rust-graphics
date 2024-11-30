@@ -1,9 +1,12 @@
+use std::time::Instant;
+
 use geom::create_ball_geom;
 use trivalibs::{
 	hashmap,
 	painter::{
 		create_canvas_app,
 		form::Form,
+		painter::Mat3U,
 		shade::{Shade, ShadeProps},
 		uniform::Uniform,
 		CanvasApp, Painter,
@@ -31,12 +34,23 @@ struct InitializedState {
 	form: Form,
 	shade: Shade,
 	// tex_uniform: wgpu::BindGroup,
-	mvp_uniform: Uniform<Mat4>,
+	mvp: Uniform<Mat4>,
+	norm: Uniform<Mat3U>,
+	cam: PerspectiveCamera,
+	ball_transform: Transform,
 }
 
-#[derive(Default)]
 struct App {
 	state: Option<InitializedState>,
+	now: Instant,
+}
+impl Default for App {
+	fn default() -> Self {
+		Self {
+			state: None,
+			now: Instant::now(),
+		}
+	}
 }
 
 impl CanvasApp<()> for App {
@@ -76,7 +90,7 @@ impl CanvasApp<()> for App {
 			vertex_shader: include_spirv!("../shader/vertex.spv"),
 			fragment_shader: include_spirv!("../shader/fragment.spv"),
 			vertex_format: vec![Float32x3, Float32x3, Float32x3],
-			uniform_layout: &[&uniform_layout],
+			uniform_layout: &[&uniform_layout, &uniform_layout],
 		});
 
 		let ball_buf = create_ball_geom();
@@ -94,34 +108,49 @@ impl CanvasApp<()> for App {
 		});
 
 		let t = Transform::from_translation(vec3(0.0, 0.0, -20.0));
-
-		// let uniforms = shader::Uniforms {
-		// 	mvp_mat: cam.view_proj_mat(),
-		// 	normal_mat: Mat4::from_mat3(t.view_normal_mat(&cam)),
-		// };
-
 		let mat = t.model_view_proj_mat(&cam);
+		let norm = t.view_normal_mat(&cam);
 
-		let uniform = painter.create_uniform_buffered(&uniform_layout, mat);
+		let mvp_uniform = painter.create_uniform_mat4(&uniform_layout, mat);
+		let norm_uniform = painter.create_uniform_mat3(&uniform_layout, norm);
 
 		self.state = Some(InitializedState {
 			form: ball_form,
 			shade,
 			// tex_uniform: painter.get_texture_2d_uniform(&texture, &sampler),
-			mvp_uniform: uniform,
+			mvp: mvp_uniform,
+			norm: norm_uniform,
+			ball_transform: t,
+			cam,
 		});
 	}
 
 	fn render(&mut self, painter: &Painter) -> std::result::Result<(), wgpu::SurfaceError> {
-		let state = self.state.as_ref().unwrap();
+		let elapsed = self.now.elapsed().as_secs_f32();
+		let state = self.state.as_mut().unwrap();
+
+		state.ball_transform.rotate_y(elapsed * 5.);
+
+		let mat = state.ball_transform.model_view_proj_mat(&state.cam);
+		let norm = state.ball_transform.view_normal_mat(&state.cam);
+
+		painter.update_uniform_mat4(&state.mvp, mat);
+		painter.update_uniform_mat3(&state.norm, norm);
+
 		painter.draw(
 			&state.form,
 			&state.shade,
 			hashmap! {
 				// 0 => &state.tex_uniform,
-				0 => &state.mvp_uniform
+				0 => &state.mvp.binding,
+				1 => &state.norm.binding,
 			},
-		)
+		)?;
+
+		self.now = Instant::now();
+		painter.redraw();
+
+		Ok(())
 	}
 
 	fn user_event(&mut self, _event: (), _painter: &Painter) {}
