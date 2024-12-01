@@ -103,11 +103,9 @@ impl CanvasApp<()> for App {
 		});
 
 		let t = Transform::from_translation(vec3(0.0, 0.0, -20.0));
-		let mvp_mat = t.model_view_proj_mat(&cam);
-		let norm_mat = t.view_normal_mat(&cam);
 
-		let mvp = painter.uniform_create_mat4(&uniform_layout, mvp_mat);
-		let norm = painter.uniform_create_mat3(&uniform_layout, norm_mat);
+		let mvp = painter.uniform_create_mat4(&uniform_layout, Mat4::IDENTITY);
+		let norm = painter.uniform_create_mat3(&uniform_layout, Mat3::IDENTITY);
 		let tex = painter.uniform_create_tex(&tex_layout, texture, &sampler);
 
 		let sketch = painter.sketch_create(
@@ -142,11 +140,14 @@ impl CanvasApp<()> for App {
 
 		state.ball_transform.rotate_y(elapsed * 0.5);
 
-		let mvp_mat = state.ball_transform.model_view_proj_mat(&state.cam);
-		let norm_mat = state.ball_transform.view_normal_mat(&state.cam);
-
-		painter.uniform_update_mat4(&state.mvp, mvp_mat);
-		painter.uniform_update_mat3(&state.norm, norm_mat);
+		painter.uniform_update_mat4(
+			&state.mvp,
+			state.ball_transform.model_view_proj_mat(&state.cam),
+		);
+		painter.uniform_update_mat3(
+			&state.norm,
+			state.ball_transform.view_normal_mat(&state.cam),
+		);
 
 		painter.request_redraw();
 
