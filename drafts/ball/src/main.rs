@@ -5,10 +5,10 @@ use trivalibs::{
 	hashmap,
 	painter::{
 		create_canvas_app,
-		form::Form,
-		shade::{Shade, ShadeProps},
-		texture::{SamplerProps, Texture2DProps, UniformTex2D},
-		uniform::{Mat3U, Uniform},
+		shade::ShadeProps,
+		sketch::{Sketch, SketchProps},
+		texture::{SamplerProps, Texture2DProps},
+		uniform::{Mat3U, UniformBuffer},
 		CanvasApp, Painter,
 	},
 	prelude::*,
@@ -31,12 +31,9 @@ pub struct Vertex {
 }
 
 struct InitializedState {
-	form: Form,
-	shade: Shade,
-	// tex_uniform: wgpu::BindGroup,
-	mvp: Uniform<Mat4>,
-	norm: Uniform<Mat3U>,
-	tex: UniformTex2D,
+	sketch: Sketch,
+	mvp: UniformBuffer<Mat4>,
+	norm: UniformBuffer<Mat3U>,
 
 	cam: PerspectiveCamera,
 	ball_transform: Transform,
@@ -96,7 +93,7 @@ impl CanvasApp<()> for App {
 			uniform_layout: &[&uniform_layout, &uniform_layout, &tex_layout],
 		});
 
-		let ball_form = painter.from_from_buffer(create_ball_geom());
+		let form = painter.from_from_buffer(create_ball_geom(), default());
 
 		let size = painter.canvas_size();
 		let cam = PerspectiveCamera::create(CamProps {
@@ -106,19 +103,30 @@ impl CanvasApp<()> for App {
 		});
 
 		let t = Transform::from_translation(vec3(0.0, 0.0, -20.0));
-		let mat = t.model_view_proj_mat(&cam);
-		let norm = t.view_normal_mat(&cam);
+		let mvp_mat = t.model_view_proj_mat(&cam);
+		let norm_mat = t.view_normal_mat(&cam);
 
-		let mvp_uniform = painter.uniform_create_mat4(&uniform_layout, mat);
-		let norm_uniform = painter.uniform_create_mat3(&uniform_layout, norm);
-		let tex_uniform = painter.texture_get_uniform(&tex_layout, texture, &sampler);
+		let mvp = painter.uniform_create_mat4(&uniform_layout, mvp_mat);
+		let norm = painter.uniform_create_mat3(&uniform_layout, norm_mat);
+		let tex = painter.uniform_create_tex(&tex_layout, texture, &sampler);
+
+		let sketch = painter.sketch_create(
+			form,
+			shade,
+			&SketchProps {
+				uniforms: hashmap! {
+					0 => mvp.uniform,
+					1 => norm.uniform,
+					2 => tex.uniform,
+				},
+				..default()
+			},
+		);
 
 		self.state = Some(InitializedState {
-			form: ball_form,
-			shade,
-			mvp: mvp_uniform,
-			norm: norm_uniform,
-			tex: tex_uniform,
+			sketch,
+			mvp,
+			norm,
 
 			ball_transform: t,
 			cam,
@@ -134,23 +142,15 @@ impl CanvasApp<()> for App {
 
 		state.ball_transform.rotate_y(elapsed * 0.5);
 
-		let mat = state.ball_transform.model_view_proj_mat(&state.cam);
-		let norm = state.ball_transform.view_normal_mat(&state.cam);
+		let mvp_mat = state.ball_transform.model_view_proj_mat(&state.cam);
+		let norm_mat = state.ball_transform.view_normal_mat(&state.cam);
 
-		painter.uniform_update_mat4(&state.mvp, mat);
-		painter.uniform_update_mat3(&state.norm, norm);
+		painter.uniform_update_mat4(&state.mvp, mvp_mat);
+		painter.uniform_update_mat3(&state.norm, norm_mat);
 
 		painter.request_redraw();
 
-		painter.draw(
-			&state.form,
-			&state.shade,
-			hashmap! {
-				0 => &state.mvp.binding,
-				1 => &state.norm.binding,
-				2 => &state.tex.binding,
-			},
-		)
+		painter.draw(&state.sketch)
 	}
 
 	fn user_event(&mut self, _event: (), _painter: &Painter) {}
