@@ -68,7 +68,7 @@ impl CanvasApp<()> for App {
 					b: 0.3,
 					a: 1.0,
 				};
-				painter.redraw();
+				painter.request_redraw();
 			}
 			_ => {}
 		}

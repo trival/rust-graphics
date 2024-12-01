@@ -9,6 +9,7 @@ use trivalibs::{
 #[apply(gpu_data)]
 struct Vertex {
 	pos: Vec3,
+	uv: Vec2,
 	color: Vec3,
 }
 impl OverrideAttributesWith for Vertex {
@@ -25,8 +26,8 @@ impl Position3D for Vertex {
 	}
 }
 
-fn vert(pos: Vec3, color: Vec3) -> Vertex {
-	Vertex { pos, color }
+fn vert(pos: Vec3, uv: Vec2, color: Vec3) -> Vertex {
+	Vertex { pos, color, uv }
 }
 
 pub fn create_ball_geom() -> RenderableBuffer {
@@ -35,7 +36,7 @@ pub fn create_ball_geom() -> RenderableBuffer {
 	let mut y = -5.0;
 	while y <= 5.0 {
 		let x = f32::sqrt(25.0 - y * y);
-		col1.push(vec3(x, y, 0.0));
+		col1.push((vec3(x, y, 0.0), vec2(0.0, y / 10.0 + 0.5)));
 		y += 0.5;
 	}
 	grid.add_col(col1.clone());
@@ -46,9 +47,9 @@ pub fn create_ball_geom() -> RenderableBuffer {
 		let q = Quat::from_rotation_y(angle * i as f32);
 		let col = col1
 			.iter()
-			.map(|pos| {
+			.map(|(pos, uv)| {
 				let v = q.mul_vec3(*pos);
-				vec3(v.x, pos.y, v.z)
+				(vec3(v.x, pos.y, v.z), vec2(i as f32 / stops as f32, uv.y))
 			})
 			.collect();
 		grid.add_col(col)
@@ -62,10 +63,10 @@ pub fn create_ball_geom() -> RenderableBuffer {
 
 		let color = vec3(r, g, b);
 
-		let v0 = vert(quad[0], color);
-		let v1 = vert(quad[1], color);
-		let v2 = vert(quad[2], color);
-		let v3 = vert(quad[3], color);
+		let v0 = vert(quad[0].0, quad[0].1, color);
+		let v1 = vert(quad[1].0, quad[1].1, color);
+		let v2 = vert(quad[2].0, quad[2].1, color);
+		let v3 = vert(quad[3].0, quad[3].1, color);
 
 		if v0.pos.y == -5.0 {
 			// v0 == v1
@@ -78,7 +79,7 @@ pub fn create_ball_geom() -> RenderableBuffer {
 		}
 	}
 
-	geom.to_renderable_buffer_by_type(MeshBufferType::VertexNormals)
+	geom.to_renderable_buffer_by_type(MeshBufferType::VertexNormalFaceData)
 }
 
 #[test]

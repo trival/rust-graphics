@@ -112,7 +112,7 @@ impl CanvasApp<UserEvent> for App {
 	fn user_event(&mut self, event: UserEvent, painter: &Painter) {
 		let state = self.state.as_mut().unwrap();
 		state.color = event.0;
-		painter.redraw();
+		painter.request_redraw();
 	}
 
 	fn window_event(&mut self, _event: WindowEvent, _painter: &Painter) {}

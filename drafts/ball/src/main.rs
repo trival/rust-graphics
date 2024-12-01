@@ -6,9 +6,9 @@ use trivalibs::{
 	painter::{
 		create_canvas_app,
 		form::Form,
-		painter::Mat3U,
 		shade::{Shade, ShadeProps},
-		uniform::Uniform,
+		texture::{SamplerProps, Texture2DProps, UniformTex2D},
+		uniform::{Mat3U, Uniform},
 		CanvasApp, Painter,
 	},
 	prelude::*,
@@ -36,6 +36,8 @@ struct InitializedState {
 	// tex_uniform: wgpu::BindGroup,
 	mvp: Uniform<Mat4>,
 	norm: Uniform<Mat3U>,
+	tex: UniformTex2D,
+
 	cam: PerspectiveCamera,
 	ball_transform: Transform,
 }
@@ -57,48 +59,44 @@ impl CanvasApp<()> for App {
 	fn init(&mut self, painter: &mut Painter) {
 		// Initialize the app
 
-		// let tex_bytes = include_bytes!("../texture.png");
-		// let mut reader = png::Decoder::new(std::io::Cursor::new(tex_bytes))
-		// 	.read_info()
-		// 	.unwrap();
-		// // Allocate the output buffer.
-		// let mut buf = vec![0; reader.output_buffer_size()];
-		// // Read the next frame. An APNG might contain multiple frames.
-		// let info = reader.next_frame(&mut buf).unwrap();
-		// // Grab the bytes of the image.
-		// let tex_rgba = &buf[..info.buffer_size()];
+		let tex_bytes = include_bytes!("../texture.png");
+		let mut reader = png::Decoder::new(std::io::Cursor::new(tex_bytes))
+			.read_info()
+			.unwrap();
+		// Allocate the output buffer.
+		let mut buf = vec![0; reader.output_buffer_size()];
+		// Read the next frame. An APNG might contain multiple frames.
+		let info = reader.next_frame(&mut buf).unwrap();
+		// Grab the bytes of the image.
+		let tex_rgba = &buf[..info.buffer_size()];
 
-		// let texture = painter.create_texture_2d(&Texture2DProps {
-		// 	width: info.width,
-		// 	height: info.height,
-		// 	format: wgpu::TextureFormat::Rgba8UnormSrgb,
-		// 	usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
-		// });
-
-		// let sampler = painter.create_sampler(&SamplerProps {
-		// 	address_mode_u: wgpu::AddressMode::ClampToEdge,
-		// 	address_mode_v: wgpu::AddressMode::ClampToEdge,
-		// 	mag_filter: wgpu::FilterMode::Linear,
-		// 	min_filter: wgpu::FilterMode::Linear,
-		// });
-
-		// painter.fill_texture_2d(&texture, tex_rgba);
-
-		let uniform_layout = painter.get_uniform_layout_buffered(wgpu::ShaderStages::VERTEX);
-
-		let shade = painter.create_shade(ShadeProps {
-			vertex_shader: include_spirv!("../shader/vertex.spv"),
-			fragment_shader: include_spirv!("../shader/fragment.spv"),
-			vertex_format: vec![Float32x3, Float32x3, Float32x3],
-			uniform_layout: &[&uniform_layout, &uniform_layout],
+		let texture = painter.texture_2d_create(&Texture2DProps {
+			width: info.width,
+			height: info.height,
+			format: wgpu::TextureFormat::Rgba8UnormSrgb,
+			usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
 		});
 
-		let ball_buf = create_ball_geom();
+		let sampler = painter.create_sampler(&SamplerProps {
+			address_mode_u: wgpu::AddressMode::ClampToEdge,
+			address_mode_v: wgpu::AddressMode::ClampToEdge,
+			mag_filter: wgpu::FilterMode::Linear,
+			min_filter: wgpu::FilterMode::Linear,
+		});
 
-		let ball_form = painter.create_form_with_size(
-			(ball_buf.vertex_count * 3 * std::mem::size_of::<Vec3>() as u32) as u64,
-		);
-		painter.update_form_buffer(&ball_form, ball_buf);
+		painter.texture_2d_fill(texture, tex_rgba);
+
+		let uniform_layout = painter.uniform_get_layout_buffered(wgpu::ShaderStages::VERTEX);
+		let tex_layout = painter.texture_2d_get_uniform_layout(wgpu::ShaderStages::FRAGMENT);
+
+		let shade = painter.shade_create(ShadeProps {
+			vertex_shader: include_spirv!("../shader/vertex.spv"),
+			fragment_shader: include_spirv!("../shader/fragment.spv"),
+			vertex_format: vec![Float32x3, Float32x2, Float32x3, Float32x3],
+			uniform_layout: &[&uniform_layout, &uniform_layout, &tex_layout],
+		});
+
+		let ball_form = painter.from_from_buffer(create_ball_geom());
 
 		let size = painter.canvas_size();
 		let cam = PerspectiveCamera::create(CamProps {
@@ -111,15 +109,17 @@ impl CanvasApp<()> for App {
 		let mat = t.model_view_proj_mat(&cam);
 		let norm = t.view_normal_mat(&cam);
 
-		let mvp_uniform = painter.create_uniform_mat4(&uniform_layout, mat);
-		let norm_uniform = painter.create_uniform_mat3(&uniform_layout, norm);
+		let mvp_uniform = painter.uniform_create_mat4(&uniform_layout, mat);
+		let norm_uniform = painter.uniform_create_mat3(&uniform_layout, norm);
+		let tex_uniform = painter.texture_get_uniform(&tex_layout, texture, &sampler);
 
 		self.state = Some(InitializedState {
 			form: ball_form,
 			shade,
-			// tex_uniform: painter.get_texture_2d_uniform(&texture, &sampler),
 			mvp: mvp_uniform,
 			norm: norm_uniform,
+			tex: tex_uniform,
+
 			ball_transform: t,
 			cam,
 		});
@@ -127,30 +127,30 @@ impl CanvasApp<()> for App {
 
 	fn render(&mut self, painter: &Painter) -> std::result::Result<(), wgpu::SurfaceError> {
 		let elapsed = self.now.elapsed().as_secs_f32();
+
+		self.now = Instant::now();
+
 		let state = self.state.as_mut().unwrap();
 
-		state.ball_transform.rotate_y(elapsed * 5.);
+		state.ball_transform.rotate_y(elapsed * 0.5);
 
 		let mat = state.ball_transform.model_view_proj_mat(&state.cam);
 		let norm = state.ball_transform.view_normal_mat(&state.cam);
 
-		painter.update_uniform_mat4(&state.mvp, mat);
-		painter.update_uniform_mat3(&state.norm, norm);
+		painter.uniform_update_mat4(&state.mvp, mat);
+		painter.uniform_update_mat3(&state.norm, norm);
+
+		painter.request_redraw();
 
 		painter.draw(
 			&state.form,
 			&state.shade,
 			hashmap! {
-				// 0 => &state.tex_uniform,
 				0 => &state.mvp.binding,
 				1 => &state.norm.binding,
+				2 => &state.tex.binding,
 			},
-		)?;
-
-		self.now = Instant::now();
-		painter.redraw();
-
-		Ok(())
+		)
 	}
 
 	fn user_event(&mut self, _event: (), _painter: &Painter) {}
