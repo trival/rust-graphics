@@ -28,24 +28,31 @@ pub struct Vertex {
 	pub normal: Vec3,
 }
 
-struct InitializedState {
+struct RenderState {
 	sketch: Sketch,
 	mvp: UniformBuffer<Mat4>,
 	norm: UniformBuffer<Mat3U>,
+}
 
+struct App {
 	cam: PerspectiveCamera,
 	ball_transform: Transform,
 }
 
-#[derive(Default)]
-struct App {
-	state: Option<InitializedState>,
+impl Default for App {
+	fn default() -> Self {
+		Self {
+			cam: PerspectiveCamera::create(CamProps {
+				fov: Some(0.6),
+				..default()
+			}),
+			ball_transform: Transform::from_translation(vec3(0.0, 0.0, -20.0)),
+		}
+	}
 }
 
-impl CanvasApp<()> for App {
-	fn init(&mut self, painter: &mut Painter) {
-		// Initialize the app
-
+impl CanvasApp<RenderState, ()> for App {
+	fn init(&mut self, painter: &mut Painter) -> RenderState {
 		let tex_bytes = include_bytes!("../texture.png");
 		let mut reader = png::Decoder::new(std::io::Cursor::new(tex_bytes))
 			.read_info()
@@ -85,15 +92,6 @@ impl CanvasApp<()> for App {
 
 		let form = painter.from_from_buffer(create_ball_geom(), default());
 
-		let size = painter.canvas_size();
-		let cam = PerspectiveCamera::create(CamProps {
-			aspect_ratio: Some(size.width as f32 / size.height as f32),
-			fov: Some(0.6),
-			..default()
-		});
-
-		let t = Transform::from_translation(vec3(0.0, 0.0, -20.0));
-
 		let mvp = painter.uniform_create_mat4(&uniform_layout, Mat4::IDENTITY);
 		let norm = painter.uniform_create_mat3(&uniform_layout, Mat3::IDENTITY);
 		let tex = painter.uniform_create_tex(&tex_layout, texture, &sampler);
@@ -111,32 +109,36 @@ impl CanvasApp<()> for App {
 			},
 		);
 
-		self.state = Some(InitializedState {
-			sketch,
-			mvp,
-			norm,
-
-			ball_transform: t,
-			cam,
-		});
+		RenderState { sketch, mvp, norm }
 	}
 
-	fn render(&mut self, painter: &Painter, tpf: f32) -> std::result::Result<(), wgpu::SurfaceError> {
-		let state = self.state.as_mut().unwrap();
+	fn resize(&mut self, painter: &Painter) {
+		let size = painter.canvas_size();
 
-		state.ball_transform.rotate_y(tpf * 0.5);
+		self
+			.cam
+			.set_aspect_ratio(size.width as f32 / size.height as f32);
+	}
+
+	fn update(&mut self, painter: &mut Painter, render_state: &mut RenderState, tpf: f32) {
+		self.ball_transform.rotate_y(tpf * 0.5);
 
 		painter.uniform_update_mat4(
-			&state.mvp,
-			state.ball_transform.model_view_proj_mat(&state.cam),
+			&render_state.mvp,
+			self.ball_transform.model_view_proj_mat(&self.cam),
 		);
 		painter.uniform_update_mat3(
-			&state.norm,
-			state.ball_transform.view_normal_mat(&state.cam),
+			&render_state.norm,
+			self.ball_transform.view_normal_mat(&self.cam),
 		);
+	}
 
+	fn render(
+		&mut self,
+		painter: &Painter,
+		state: &RenderState,
+	) -> std::result::Result<(), wgpu::SurfaceError> {
 		painter.request_redraw();
-
 		painter.draw(&state.sketch)
 	}
 

@@ -487,6 +487,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "draft_instances"
+version = "0.0.0"
+dependencies = [
+ "bytemuck",
+ "draft_instances_shader",
+ "trivalibs",
+]
+
+[[package]]
+name = "draft_instances_shader"
+version = "0.0.0"
+dependencies = [
+ "spirv-std",
+]
+
+[[package]]
 name = "draft_mouse_color"
 version = "0.0.0"
 dependencies = [

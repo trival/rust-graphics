@@ -21,12 +21,8 @@ impl App {
 	}
 }
 
-impl CanvasApp<()> for App {
-	fn render(
-		&mut self,
-		painter: &Painter,
-		_tpf: f32,
-	) -> std::result::Result<(), wgpu::SurfaceError> {
+impl CanvasApp<(), ()> for App {
+	fn render(&self, painter: &Painter, _state: &()) -> std::result::Result<(), wgpu::SurfaceError> {
 		let frame = painter.surface.get_current_texture()?;
 
 		let view = frame
@@ -79,6 +75,8 @@ impl CanvasApp<()> for App {
 	}
 
 	fn init(&mut self, _painter: &mut Painter) {}
+	fn resize(&mut self, _painter: &Painter) {}
+	fn update(&mut self, _painter: &mut Painter, _render_state: &mut (), _tpf: f32) {}
 	fn device_event(&mut self, _event: DeviceEvent, _painter: &Painter) {}
 	fn user_event(&mut self, _event: (), _painter: &Painter) {}
 }

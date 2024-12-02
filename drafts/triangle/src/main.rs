@@ -4,20 +4,25 @@ use trivalibs::{
 	winit::event::{DeviceEvent, WindowEvent},
 };
 
-struct InitializedState {
+struct RenderState {
 	pipeline: wgpu::RenderPipeline,
-	color: wgpu::Color,
 }
 
-#[derive(Default)]
 struct App {
-	state: Option<InitializedState>,
+	color: wgpu::Color,
+}
+impl Default for App {
+	fn default() -> Self {
+		Self {
+			color: wgpu::Color::BLUE,
+		}
+	}
 }
 
 struct UserEvent(wgpu::Color);
 
-impl CanvasApp<UserEvent> for App {
-	fn init(&mut self, painter: &mut Painter) {
+impl CanvasApp<RenderState, UserEvent> for App {
+	fn init(&mut self, painter: &mut Painter) -> RenderState {
 		// Initialize the app
 
 		let pipeline_layout = painter
@@ -67,18 +72,14 @@ impl CanvasApp<UserEvent> for App {
 				cache: None,
 			});
 
-		self.state = Some(InitializedState {
-			pipeline,
-			color: wgpu::Color::BLUE,
-		});
+		RenderState { pipeline }
 	}
 
 	fn render(
-		&mut self,
+		&self,
 		painter: &Painter,
-		_tpf: f32,
+		state: &RenderState,
 	) -> std::result::Result<(), wgpu::SurfaceError> {
-		let state = self.state.as_ref().unwrap();
 		let frame = painter.surface.get_current_texture()?;
 
 		let view = frame
@@ -95,7 +96,7 @@ impl CanvasApp<UserEvent> for App {
 					view: &view,
 					resolve_target: None,
 					ops: wgpu::Operations {
-						load: wgpu::LoadOp::Clear(state.color),
+						load: wgpu::LoadOp::Clear(self.color),
 						store: wgpu::StoreOp::Store,
 					},
 				})],
@@ -114,11 +115,12 @@ impl CanvasApp<UserEvent> for App {
 	}
 
 	fn user_event(&mut self, event: UserEvent, painter: &Painter) {
-		let state = self.state.as_mut().unwrap();
-		state.color = event.0;
+		self.color = event.0;
 		painter.request_redraw();
 	}
 
+	fn resize(&mut self, _painter: &Painter) {}
+	fn update(&mut self, _painter: &mut Painter, _render_state: &mut RenderState, _tpf: f32) {}
 	fn window_event(&mut self, _event: WindowEvent, _painter: &Painter) {}
 	fn device_event(&mut self, _event: DeviceEvent, _painter: &Painter) {}
 }

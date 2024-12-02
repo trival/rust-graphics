@@ -2,6 +2,8 @@
 resolver = "2"
 
 members = [
+	"drafts/instances",
+	"drafts/instances/shader",
 	"drafts/triangle",
 	"drafts/triangle/shader",
 	"drafts/polygons",
