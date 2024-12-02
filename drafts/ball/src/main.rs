@@ -1,5 +1,3 @@
-use std::time::Instant;
-
 use geom::create_ball_geom;
 use trivalibs::{
 	hashmap,
@@ -39,17 +37,9 @@ struct InitializedState {
 	ball_transform: Transform,
 }
 
+#[derive(Default)]
 struct App {
 	state: Option<InitializedState>,
-	now: Instant,
-}
-impl Default for App {
-	fn default() -> Self {
-		Self {
-			state: None,
-			now: Instant::now(),
-		}
-	}
 }
 
 impl CanvasApp<()> for App {
@@ -131,14 +121,10 @@ impl CanvasApp<()> for App {
 		});
 	}
 
-	fn render(&mut self, painter: &Painter) -> std::result::Result<(), wgpu::SurfaceError> {
-		let elapsed = self.now.elapsed().as_secs_f32();
-
-		self.now = Instant::now();
-
+	fn render(&mut self, painter: &Painter, tpf: f32) -> std::result::Result<(), wgpu::SurfaceError> {
 		let state = self.state.as_mut().unwrap();
 
-		state.ball_transform.rotate_y(elapsed * 0.5);
+		state.ball_transform.rotate_y(tpf * 0.5);
 
 		painter.uniform_update_mat4(
 			&state.mvp,
