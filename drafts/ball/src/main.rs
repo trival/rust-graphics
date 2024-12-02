@@ -134,7 +134,7 @@ impl CanvasApp<RenderState, ()> for App {
 	}
 
 	fn render(
-		&mut self,
+		&self,
 		painter: &Painter,
 		state: &RenderState,
 	) -> std::result::Result<(), wgpu::SurfaceError> {
