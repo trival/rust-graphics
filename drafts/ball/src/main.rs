@@ -22,13 +22,6 @@ use trivalibs::{
 
 mod geom;
 
-#[apply(gpu_data)]
-pub struct Vertex {
-	pub position: Vec3,
-	pub color: Vec3,
-	pub normal: Vec3,
-}
-
 struct RenderState {
 	canvas: Layer,
 	mvp: UniformBuffer<Mat4>,
@@ -53,7 +46,7 @@ impl Default for App {
 }
 
 impl CanvasApp<RenderState, ()> for App {
-	fn init(&mut self, painter: &mut Painter) -> RenderState {
+	fn init(&mut self, p: &mut Painter) -> RenderState {
 		let tex_bytes = include_bytes!("../texture.png");
 		let mut reader = png::Decoder::new(std::io::Cursor::new(tex_bytes))
 			.read_info()
@@ -65,34 +58,34 @@ impl CanvasApp<RenderState, ()> for App {
 		// Grab the bytes of the image.
 		let tex_rgba = &buf[..info.buffer_size()];
 
-		let texture = painter.texture_2d_create(&Texture2DProps {
+		let texture = p.texture_2d_create(&Texture2DProps {
 			width: info.width,
 			height: info.height,
 			format: wgpu::TextureFormat::Rgba8UnormSrgb,
 			usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
 		});
 
-		let sampler = painter.create_sampler(&default());
+		p.texture_2d_fill(texture, tex_rgba);
 
-		painter.texture_2d_fill(texture, tex_rgba);
+		let uniform_layout = p.uniform_get_layout_buffered(wgpu::ShaderStages::VERTEX);
+		let tex_layout = p.uniform_get_layout_tex_2d(wgpu::ShaderStages::FRAGMENT);
 
-		let uniform_layout = painter.uniform_get_layout_buffered(wgpu::ShaderStages::VERTEX);
-		let tex_layout = painter.texture_2d_get_uniform_layout(wgpu::ShaderStages::FRAGMENT);
-
-		let shade = painter.shade_create(ShadeProps {
+		let shade = p.shade_create(ShadeProps {
 			vertex_shader: include_spirv!("../shader/vertex.spv"),
 			fragment_shader: include_spirv!("../shader/fragment.spv"),
 			vertex_format: vec![Float32x3, Float32x2, Float32x3, Float32x3],
 			uniform_layout: &[&uniform_layout, &uniform_layout, &tex_layout],
 		});
 
-		let form = painter.from_from_buffer(create_ball_geom(), default());
+		let form = p.form_from_buffer(create_ball_geom(), default());
 
-		let mvp = painter.uniform_create_mat4(&uniform_layout, Mat4::IDENTITY);
-		let norm = painter.uniform_create_mat3(&uniform_layout, Mat3::IDENTITY);
-		let tex = painter.uniform_create_tex(&tex_layout, texture, &sampler);
+		let sampler = p.sampler_create(&default());
+		let tex = p.uniform_create_tex(&tex_layout, texture, &sampler);
 
-		let sketch = painter.sketch_create(
+		let mvp = p.uniform_create_mat4(&uniform_layout, Mat4::IDENTITY);
+		let norm = p.uniform_create_mat3(&uniform_layout, Mat3::IDENTITY);
+
+		let sketch = p.sketch_create(
 			form,
 			shade,
 			&SketchProps {
@@ -105,7 +98,7 @@ impl CanvasApp<RenderState, ()> for App {
 			},
 		);
 
-		let canvas = painter.layer_create(&LayerProps {
+		let canvas = p.layer_create(&LayerProps {
 			clear_color: Some(wgpu::Color {
 				r: 0.5,
 				g: 0.6,
@@ -119,45 +112,43 @@ impl CanvasApp<RenderState, ()> for App {
 		RenderState { canvas, mvp, norm }
 	}
 
-	fn resize(&mut self, painter: &mut Painter, render_state: &mut RenderState) {
-		let size = painter.canvas_size();
+	fn resize(&mut self, p: &mut Painter, rs: &mut RenderState) {
+		let size = p.canvas_size();
 
 		self
 			.cam
 			.set_aspect_ratio(size.width as f32 / size.height as f32);
 
-		render_state.canvas.on_window_resize(painter);
+		// TODO: this needs to happen automatically!
+		rs.canvas.on_window_resize(p);
 	}
 
-	fn update(&mut self, painter: &mut Painter, render_state: &mut RenderState, tpf: f32) {
+	fn update(&mut self, p: &mut Painter, rs: &mut RenderState, tpf: f32) {
 		self.ball_transform.rotate_y(tpf * 0.5);
 
-		painter.uniform_update_mat4(
-			&render_state.mvp,
-			self.ball_transform.model_view_proj_mat(&self.cam),
-		);
-		painter.uniform_update_mat3(
-			&render_state.norm,
-			self.ball_transform.view_normal_mat(&self.cam),
-		);
+		rs.mvp
+			.update(p, self.ball_transform.model_view_proj_mat(&self.cam));
+
+		rs.norm
+			.update_mat3(p, self.ball_transform.view_normal_mat(&self.cam));
 	}
 
 	fn render(
 		&self,
-		painter: &mut Painter,
+		p: &mut Painter,
 		state: &RenderState,
 	) -> std::result::Result<(), wgpu::SurfaceError> {
-		painter.paint(&state.canvas)?;
-		painter.show(&state.canvas)?;
+		p.paint(&state.canvas)?;
+		p.show(&state.canvas)?;
 
-		painter.request_redraw();
+		p.request_redraw();
 
 		Ok(())
 	}
 
-	fn user_event(&mut self, _event: (), _painter: &Painter) {}
-	fn window_event(&mut self, _event: WindowEvent, _painter: &Painter) {}
-	fn device_event(&mut self, _event: DeviceEvent, _painter: &Painter) {}
+	fn user_event(&mut self, _e: (), _p: &Painter) {}
+	fn window_event(&mut self, _e: WindowEvent, _p: &Painter) {}
+	fn device_event(&mut self, _e: DeviceEvent, _p: &Painter) {}
 }
 
 pub fn main() {

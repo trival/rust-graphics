@@ -40,7 +40,7 @@ impl Default for App {
 			t.look_at(rand_vec3_range(-40.0, 40.0), Vec3::Y);
 			triangles.push(Triangle {
 				transform: t,
-				speed: rand_range(0.1, 1.0),
+				speed: rand_range(0.1, 1.0) * rand_sign(),
 			});
 		}
 
@@ -62,18 +62,18 @@ struct RenderState {
 }
 
 impl CanvasApp<RenderState, ()> for App {
-	fn init(&mut self, painter: &mut Painter) -> RenderState {
-		let vert_u_layout = painter.uniform_get_layout_buffered(wgpu::ShaderStages::VERTEX);
-		let frag_u_layout = painter.uniform_get_layout_buffered(wgpu::ShaderStages::FRAGMENT);
+	fn init(&mut self, p: &mut Painter) -> RenderState {
+		let vert_u_layout = p.uniform_get_layout_buffered(wgpu::ShaderStages::VERTEX);
+		let frag_u_layout = p.uniform_get_layout_buffered(wgpu::ShaderStages::FRAGMENT);
 
-		let shade = painter.shade_create(ShadeProps {
+		let shade = p.shade_create(ShadeProps {
 			vertex_shader: include_spirv!("../shader/vertex.spv"),
 			fragment_shader: include_spirv!("../shader/fragment.spv"),
 			vertex_format: vec![VertexFormat::Float32x3],
 			uniform_layout: &[&vert_u_layout, &vert_u_layout, &frag_u_layout],
 		});
 
-		let form = painter.form_create(
+		let form = p.form_create(
 			&FormData {
 				vertex_buffer: VERTICES,
 				index_buffer: None,
@@ -86,15 +86,15 @@ impl CanvasApp<RenderState, ()> for App {
 			.iter()
 			.map(|t| {
 				(
-					painter.uniform_create_mat4(&vert_u_layout, t.transform.model_mat()),
-					painter.uniform_create_buffered(&frag_u_layout, rand_vec3().extend(1.0)),
+					p.uniform_create_mat4(&vert_u_layout, t.transform.model_mat()),
+					p.uniform_create(&frag_u_layout, rand_vec3().extend(1.0)),
 				)
 			})
 			.collect::<Vec<_>>();
 
-		let cam = painter.uniform_create_mat4(&vert_u_layout, self.cam.view_proj_mat());
+		let cam = p.uniform_create_mat4(&vert_u_layout, self.cam.view_proj_mat());
 
-		let sketch = painter.sketch_create(
+		let sketch = p.sketch_create(
 			form,
 			shade,
 			&SketchProps {
@@ -125,37 +125,31 @@ impl CanvasApp<RenderState, ()> for App {
 		}
 	}
 
-	fn resize(&mut self, painter: &mut Painter, render_state: &mut RenderState) {
-		let size = painter.canvas_size();
+	fn resize(&mut self, p: &mut Painter, rs: &mut RenderState) {
+		let size = p.canvas_size();
 		self
 			.cam
 			.set_aspect_ratio(size.width as f32 / size.height as f32);
-		painter.uniform_update_mat4(&render_state.vp_mat, self.cam.view_proj_mat());
+
+		rs.vp_mat.update(p, self.cam.view_proj_mat());
 	}
 
-	fn update(&mut self, painter: &mut Painter, render_state: &mut RenderState, tpf: f32) {
-		for (tri, model) in self
-			.triangles
-			.iter_mut()
-			.zip(render_state.model_mats.iter_mut())
-		{
+	fn update(&mut self, p: &mut Painter, rs: &mut RenderState, tpf: f32) {
+		for (tri, model) in self.triangles.iter_mut().zip(rs.model_mats.iter_mut()) {
 			tri.transform.rotate_y(tpf * tri.speed);
-			painter.uniform_update_mat4(model, tri.transform.model_mat());
+
+			model.update(p, tri.transform.model_mat());
 		}
 	}
 
-	fn render(
-		&self,
-		painter: &mut Painter,
-		render_state: &RenderState,
-	) -> Result<(), wgpu::SurfaceError> {
-		painter.request_redraw();
-		painter.draw(&render_state.sketch)
+	fn render(&self, p: &mut Painter, rs: &RenderState) -> Result<(), wgpu::SurfaceError> {
+		p.request_redraw();
+		p.draw(&rs.sketch)
 	}
 
-	fn window_event(&mut self, _event: WindowEvent, _painter: &Painter) {}
-	fn device_event(&mut self, _event: DeviceEvent, _painter: &Painter) {}
-	fn user_event(&mut self, _event: (), _painter: &Painter) {}
+	fn window_event(&mut self, _e: WindowEvent, _p: &Painter) {}
+	fn device_event(&mut self, _e: DeviceEvent, _p: &Painter) {}
+	fn user_event(&mut self, _e: (), _p: &Painter) {}
 }
 
 pub fn main() {
