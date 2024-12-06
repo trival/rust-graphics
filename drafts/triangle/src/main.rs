@@ -116,7 +116,7 @@ impl CanvasApp<RenderState, UserEvent> for App {
 
 	fn user_event(&mut self, event: UserEvent, painter: &Painter) {
 		self.color = event.0;
-		painter.request_redraw();
+		painter.request_next_frame();
 	}
 
 	fn resize(&mut self, _p: &mut Painter, _r: &mut RenderState) {}

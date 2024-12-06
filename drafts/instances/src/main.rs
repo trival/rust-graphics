@@ -153,7 +153,7 @@ impl CanvasApp<RenderState, ()> for App {
 	}
 
 	fn render(&self, p: &mut Painter, rs: &RenderState) -> Result<(), wgpu::SurfaceError> {
-		p.request_redraw();
+		p.request_next_frame();
 		p.draw(&rs.sketch)
 	}
 

@@ -138,7 +138,7 @@ impl CanvasApp<RenderState, ()> for App {
 		p.paint(&state.canvas)?;
 		p.show(&state.canvas)?;
 
-		p.request_redraw();
+		p.request_next_frame();
 
 		Ok(())
 	}
