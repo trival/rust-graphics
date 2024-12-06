@@ -222,7 +222,7 @@ impl CanvasApp<RenderState, ()> for App {
 
 	fn render(
 		&self,
-		painter: &Painter,
+		painter: &mut Painter,
 		state: &RenderState,
 	) -> std::result::Result<(), wgpu::SurfaceError> {
 		let frame = painter.surface.get_current_texture()?;
@@ -261,11 +261,11 @@ impl CanvasApp<RenderState, ()> for App {
 		Ok(())
 	}
 
-	fn user_event(&mut self, _event: (), _painter: &Painter) {}
-	fn window_event(&mut self, _event: WindowEvent, _painter: &Painter) {}
-	fn device_event(&mut self, _event: DeviceEvent, _painter: &Painter) {}
-	fn resize(&mut self, _painter: &Painter) {}
-	fn update(&mut self, _painter: &mut Painter, _render_state: &mut RenderState, _tpf: f32) {}
+	fn user_event(&mut self, _e: (), _p: &Painter) {}
+	fn window_event(&mut self, _e: WindowEvent, _p: &Painter) {}
+	fn device_event(&mut self, _e: DeviceEvent, _p: &Painter) {}
+	fn resize(&mut self, _p: &mut Painter, _r: &mut RenderState) {}
+	fn update(&mut self, _p: &mut Painter, _r: &mut RenderState, _tpf: f32) {}
 }
 
 pub fn main() {

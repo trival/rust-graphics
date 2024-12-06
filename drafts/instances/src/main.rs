@@ -125,7 +125,7 @@ impl CanvasApp<RenderState, ()> for App {
 		}
 	}
 
-	fn resize(&mut self, painter: &Painter, render_state: &mut RenderState) {
+	fn resize(&mut self, painter: &mut Painter, render_state: &mut RenderState) {
 		let size = painter.canvas_size();
 		self
 			.cam
@@ -146,7 +146,7 @@ impl CanvasApp<RenderState, ()> for App {
 
 	fn render(
 		&self,
-		painter: &Painter,
+		painter: &mut Painter,
 		render_state: &RenderState,
 	) -> Result<(), wgpu::SurfaceError> {
 		painter.request_redraw();

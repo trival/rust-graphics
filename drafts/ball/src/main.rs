@@ -3,9 +3,10 @@ use trivalibs::{
 	hashmap,
 	painter::{
 		create_canvas_app,
+		layer::{Layer, LayerProps},
 		shade::ShadeProps,
-		sketch::{Sketch, SketchProps},
-		texture::{SamplerProps, Texture2DProps},
+		sketch::SketchProps,
+		texture::Texture2DProps,
 		uniform::{Mat3U, UniformBuffer},
 		CanvasApp, Painter,
 	},
@@ -29,7 +30,7 @@ pub struct Vertex {
 }
 
 struct RenderState {
-	sketch: Sketch,
+	canvas: Layer,
 	mvp: UniformBuffer<Mat4>,
 	norm: UniformBuffer<Mat3U>,
 }
@@ -71,12 +72,7 @@ impl CanvasApp<RenderState, ()> for App {
 			usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
 		});
 
-		let sampler = painter.create_sampler(&SamplerProps {
-			address_mode_u: wgpu::AddressMode::ClampToEdge,
-			address_mode_v: wgpu::AddressMode::ClampToEdge,
-			mag_filter: wgpu::FilterMode::Linear,
-			min_filter: wgpu::FilterMode::Linear,
-		});
+		let sampler = painter.create_sampler(&default());
 
 		painter.texture_2d_fill(texture, tex_rgba);
 
@@ -109,15 +105,28 @@ impl CanvasApp<RenderState, ()> for App {
 			},
 		);
 
-		RenderState { sketch, mvp, norm }
+		let canvas = painter.layer_create(&LayerProps {
+			clear_color: Some(wgpu::Color {
+				r: 0.5,
+				g: 0.6,
+				b: 0.7,
+				a: 1.0,
+			}),
+			sketches: vec![sketch],
+			..default()
+		});
+
+		RenderState { canvas, mvp, norm }
 	}
 
-	fn resize(&mut self, painter: &Painter) {
+	fn resize(&mut self, painter: &mut Painter, render_state: &mut RenderState) {
 		let size = painter.canvas_size();
 
 		self
 			.cam
 			.set_aspect_ratio(size.width as f32 / size.height as f32);
+
+		render_state.canvas.on_window_resize(painter);
 	}
 
 	fn update(&mut self, painter: &mut Painter, render_state: &mut RenderState, tpf: f32) {
@@ -135,11 +144,15 @@ impl CanvasApp<RenderState, ()> for App {
 
 	fn render(
 		&self,
-		painter: &Painter,
+		painter: &mut Painter,
 		state: &RenderState,
 	) -> std::result::Result<(), wgpu::SurfaceError> {
+		painter.paint(&state.canvas)?;
+		painter.show(&state.canvas)?;
+
 		painter.request_redraw();
-		painter.draw(&state.sketch)
+
+		Ok(())
 	}
 
 	fn user_event(&mut self, _event: (), _painter: &Painter) {}
