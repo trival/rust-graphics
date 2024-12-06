@@ -1,6 +1,6 @@
 use geom::create_ball_geom;
 use trivalibs::{
-	hashmap,
+	bmap,
 	painter::{
 		create_canvas_app,
 		layer::{Layer, LayerProps},
@@ -89,7 +89,7 @@ impl CanvasApp<RenderState, ()> for App {
 			form,
 			shade,
 			&SketchProps {
-				uniforms: hashmap! {
+				uniforms: bmap! {
 					0 => mvp.uniform,
 					1 => norm.uniform,
 					2 => tex.uniform,

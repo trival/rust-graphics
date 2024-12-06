@@ -1,5 +1,5 @@
 use trivalibs::{
-	hashmap,
+	bmap,
 	painter::{
 		create_canvas_app,
 		form::FormData,
@@ -107,13 +107,13 @@ impl CanvasApp<RenderState, ()> for App {
 			form,
 			shade,
 			&SketchProps {
-				uniforms: hashmap! {
+				uniforms: bmap! {
 					0 => cam.uniform,
 				},
 				instances: uniforms
 					.iter()
 					.map(|(model, color)| {
-						hashmap! {
+						bmap! {
 							1 => model.uniform,
 							2 => color.uniform,
 						}
