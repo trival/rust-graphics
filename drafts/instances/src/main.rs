@@ -30,24 +30,33 @@ struct App {
 	triangles: Vec<Triangle>,
 }
 
-const TRIANGLE_COUNT: usize = 100;
+const TRIANGLE_COUNT: usize = 1100;
 impl Default for App {
 	fn default() -> Self {
 		let mut triangles = Vec::with_capacity(TRIANGLE_COUNT);
 
 		for _ in 0..TRIANGLE_COUNT {
-			let mut t = Transform::from_translation(rand_vec3_range(-40.0, 40.0));
-			t.look_at(rand_vec3_range(-40.0, 40.0), Vec3::Y);
+			let scale = rand_vec3_range(1., 2.0);
+			let mut t = Transform::from_translation(rand_vec3_range(-30.0, 30.0)).with_scale(scale);
+			t.look_at(rand_vec3_range(-30.0, 30.0), Vec3::Y);
 			triangles.push(Triangle {
 				transform: t,
 				speed: rand_range(0.1, 1.0) * rand_sign(),
 			});
 		}
 
+		triangles.sort_by(|a, b| {
+			a.transform
+				.translation
+				.z
+				.partial_cmp(&b.transform.translation.z)
+				.unwrap()
+		});
+
 		Self {
 			cam: PerspectiveCamera::create(CamProps {
 				fov: Some(0.6),
-				translation: Some(vec3(0.0, 0.0, 50.0)),
+				translation: Some(vec3(0.0, 0.0, 80.0)),
 				..default()
 			}),
 			triangles,
@@ -87,7 +96,7 @@ impl CanvasApp<RenderState, ()> for App {
 			.map(|t| {
 				(
 					p.uniform_create_mat4(&vert_u_layout, t.transform.model_mat()),
-					p.uniform_create(&frag_u_layout, rand_vec3().extend(1.0)),
+					p.uniform_create(&frag_u_layout, rand_vec4()),
 				)
 			})
 			.collect::<Vec<_>>();
@@ -112,6 +121,7 @@ impl CanvasApp<RenderState, ()> for App {
 					.collect(),
 
 				cull_mode: None,
+				blend_state: wgpu::BlendState::ALPHA_BLENDING,
 				..default()
 			},
 		);

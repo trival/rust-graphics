@@ -112,15 +112,12 @@ impl CanvasApp<RenderState, ()> for App {
 		RenderState { canvas, mvp, norm }
 	}
 
-	fn resize(&mut self, p: &mut Painter, rs: &mut RenderState) {
+	fn resize(&mut self, p: &mut Painter, _rs: &mut RenderState) {
 		let size = p.canvas_size();
 
 		self
 			.cam
 			.set_aspect_ratio(size.width as f32 / size.height as f32);
-
-		// TODO: this needs to happen automatically!
-		rs.canvas.on_window_resize(p);
 	}
 
 	fn update(&mut self, p: &mut Painter, rs: &mut RenderState, tpf: f32) {
