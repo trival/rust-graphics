@@ -6,6 +6,8 @@ members = [
 	"drafts/instances/shader",
 	"drafts/triangle",
 	"drafts/triangle/shader",
+	"drafts/frag_shader",
+	"drafts/frag_shader/shader",
 	"drafts/polygons",
 	"drafts/polygons/shader",
 	"drafts/mouse_color",
