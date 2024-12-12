@@ -31,7 +31,7 @@ impl CanvasApp<RenderState, ()> for App {
 
 		let shade = p.shade_create_effect(ShadeEffectProps {
 			shader: include_spirv!("../shader/main.spv"),
-			uniform_layout: &[&u_type, &u_type],
+			uniform_types: &[&u_type, &u_type],
 		});
 
 		let time = u_type.create_buff(p, 0.0f32);

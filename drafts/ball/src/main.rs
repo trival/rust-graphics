@@ -75,7 +75,7 @@ impl CanvasApp<RenderState, ()> for App {
 			vertex_shader: include_spirv!("../shader/vertex.spv"),
 			fragment_shader: include_spirv!("../shader/fragment.spv"),
 			vertex_format: &[Float32x3, Float32x2, Float32x3, Float32x3],
-			uniform_layout: &[&uniform_type, &uniform_type, &tex_type],
+			uniform_types: &[&uniform_type, &uniform_type, &tex_type],
 		});
 
 		let form = p.form_from_buffer(create_ball_geom(), default());

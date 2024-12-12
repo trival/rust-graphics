@@ -80,7 +80,7 @@ impl CanvasApp<RenderState, ()> for App {
 			vertex_shader: include_spirv!("../shader/vertex.spv"),
 			fragment_shader: include_spirv!("../shader/fragment.spv"),
 			vertex_format: vec![VertexFormat::Float32x3],
-			uniform_layout: &[&vert_u_type, &vert_u_type, &frag_u_type],
+			uniform_types: &[&vert_u_type, &vert_u_type, &frag_u_type],
 		});
 
 		let form = p.form_create(
