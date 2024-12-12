@@ -4,6 +4,7 @@ use trivalibs::{
 	painter::{
 		create_canvas_app,
 		layer::{Layer, LayerProps},
+		painter::UniformType,
 		shade::ShadeProps,
 		sketch::SketchProps,
 		texture::Texture2DProps,
@@ -67,23 +68,23 @@ impl CanvasApp<RenderState, ()> for App {
 
 		p.texture_2d_fill(texture, tex_rgba);
 
-		let uniform_layout = p.uniform_get_layout_buffered(wgpu::ShaderStages::VERTEX);
-		let tex_layout = p.uniform_get_layout_tex_2d(wgpu::ShaderStages::FRAGMENT);
+		let uniform_type = p.uniform_type_buffered_vert();
+		let tex_type = p.uniform_type_tex_2d_frag();
 
 		let shade = p.shade_create(ShadeProps {
 			vertex_shader: include_spirv!("../shader/vertex.spv"),
 			fragment_shader: include_spirv!("../shader/fragment.spv"),
 			vertex_format: &[Float32x3, Float32x2, Float32x3, Float32x3],
-			uniform_layout: &[&uniform_layout, &uniform_layout, &tex_layout],
+			uniform_layout: &[&uniform_type, &uniform_type, &tex_type],
 		});
 
 		let form = p.form_from_buffer(create_ball_geom(), default());
 
 		let sampler = p.sampler_create(&default());
-		let tex = p.uniform_create_tex(&tex_layout, texture, &sampler);
+		let tex = tex_type.create_tex2d(p, texture, &sampler);
 
-		let mvp = p.uniform_create_mat4(&uniform_layout, Mat4::IDENTITY);
-		let norm = p.uniform_create_mat3(&uniform_layout, Mat3::IDENTITY);
+		let mvp = uniform_type.create_buff(p, Mat4::IDENTITY);
+		let norm = uniform_type.create_mat3(p, Mat3::IDENTITY);
 
 		let sketch = p.sketch_create(
 			form,

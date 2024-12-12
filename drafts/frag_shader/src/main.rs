@@ -4,12 +4,13 @@ use trivalibs::{
 		create_canvas_app,
 		effect::EffectProps,
 		layer::{Layer, LayerProps},
+		painter::UniformType,
 		shade::ShadeEffectProps,
 		uniform::UniformBuffer,
 		CanvasApp, Painter,
 	},
 	prelude::*,
-	wgpu::{include_spirv, ShaderStages, SurfaceError},
+	wgpu::{include_spirv, SurfaceError},
 	winit::event::{DeviceEvent, WindowEvent},
 };
 
@@ -26,15 +27,15 @@ struct App {
 
 impl CanvasApp<RenderState, ()> for App {
 	fn init(&mut self, p: &mut Painter) -> RenderState {
-		let uniform_layout = p.uniform_get_layout_buffered(ShaderStages::FRAGMENT);
+		let u_type = p.uniform_type_buffered_frag();
 
 		let shade = p.shade_create_effect(ShadeEffectProps {
 			shader: include_spirv!("../shader/main.spv"),
-			uniform_layout: &[&uniform_layout, &uniform_layout],
+			uniform_layout: &[&u_type, &u_type],
 		});
 
-		let time = p.uniform_create(&uniform_layout, 0.0f32);
-		let size = p.uniform_create(&uniform_layout, uvec2(0, 0));
+		let time = u_type.create_buff(p, 0.0f32);
+		let size = u_type.create_buff(p, uvec2(0, 0));
 
 		let effect = p.effect_create(
 			shade,

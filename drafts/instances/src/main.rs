@@ -3,6 +3,7 @@ use trivalibs::{
 	painter::{
 		create_canvas_app,
 		form::FormData,
+		painter::UniformType,
 		shade::ShadeProps,
 		sketch::{Sketch, SketchProps},
 		uniform::UniformBuffer,
@@ -72,14 +73,14 @@ struct RenderState {
 
 impl CanvasApp<RenderState, ()> for App {
 	fn init(&mut self, p: &mut Painter) -> RenderState {
-		let vert_u_layout = p.uniform_get_layout_buffered(wgpu::ShaderStages::VERTEX);
-		let frag_u_layout = p.uniform_get_layout_buffered(wgpu::ShaderStages::FRAGMENT);
+		let vert_u_type = p.uniform_type_buffered_vert();
+		let frag_u_type = p.uniform_type_buffered_frag();
 
 		let shade = p.shade_create(ShadeProps {
 			vertex_shader: include_spirv!("../shader/vertex.spv"),
 			fragment_shader: include_spirv!("../shader/fragment.spv"),
 			vertex_format: vec![VertexFormat::Float32x3],
-			uniform_layout: &[&vert_u_layout, &vert_u_layout, &frag_u_layout],
+			uniform_layout: &[&vert_u_type, &vert_u_type, &frag_u_type],
 		});
 
 		let form = p.form_create(
@@ -95,13 +96,13 @@ impl CanvasApp<RenderState, ()> for App {
 			.iter()
 			.map(|t| {
 				(
-					p.uniform_create(&vert_u_layout, t.transform.model_mat()),
-					p.uniform_create(&frag_u_layout, rand_vec4()),
+					vert_u_type.create_buff(p, t.transform.model_mat()),
+					frag_u_type.create_buff(p, rand_vec4()),
 				)
 			})
 			.collect::<Vec<_>>();
 
-		let cam = p.uniform_create_mat4(&vert_u_layout, self.cam.view_proj_mat());
+		let cam = vert_u_type.create_buff(p, self.cam.view_proj_mat());
 
 		let sketch = p.sketch_create(
 			form,
