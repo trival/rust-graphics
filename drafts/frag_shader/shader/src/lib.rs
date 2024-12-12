@@ -26,7 +26,7 @@ pub fn main(
 		tile.x += 0.5;
 	}
 	tile -= gap * 0.5;
-	let tile = tile - tile.floor();
+	let tile = tile.fract();
 	*out = if tile.x >= 1.0 - gap.x || tile.y >= 1.0 - gap.y {
 		vec4(0.4, 0.6, 0.9, 1.0)
 	} else {
