@@ -73,7 +73,7 @@ impl CanvasApp<RenderState, ()> for App {
 		let shade = p.shade_create(ShadeProps {
 			vertex_shader: include_spirv!("../shader/vertex.spv"),
 			fragment_shader: include_spirv!("../shader/fragment.spv"),
-			vertex_format: vec![Float32x3, Float32x2, Float32x3, Float32x3],
+			vertex_format: &[Float32x3, Float32x2, Float32x3, Float32x3],
 			uniform_layout: &[&uniform_layout, &uniform_layout, &tex_layout],
 		});
 

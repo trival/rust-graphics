@@ -95,7 +95,7 @@ impl CanvasApp<RenderState, ()> for App {
 			.iter()
 			.map(|t| {
 				(
-					p.uniform_create_mat4(&vert_u_layout, t.transform.model_mat()),
+					p.uniform_create(&vert_u_layout, t.transform.model_mat()),
 					p.uniform_create(&frag_u_layout, rand_vec4()),
 				)
 			})

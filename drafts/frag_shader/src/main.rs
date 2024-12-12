@@ -30,7 +30,7 @@ impl CanvasApp<RenderState, ()> for App {
 
 		let shade = p.shade_create_effect(ShadeEffectProps {
 			shader: include_spirv!("../shader/main.spv"),
-			uniform_layout: &[&uniform_layout],
+			uniform_layout: &[&uniform_layout, &uniform_layout],
 		});
 
 		let time = p.uniform_create(&uniform_layout, 0.0f32);
@@ -65,7 +65,7 @@ impl CanvasApp<RenderState, ()> for App {
 		rs.time.update(p, self.time);
 	}
 
-	fn render(&self, p: &mut Painter, state: &RenderState) -> std::result::Result<(), SurfaceError> {
+	fn render(&self, p: &mut Painter, state: &RenderState) -> Result<(), SurfaceError> {
 		p.paint(&state.canvas)?;
 		p.show(&state.canvas)?;
 
