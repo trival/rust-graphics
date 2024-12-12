@@ -47,7 +47,7 @@ impl Default for App {
 }
 
 impl CanvasApp<RenderState, ()> for App {
-	fn init(&mut self, p: &mut Painter) -> RenderState {
+	fn init(&self, p: &mut Painter) -> RenderState {
 		let tex_bytes = include_bytes!("../texture.png");
 		let mut reader = png::Decoder::new(std::io::Cursor::new(tex_bytes))
 			.read_info()

@@ -72,7 +72,7 @@ struct RenderState {
 }
 
 impl CanvasApp<RenderState, ()> for App {
-	fn init(&mut self, p: &mut Painter) -> RenderState {
+	fn init(&self, p: &mut Painter) -> RenderState {
 		let vert_u_type = p.uniform_type_buffered_vert();
 		let frag_u_type = p.uniform_type_buffered_frag();
 

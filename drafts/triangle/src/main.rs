@@ -22,7 +22,7 @@ impl Default for App {
 struct UserEvent(wgpu::Color);
 
 impl CanvasApp<RenderState, UserEvent> for App {
-	fn init(&mut self, painter: &mut Painter) -> RenderState {
+	fn init(&self, painter: &mut Painter) -> RenderState {
 		// Initialize the app
 
 		let pipeline_layout = painter

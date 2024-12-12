@@ -26,7 +26,7 @@ struct App {
 }
 
 impl CanvasApp<RenderState, ()> for App {
-	fn init(&mut self, p: &mut Painter) -> RenderState {
+	fn init(&self, p: &mut Painter) -> RenderState {
 		let u_type = p.uniform_type_buffered_frag();
 
 		let shade = p.shade_create_effect(ShadeEffectProps {

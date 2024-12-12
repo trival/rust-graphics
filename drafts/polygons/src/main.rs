@@ -37,7 +37,7 @@ const VERTICES: &[Vertex] = &[
 struct App {}
 
 impl CanvasApp<RenderState, ()> for App {
-	fn init(&mut self, painter: &mut Painter) -> RenderState {
+	fn init(&self, painter: &mut Painter) -> RenderState {
 		// Initialize the app
 
 		let buffer = painter

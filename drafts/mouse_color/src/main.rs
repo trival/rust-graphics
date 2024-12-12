@@ -78,7 +78,7 @@ impl CanvasApp<(), ()> for App {
 		}
 	}
 
-	fn init(&mut self, _painter: &mut Painter) {}
+	fn init(&self, _painter: &mut Painter) {}
 	fn resize(&mut self, _painter: &mut Painter, _r: &mut ()) {}
 	fn update(&mut self, _painter: &mut Painter, _render_state: &mut (), _tpf: f32) {}
 	fn device_event(&mut self, _event: DeviceEvent, _painter: &Painter) {}
