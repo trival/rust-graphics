@@ -66,7 +66,7 @@ impl CanvasApp<RenderState, ()> for App {
 			usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
 		});
 
-		p.texture_2d_fill(texture, tex_rgba);
+		texture.fill_2d(p, tex_rgba);
 
 		let uniform_type = p.uniform_type_buffered_vert();
 		let tex_type = p.uniform_type_tex_2d_frag();
