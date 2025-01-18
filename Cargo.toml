@@ -1,35 +1,43 @@
 [workspace]
 resolver = "2"
 
-members = [
-	"drafts/instances",
-	"drafts/instances/shader",
-	"drafts/triangle",
-	"drafts/triangle/shader",
-	"drafts/frag_shader",
-	"drafts/frag_shader/shader",
-	"drafts/polygons",
-	"drafts/polygons/shader",
-	"drafts/mouse_color",
-	"drafts/shader_image",
-	"drafts/shader_image/shader",
-	"drafts/ball",
-	"drafts/ball/shader",
-	"trivalibs",
-]
+members = ["drafts/ball", "drafts/ball/shader"]
 
 [workspace.package]
 edition = "2021"
-
+rust-version = "1.82" # Prevent Cargo.lock version 4, cargo gpu does not support it yet
 
 [workspace.dependencies]
-trivalibs = { path = "trivalibs" }
-pollster = "0.4.0"
-env_logger = "0.8.3"
+
+trivalibs = { path = "trivalibs/crates/trivalibs" }
+trivalibs_shaders = { path = "trivalibs/crates/trivalibs_shaders" }
+trivalibs_core = { path = "trivalibs/crates/trivalibs_core" }
+trivalibs_painter = { path = "trivalibs/crates/trivalibs_painter" }
+serde = { version = "1.0", features = ["derive"] }
+serde_repr = "0.1"
+serde_bytes = "0.11"
+bytemuck = { version = "1.21", features = ["derive"] }
+js-sys = "0.3"
+lerp = "0.5"
+approx = "0.5.1"
+rand = "0.8.5"
+getrandom = { version = "0.2", features = ["js"] }
+glam = { version = "0.29.2", features = [
+	"bytemuck",
+	"serde",
+	"rand",
+	"approx",
+] }
+winit = "0.30.5"
+wgpu = { version = "24.0", features = ["spirv"] }
+spirv-std = { version = "0.9" }
 log = "0.4"
-png = "0.17.14"
+env_logger = "0.11"
+pollster = "0.4.0"
+macro_rules_attribute = "0.2.0"
+png = "0.17"
 flume = "0.11.1"
-bytemuck = "1.20.0"
+notify = "8.0.0"
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]
@@ -37,3 +45,6 @@ opt-level = 1
 
 [profile.dev.package."*"]
 opt-level = 3
+
+[profile.release]
+lto = true

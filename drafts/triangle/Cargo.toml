@@ -1,6 +1,0 @@
-[package]
-name = "draft_triangle"
-edition.workspace = true
-
-[dependencies]
-trivalibs.workspace = true
