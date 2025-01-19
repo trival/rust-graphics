@@ -455,7 +455,6 @@ name = "draft_ball"
 version = "0.1.0"
 dependencies = [
  "bytemuck",
- "draft_ball_shader",
  "png",
  "trivalibs",
 ]
@@ -465,6 +464,22 @@ name = "draft_ball_shader"
 version = "0.1.0"
 dependencies = [
  "spirv-std",
+]
+
+[[package]]
+name = "draft_tex1_shader"
+version = "0.1.0"
+dependencies = [
+ "spirv-std",
+ "trivalibs_shaders",
+]
+
+[[package]]
+name = "draft_textures"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "trivalibs",
 ]
 
 [[package]]
@@ -508,9 +523,9 @@ dependencies = [
 
 [[package]]
 name = "fdeflate"
-version = "0.3.6"
+version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07c6f4c64c1d33a3111c4466f7365ebdcc37c5bd1ea0d62aae2e3d722aacbedb"
+checksum = "1e6853b52649d4ac5c0bd02320cddc5ba956bdb407c4b75a2c6b75bf51500f8c"
 dependencies = [
  "simd-adler32",
 ]
@@ -986,9 +1001,9 @@ dependencies = [
 
 [[package]]
 name = "miniz_oxide"
-version = "0.8.0"
+version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2d80299ef12ff69b16a84bb182e3b9df68b5a91574d3d4fa6e41b65deec4df1"
+checksum = "b8402cab7aefae129c6977bb0ff1b8fd9a04eb5b51efc50a70bea51cda0c7924"
 dependencies = [
  "adler2",
  "simd-adler32",
@@ -1448,9 +1463,9 @@ checksum = "953ec861398dccce10c670dfeaf3ec4911ca479e9c02154b3a215178c5f566f2"
 
 [[package]]
 name = "png"
-version = "0.17.14"
+version = "0.17.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52f9d46a34a05a6a57566bc2bfae066ef07585a6e3fa30fbbdff5936380623f0"
+checksum = "82151a2fc869e011c153adc57cf2789ccb8d9906ce52c0b39a6b5697749d7526"
 dependencies = [
  "bitflags 1.3.2",
  "crc32fast",
@@ -2052,6 +2067,13 @@ dependencies = [
  "trivalibs_core",
  "wgpu",
  "winit",
+]
+
+[[package]]
+name = "trivalibs_shaders"
+version = "0.1.0"
+dependencies = [
+ "spirv-std",
 ]
 
 [[package]]

@@ -1,9 +1,9 @@
+
 [package]
-name = "draft_ball"
+name = "draft_textures"
 edition.workspace = true
 version = "0.1.0"
 
 [dependencies]
 trivalibs.workspace = true
-png.workspace = true
 bytemuck.workspace = true
