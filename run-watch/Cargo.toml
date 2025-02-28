@@ -1,0 +1,9 @@
+[package]
+name = "run-watch"
+version = "0.1.0"
+edition.workspace = true
+
+[dependencies]
+notify = { workspace = true }
+toml = "0.8"
+serde = { workspace = true, features = ["derive"] }

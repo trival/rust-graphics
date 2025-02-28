@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["drafts/*", "drafts/**/shader"]
+members = ["drafts/*", "drafts/**/shader", "run-watch"]
 
 [workspace.package]
 edition = "2021"

@@ -22,7 +22,7 @@ impl CanvasApp<()> for App {
 			usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
 		});
 
-		texture_simplex.fill_2d(p, &tiled_noise_rgba_u8(512, 256, 0.8));
+		texture_simplex.fill_2d(p, &tiled_noise_rgba_u8(512, 256, 0.3));
 
 		let texture_random = p.texture_2d_create(Texture2DProps {
 			width: 512,
@@ -121,6 +121,7 @@ pub fn main() {
 		.config(AppConfig {
 			show_fps: true,
 			use_vsync: true,
+			keep_window_dimensions: true,
 		})
 		.start();
 }
