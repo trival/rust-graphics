@@ -43,7 +43,9 @@ impl CanvasApp<()> for App {
 	}
 
 	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
-		p.paint_and_show(self.canvas_simplex_shader)
+		p.paint(self.canvas_simplex_shader)?;
+		p.paint(self.canvas_simplex_prefilled)?;
+		p.show(self.canvas_simplex_shader)
 	}
 
 	fn update(&mut self, _p: &mut Painter, _tpf: f32) {}
