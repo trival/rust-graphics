@@ -1,5 +1,9 @@
-use trivalibs::{map, painter::prelude::*, prelude::*};
-use utils::tiled_noise_rgba_u8;
+use trivalibs::{
+	map,
+	painter::{effect::Effect, prelude::*},
+	prelude::*,
+};
+use utils::{rand_rgba_u8, tiled_noise_rgba_u8};
 
 mod utils;
 
@@ -11,25 +15,78 @@ struct App {
 
 impl CanvasApp<()> for App {
 	fn init(p: &mut Painter) -> Self {
-		let texture = p.texture_2d_create(Texture2DProps {
+		let texture_simplex = p.texture_2d_create(Texture2DProps {
 			width: 512,
 			height: 256,
 			format: wgpu::TextureFormat::Rgba8UnormSrgb,
 			usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
 		});
 
-		texture.fill_2d(p, &tiled_noise_rgba_u8(512, 256, 0.1));
+		texture_simplex.fill_2d(p, &tiled_noise_rgba_u8(512, 256, 0.8));
 
-		let shade = p.shade_create_effect(ShadeEffectProps {
-			uniforms: &[UNIFORM_BUFFER_FRAG],
-			layers: &[],
+		let texture_random = p.texture_2d_create(Texture2DProps {
+			width: 512,
+			height: 256,
+			format: wgpu::TextureFormat::Rgba8UnormSrgb,
+			usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
 		});
-		load_fragment_shader!(shade, p, "../tex1_shader/main.spv");
+
+		texture_random.fill_2d(p, &rand_rgba_u8(512, 256));
+
+		let sampler = p.sampler_create(SamplerProps {
+			mag_filter: wgpu::FilterMode::Linear,
+			min_filter: wgpu::FilterMode::Linear,
+			address_mode_u: wgpu::AddressMode::Repeat,
+			address_mode_v: wgpu::AddressMode::Repeat,
+			..default()
+		});
 
 		let u_size = p.uniform_uvec2();
 
-		let canvas_simplex_shader = create_shader_canvas(p, shade, &u_size);
-		let canvas_simplex_prefilled = create_shader_canvas(p, shade, &u_size);
+		let shade_simplex_shader = p.shade_create_effect(ShadeEffectProps {
+			uniforms: &[UNIFORM_BUFFER_FRAG],
+			layers: &[],
+		});
+		load_fragment_shader!(shade_simplex_shader, p, "../shader/simplex_shader_frag.spv");
+
+		let effect_simplex_shader = p.effect_create(
+			shade_simplex_shader,
+			EffectProps {
+				uniforms: map! {
+					0 => u_size.uniform()
+				},
+				..default()
+			},
+		);
+
+		let shade_simplex_prefilled = p.shade_create_effect(ShadeEffectProps {
+			uniforms: &[
+				UNIFORM_TEX2D_FRAG,
+				UNIFORM_SAMPLER_FRAG,
+				UNIFORM_BUFFER_FRAG,
+			],
+			layers: &[],
+		});
+		load_fragment_shader!(
+			shade_simplex_prefilled,
+			p,
+			"../shader/simplex_prefilled_frag.spv"
+		);
+
+		let effect_simplex_prefilled = p.effect_create(
+			shade_simplex_prefilled,
+			EffectProps {
+				uniforms: map! {
+					0 => texture_simplex.uniform(),
+					1 => sampler.uniform(),
+					2 => u_size.uniform()
+				},
+				..default()
+			},
+		);
+
+		let canvas_simplex_shader = create_shader_canvas(p, effect_simplex_shader);
+		let canvas_simplex_prefilled = create_shader_canvas(p, effect_simplex_prefilled);
 
 		Self {
 			u_size,
@@ -45,29 +102,18 @@ impl CanvasApp<()> for App {
 	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
 		p.paint(self.canvas_simplex_shader)?;
 		p.paint(self.canvas_simplex_prefilled)?;
-		p.show(self.canvas_simplex_shader)
+		p.show(self.canvas_simplex_prefilled)
 	}
 
 	fn update(&mut self, _p: &mut Painter, _tpf: f32) {}
-	fn event(&mut self, _e: Event<()>, _p: &mut Painter) {}
-}
-
-fn create_shader_canvas(p: &mut Painter, shade: Shade, u_size: &UniformBuffer<UVec2>) -> Layer {
-	let effect = p.effect_create(
-		shade,
-		EffectProps {
-			uniforms: map! {
-				0 => u_size.uniform()
-			},
-			..default()
-		},
-	);
-
-	let canvas = p.layer_create(LayerProps {
-		effects: vec![effect],
-		..default()
-	});
-	canvas
+	fn event(&mut self, e: Event<()>, p: &mut Painter) {
+		match e {
+			Event::ShaderReloadEvent => {
+				p.request_next_frame();
+			}
+			_ => {}
+		}
+	}
 }
 
 pub fn main() {
@@ -77,4 +123,12 @@ pub fn main() {
 			use_vsync: true,
 		})
 		.start();
+}
+
+fn create_shader_canvas(p: &mut Painter, effect: Effect) -> Layer {
+	let canvas = p.layer_create(LayerProps {
+		effects: vec![effect],
+		..default()
+	});
+	canvas
 }

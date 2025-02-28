@@ -1,7 +1,12 @@
 [
   {
-    "source_path": "main.spv",
-    "entry_point": "main",
-    "wgsl_entry_point": "main"
+    "source_path": "simplex_prefilled_frag.spv",
+    "entry_point": "simplex_prefilled_frag",
+    "wgsl_entry_point": "simplex_prefilled_frag"
+  },
+  {
+    "source_path": "simplex_shader_frag.spv",
+    "entry_point": "simplex_shader_frag",
+    "wgsl_entry_point": "simplex_shader_frag"
   }
 ]
