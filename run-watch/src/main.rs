@@ -1,4 +1,4 @@
-use notify::{Config, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
+use notify::{EventKind, RecursiveMode, Watcher};
 use serde::Deserialize;
 use std::{
 	env,
@@ -7,7 +7,6 @@ use std::{
 	path::{Path, PathBuf},
 	process::{Child, Command},
 	sync::mpsc::channel,
-	time::Duration,
 };
 
 #[derive(Debug, Deserialize)]
@@ -62,7 +61,7 @@ fn main() -> std::io::Result<()> {
 	println!("Watching crate: {}", crate_name);
 
 	let (tx, rx) = channel();
-	let mut watcher = RecommendedWatcher::new(tx, Config::default()).unwrap();
+	let mut watcher = notify::recommended_watcher(tx).unwrap();
 	watcher.watch(&src_path, RecursiveMode::Recursive).unwrap();
 
 	let mut current_process = RunningProcess::new(&crate_name)?;
@@ -96,9 +95,6 @@ fn main() -> std::io::Result<()> {
 				} else {
 					println!("Build failed");
 				}
-
-				// Small delay to prevent rapid successive rebuilds
-				std::thread::sleep(Duration::from_millis(100));
 			}
 			Err(e) => println!("Watch error: {:?}", e),
 		}

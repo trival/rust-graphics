@@ -13,25 +13,31 @@ struct App {
 	canvas_simplex_prefilled: Layer,
 }
 
+const NOISE_TEXTURE_WIDTH: u32 = 512;
+const NOISE_TEXTURE_HEIGHT: u32 = 512;
+
 impl CanvasApp<()> for App {
 	fn init(p: &mut Painter) -> Self {
 		let texture_simplex = p.texture_2d_create(Texture2DProps {
-			width: 512,
-			height: 256,
+			width: NOISE_TEXTURE_WIDTH,
+			height: NOISE_TEXTURE_HEIGHT,
 			format: wgpu::TextureFormat::Rgba8UnormSrgb,
 			usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
 		});
 
-		texture_simplex.fill_2d(p, &tiled_noise_rgba_u8(512, 256, 0.3));
+		texture_simplex.fill_2d(
+			p,
+			&tiled_noise_rgba_u8(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT, 0.3),
+		);
 
 		let texture_random = p.texture_2d_create(Texture2DProps {
-			width: 512,
-			height: 256,
+			width: NOISE_TEXTURE_WIDTH,
+			height: NOISE_TEXTURE_HEIGHT,
 			format: wgpu::TextureFormat::Rgba8UnormSrgb,
 			usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
 		});
 
-		texture_random.fill_2d(p, &rand_rgba_u8(512, 256));
+		texture_random.fill_2d(p, &rand_rgba_u8(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT));
 
 		let sampler = p.sampler_create(SamplerProps {
 			mag_filter: wgpu::FilterMode::Linear,
