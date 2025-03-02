@@ -37,20 +37,21 @@ pub fn tiled_noise(u: f64, v: f64, scale: f64, seed: u32) -> f64 {
 }
 
 pub fn tiled_noise_rgba_u8(width: u32, height: u32, initial_scale: f64) -> Vec<u8> {
-	let mut rgba = vec![0; (width * height * 4) as usize];
+	let size = (width * height) as usize;
+	let mut rgba = vec![0; size * 4];
 	let seed_r = rand_f32().floor() as u32;
 	let seed_g = rand_f32().floor() as u32;
 	let seed_b = rand_f32().floor() as u32;
 	let seed_a = rand_f32().floor() as u32;
 
-	for i in 0..rgba.len() {
+	for i in 0..size {
 		let u = (i % width as usize) as f64 / width as f64;
 		let v = (i / width as usize) as f64 / height as f64;
 		let i = i * 4;
 		rgba[i] = f64_to_u8(tiled_noise(u, v, initial_scale, seed_r));
-		rgba[i + 1] = f64_to_u8(tiled_noise(u, v, initial_scale * 2.0, seed_g));
-		rgba[i + 2] = f64_to_u8(tiled_noise(u, v, initial_scale * 4.0, seed_b));
-		rgba[i + 3] = f64_to_u8(tiled_noise(u, v, initial_scale * 8.0, seed_a));
+		rgba[i + 1] = f64_to_u8(tiled_noise(u, v, initial_scale * 2.025, seed_g));
+		rgba[i + 2] = f64_to_u8(tiled_noise(u, v, initial_scale * 4.05, seed_b));
+		rgba[i + 3] = f64_to_u8(tiled_noise(u, v, initial_scale * 8.1, seed_a));
 	}
 
 	rgba

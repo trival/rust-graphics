@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["drafts/*", "drafts/**/shader"]
+members = ["drafts/*", "drafts/**/shader", "run-watch"]
 
 [workspace.package]
 edition = "2021"
@@ -20,7 +20,7 @@ bytemuck = { version = "1.21", features = ["derive"] }
 js-sys = "0.3"
 lerp = "0.5"
 approx = "0.5.1"
-rand = "0.9"
+rand = {version = "0.9", features = ["thread_rng"] }
 getrandom = { version = "0.3", features = ["wasm_js"] }
 glam = { version = "0.30", features = [
 	"bytemuck",
