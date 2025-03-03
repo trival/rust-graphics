@@ -1,5 +1,5 @@
 use trivalibs::{map, painter::prelude::*, prelude::*};
-use utils::{rand_rgba_u8, tiled_noise_rgba_u8};
+use utils::{rand_rgba_f32, rand_rgba_u8, tiled_noise_rgba_f32, tiled_noise_rgba_u8};
 
 mod utils;
 
@@ -28,6 +28,30 @@ impl CanvasApp<()> for App {
 			.create();
 
 		texture_random.fill_2d(p, &rand_rgba_u8(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT));
+
+		let texture_simplex_f32 = p
+			.texture_2d(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT)
+			.with_format(wgpu::TextureFormat::Rgba32Float)
+			.create();
+
+		texture_simplex_f32.fill_2d(
+			p,
+			bytemuck::cast_slice(&tiled_noise_rgba_f32(
+				NOISE_TEXTURE_WIDTH,
+				NOISE_TEXTURE_HEIGHT,
+				0.3,
+			)),
+		);
+
+		let texture_random_f32 = p
+			.texture_2d(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT)
+			.with_format(wgpu::TextureFormat::Rgba32Float)
+			.create();
+
+		texture_random_f32.fill_2d(
+			p,
+			bytemuck::cast_slice(&rand_rgba_f32(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT)),
+		);
 
 		let sampler = p
 			.sampler()
@@ -67,7 +91,7 @@ impl CanvasApp<()> for App {
 		let effect_simplex_prefilled = p
 			.effect(shade_simplex_prefilled)
 			.with_uniforms(map! {
-				0 => texture_simplex.uniform(),
+				0 => texture_simplex_f32.uniform(),
 				1 => sampler.uniform(),
 				2 => u_size.uniform()
 			})
@@ -110,6 +134,7 @@ pub fn main() {
 			show_fps: true,
 			use_vsync: true,
 			keep_window_dimensions: true,
+			features: Some(wgpu::Features::FLOAT32_FILTERABLE),
 		})
 		.start();
 }

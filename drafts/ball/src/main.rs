@@ -122,6 +122,7 @@ pub fn main() {
 			show_fps: true,
 			use_vsync: true,
 			keep_window_dimensions: true,
+			..default()
 		})
 		.start();
 }

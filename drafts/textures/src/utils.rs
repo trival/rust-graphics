@@ -58,13 +58,14 @@ pub fn tiled_noise_rgba_u8(width: u32, height: u32, initial_scale: f64) -> Vec<u
 }
 
 pub fn tiled_noise_rgba_f32(width: u32, height: u32, initial_scale: f64) -> Vec<f32> {
-	let mut rgba = vec![0.0; (width * height * 4) as usize];
+	let size = (width * height) as usize;
+	let mut rgba = vec![0.0; size * 4];
 	let seed_r = rand_f32().floor() as u32;
 	let seed_g = rand_f32().floor() as u32;
 	let seed_b = rand_f32().floor() as u32;
 	let seed_a = rand_f32().floor() as u32;
 
-	for i in 0..rgba.len() {
+	for i in 0..size {
 		let u = (i % width as usize) as f64 / width as f64;
 		let v = (i / width as usize) as f64 / height as f64;
 		let i = i * 4;
