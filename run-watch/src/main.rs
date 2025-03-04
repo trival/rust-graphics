@@ -105,7 +105,7 @@ fn main() -> std::io::Result<()> {
 				}
 
 				let current_time = std::time::SystemTime::now();
-				event_table.insert(e.paths.clone(), current_time);
+				event_table.insert(e.paths, current_time);
 			}
 
 			Err(e) => println!("Watch error: {:?}", e),
