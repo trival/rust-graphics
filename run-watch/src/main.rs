@@ -1,6 +1,7 @@
 use notify::{EventKind, RecursiveMode, Watcher};
 use serde::Deserialize;
 use std::{
+	collections::BTreeMap,
 	env,
 	fs::File,
 	io::Read,
@@ -66,24 +67,31 @@ fn main() -> std::io::Result<()> {
 
 	let mut current_process = RunningProcess::new(&crate_name)?;
 
+	let mut event_table = BTreeMap::new();
+
 	for res in rx {
 		match res {
 			Ok(e) => {
 				match e.kind {
-					EventKind::Create(_) => {
-						println!("File created: {:?}", e.paths);
-					}
-					EventKind::Remove(_) => {
-						println!("File removed: {:?}", e.paths);
-					}
 					EventKind::Modify(_) => {
 						println!("File modified: {:?}", e.paths);
 					}
 					_ => continue,
 				}
 
+				let current_time = std::time::SystemTime::now();
+				if let Some(last_event_time) = event_table.get(&e.paths) {
+					if current_time
+						.duration_since(*last_event_time)
+						.unwrap()
+						.as_millis()
+						< 500
+					{
+						continue;
+					}
+				}
+
 				println!("Rebuilding...");
-				println!("{:?}", e);
 				let status = Command::new("cargo")
 					.args(["build", "--bin", &crate_name])
 					.status()?;
@@ -95,7 +103,11 @@ fn main() -> std::io::Result<()> {
 				} else {
 					println!("Build failed");
 				}
+
+				let current_time = std::time::SystemTime::now();
+				event_table.insert(e.paths.clone(), current_time);
 			}
+
 			Err(e) => println!("Watch error: {:?}", e),
 		}
 	}

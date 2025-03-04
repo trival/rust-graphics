@@ -9,7 +9,7 @@ struct App {
 	canvas_simplex_prefilled: Layer,
 }
 
-const NOISE_TEXTURE_WIDTH: u32 = 512;
+const NOISE_TEXTURE_WIDTH: u32 = 112;
 const NOISE_TEXTURE_HEIGHT: u32 = 512;
 
 impl CanvasApp<()> for App {
