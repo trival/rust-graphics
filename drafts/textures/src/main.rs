@@ -4,7 +4,9 @@ use utils::{rand_rgba_f32, rand_rgba_u8, tiled_noise_rgba_f32, tiled_noise_rgba_
 mod utils;
 
 struct App {
+	time: f32,
 	u_size: UniformBuffer<UVec2>,
+	u_time: UniformBuffer<f32>,
 	canvas_simplex_shader: Layer,
 	canvas_simplex_prefilled: Layer,
 }
@@ -61,16 +63,19 @@ impl CanvasApp<()> for App {
 
 		let u_size = p.uniform_uvec2();
 
+		let u_time = p.uniform_f32();
+
 		let shade_simplex_shader = p
 			.shade_effect()
-			.with_uniforms(&[UNIFORM_BUFFER_FRAG])
+			.with_uniforms(&[UNIFORM_BUFFER_FRAG, UNIFORM_BUFFER_FRAG])
 			.create();
 		load_fragment_shader!(shade_simplex_shader, p, "../shader/simplex_shader_frag.spv");
 
 		let effect_simplex_shader = p
 			.effect(shade_simplex_shader)
 			.with_uniforms(map! {
-				0 => u_size.uniform()
+				0 => u_size.uniform(),
+				1 => u_time.uniform()
 			})
 			.create();
 
@@ -101,7 +106,9 @@ impl CanvasApp<()> for App {
 		let canvas_simplex_prefilled = p.layer().with_effect(effect_simplex_prefilled).create();
 
 		Self {
+			time: 0.0,
 			u_size,
+			u_time,
 			canvas_simplex_shader,
 			canvas_simplex_prefilled,
 		}
@@ -114,18 +121,16 @@ impl CanvasApp<()> for App {
 	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
 		p.paint(self.canvas_simplex_shader)?;
 		p.paint(self.canvas_simplex_prefilled)?;
-		p.show(self.canvas_simplex_prefilled)
+		p.show(self.canvas_simplex_shader)
 	}
 
-	fn update(&mut self, _p: &mut Painter, _tpf: f32) {}
-	fn event(&mut self, e: Event<()>, p: &mut Painter) {
-		match e {
-			Event::ShaderReloadEvent => {
-				p.request_next_frame();
-			}
-			_ => {}
-		}
+	fn update(&mut self, p: &mut Painter, tpf: f32) {
+		self.time += tpf;
+		self.u_time.update(p, self.time);
+		p.request_next_frame();
 	}
+
+	fn event(&mut self, _e: Event<()>, _p: &mut Painter) {}
 }
 
 pub fn main() {
