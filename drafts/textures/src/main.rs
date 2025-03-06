@@ -69,7 +69,7 @@ impl CanvasApp<()> for App {
 			.shade_effect()
 			.with_uniforms(&[UNIFORM_BUFFER_FRAG, UNIFORM_BUFFER_FRAG])
 			.create();
-		load_fragment_shader!(shade_simplex_shader, p, "../shader/simplex_shader_frag.spv");
+		load_fragment_shader!(shade_simplex_shader, p, "../shader/fbm_shader_frag.spv");
 
 		let effect_simplex_shader = p
 			.effect(shade_simplex_shader)
