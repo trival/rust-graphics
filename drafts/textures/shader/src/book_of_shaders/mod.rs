@@ -1,4 +1,5 @@
 use spirv_std::glam::{vec3, Vec2, Vec3, Vec4};
+#[allow(unused_imports)]
 use spirv_std::num_traits::Float;
 
 fn plot_line_1(st: Vec2) -> f32 {

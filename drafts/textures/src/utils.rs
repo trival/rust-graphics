@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use noise::{NoiseFn, Simplex};
 use trivalibs::{
 	painter::{texture::Texture, wgpu, Painter},
