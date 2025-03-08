@@ -1,4 +1,4 @@
-use notify::{EventKind, RecursiveMode, Watcher};
+use notify::{RecursiveMode, Watcher};
 use serde::Deserialize;
 use std::{
 	collections::BTreeMap,
@@ -72,40 +72,35 @@ fn main() -> std::io::Result<()> {
 	for res in rx {
 		match res {
 			Ok(e) => {
-				match e.kind {
-					EventKind::Modify(_) => {
-						println!("File modified: {:?}", e.paths);
+				if e.kind.is_modify() {
+					let current_time = std::time::SystemTime::now();
+					if let Some(last_event_time) = event_table.get(&e.paths) {
+						if current_time
+							.duration_since(*last_event_time)
+							.unwrap()
+							.as_millis()
+							< 500
+						{
+							continue;
+						}
 					}
-					_ => continue,
-				}
 
-				let current_time = std::time::SystemTime::now();
-				if let Some(last_event_time) = event_table.get(&e.paths) {
-					if current_time
-						.duration_since(*last_event_time)
-						.unwrap()
-						.as_millis()
-						< 500
-					{
-						continue;
+					println!("Rebuilding...");
+					let status = Command::new("cargo")
+						.args(["build", "--bin", &crate_name])
+						.status()?;
+
+					if status.success() {
+						println!("Build successful, restarting process");
+						current_process.terminate()?;
+						current_process = RunningProcess::new(&crate_name)?;
+					} else {
+						println!("Build failed");
 					}
+
+					let current_time = std::time::SystemTime::now();
+					event_table.insert(e.paths, current_time);
 				}
-
-				println!("Rebuilding...");
-				let status = Command::new("cargo")
-					.args(["build", "--bin", &crate_name])
-					.status()?;
-
-				if status.success() {
-					println!("Build successful, restarting process");
-					current_process.terminate()?;
-					current_process = RunningProcess::new(&crate_name)?;
-				} else {
-					println!("Build failed");
-				}
-
-				let current_time = std::time::SystemTime::now();
-				event_table.insert(e.paths, current_time);
 			}
 
 			Err(e) => println!("Watch error: {:?}", e),

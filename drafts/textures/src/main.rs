@@ -1,14 +1,24 @@
+use std::any::Any;
+
 use trivalibs::{map, painter::prelude::*, prelude::*};
-use utils::{rand_rgba_f32, rand_rgba_u8, tiled_noise_rgba_f32, tiled_noise_rgba_u8};
+use utils::textures_f32;
 
 mod utils;
+
+fn no_op(layer: Layer) {
+	let _ = layer.type_id();
+}
 
 struct App {
 	time: f32,
 	u_size: UniformBuffer<UVec2>,
 	u_time: UniformBuffer<f32>,
-	canvas_simplex_shader: Layer,
+
 	canvas_simplex_prefilled: Layer,
+	canvas_simplex_shader: Layer,
+	canvas_fbm_shader: Layer,
+
+	canvas_bos_shaping_fns_1: Layer,
 }
 
 const NOISE_TEXTURE_WIDTH: u32 = 112;
@@ -16,44 +26,7 @@ const NOISE_TEXTURE_HEIGHT: u32 = 512;
 
 impl CanvasApp<()> for App {
 	fn init(p: &mut Painter) -> Self {
-		let texture_simplex = p
-			.texture_2d(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT)
-			.create();
-
-		texture_simplex.fill_2d(
-			p,
-			&tiled_noise_rgba_u8(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT, 0.3),
-		);
-
-		let texture_random = p
-			.texture_2d(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT)
-			.create();
-
-		texture_random.fill_2d(p, &rand_rgba_u8(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT));
-
-		let texture_simplex_f32 = p
-			.texture_2d(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT)
-			.with_format(wgpu::TextureFormat::Rgba32Float)
-			.create();
-
-		texture_simplex_f32.fill_2d(
-			p,
-			bytemuck::cast_slice(&tiled_noise_rgba_f32(
-				NOISE_TEXTURE_WIDTH,
-				NOISE_TEXTURE_HEIGHT,
-				0.3,
-			)),
-		);
-
-		let texture_random_f32 = p
-			.texture_2d(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT)
-			.with_format(wgpu::TextureFormat::Rgba32Float)
-			.create();
-
-		texture_random_f32.fill_2d(
-			p,
-			bytemuck::cast_slice(&rand_rgba_f32(NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT)),
-		);
+		let (_tex_rand, tex_simplex) = textures_f32(p, NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT, 0.6);
 
 		let sampler = p
 			.sampler()
@@ -65,21 +38,45 @@ impl CanvasApp<()> for App {
 
 		let u_time = p.uniform_f32();
 
-		let shade_simplex_shader = p
+		// simplex shader
+
+		let s = p
 			.shade_effect()
 			.with_uniforms(&[UNIFORM_BUFFER_FRAG, UNIFORM_BUFFER_FRAG])
 			.create();
-		load_fragment_shader!(shade_simplex_shader, p, "../shader/fbm_shader_frag.spv");
+		load_fragment_shader!(s, p, "../shader/simplex_shader_frag.spv");
 
-		let effect_simplex_shader = p
-			.effect(shade_simplex_shader)
+		let e = p.effect(s).create();
+		let canvas_simplex_shader = p
+			.layer()
+			.with_effect(e)
 			.with_uniforms(map! {
 				0 => u_size.uniform(),
 				1 => u_time.uniform()
 			})
 			.create();
 
-		let shade_simplex_prefilled = p
+		// fbm shader
+
+		let s = p
+			.shade_effect()
+			.with_uniforms(&[UNIFORM_BUFFER_FRAG, UNIFORM_BUFFER_FRAG])
+			.create();
+		load_fragment_shader!(s, p, "../shader/fbm_shader_frag.spv");
+
+		let e = p.effect(s).create();
+		let canvas_fbm_shader = p
+			.layer()
+			.with_effect(e)
+			.with_uniforms(map! {
+				0 => u_size.uniform(),
+				1 => u_time.uniform()
+			})
+			.create();
+
+		// simplex prefilled
+
+		let s = p
 			.shade_effect()
 			.with_uniforms(&[
 				UNIFORM_TEX2D_FRAG,
@@ -87,30 +84,39 @@ impl CanvasApp<()> for App {
 				UNIFORM_BUFFER_FRAG,
 			])
 			.create();
-		load_fragment_shader!(
-			shade_simplex_prefilled,
-			p,
-			"../shader/simplex_prefilled_frag.spv"
-		);
+		load_fragment_shader!(s, p, "../shader/simplex_prefilled_frag.spv");
 
-		let effect_simplex_prefilled = p
-			.effect(shade_simplex_prefilled)
+		let e = p.effect(s).create();
+		let canvas_simplex_prefilled = p
+			.layer()
+			.with_effect(e)
 			.with_uniforms(map! {
-				0 => texture_simplex_f32.uniform(),
+				0 => tex_simplex.uniform(),
 				1 => sampler.uniform(),
 				2 => u_size.uniform()
 			})
 			.create();
 
-		let canvas_simplex_shader = p.layer().with_effect(effect_simplex_shader).create();
-		let canvas_simplex_prefilled = p.layer().with_effect(effect_simplex_prefilled).create();
+		// bos shaping fns 1
+
+		let s = p.shade_effect().create();
+		load_fragment_shader!(s, p, "../shader/bos_shaping_fns_1.spv");
+
+		let e = p.effect(s).create();
+		let canvas_bos_shaping_fns_1 = p.layer().with_effect(e).create();
+
+		// return App
 
 		Self {
 			time: 0.0,
 			u_size,
 			u_time,
+
 			canvas_simplex_shader,
 			canvas_simplex_prefilled,
+			canvas_fbm_shader,
+
+			canvas_bos_shaping_fns_1,
 		}
 	}
 
@@ -119,9 +125,12 @@ impl CanvasApp<()> for App {
 	}
 
 	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
-		p.paint(self.canvas_simplex_shader)?;
-		p.paint(self.canvas_simplex_prefilled)?;
-		p.show(self.canvas_simplex_shader)
+		no_op(self.canvas_simplex_prefilled);
+		no_op(self.canvas_simplex_shader);
+		no_op(self.canvas_fbm_shader);
+		no_op(self.canvas_bos_shaping_fns_1);
+
+		p.paint_and_show(self.canvas_fbm_shader)
 	}
 
 	fn update(&mut self, p: &mut Painter, tpf: f32) {

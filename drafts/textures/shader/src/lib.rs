@@ -1,6 +1,8 @@
 #![no_std]
 #![allow(unexpected_cfgs)]
 
+mod book_of_shaders;
+
 use spirv_std::glam::{mat2, vec2, vec3, UVec2, Vec2, Vec4};
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
@@ -33,7 +35,7 @@ pub fn simplex_prefilled_frag(
 ) {
 	let aspect = size.x as f32 / size.y as f32;
 	let noise = tex.sample(*sampler, vec2(uv.x * aspect * 3., uv.y * 3.));
-	let val = (noise.x + noise.y + noise.z + noise.w) / 4.0;
+	let val = (noise.x + noise.y * 0.5 + noise.z * 0.25 + noise.w * 0.125) / 1.875;
 	// let val = noise.w;
 	*frag_color = Vec4::new(val, val, val, 1.0);
 }
@@ -95,4 +97,9 @@ pub fn fbm_shader_frag(
 	color = color.lerp(vec3(0.666667, 1.0, 1.0), r.length().clamp(0.0, 1.0));
 
 	*frag_color = ((f * f * f + 0.6 * f * f + 0.5 * f) * color).extend(1.0);
+}
+
+#[spirv(fragment)]
+pub fn bos_shaping_fns_1(uv: Vec2, frag_color: &mut Vec4) {
+	*frag_color = book_of_shaders::shaping_fns_1(uv);
 }

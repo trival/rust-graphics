@@ -1,5 +1,9 @@
 use noise::{NoiseFn, Simplex};
-use trivalibs::{prelude::*, rendering::texture::f64_to_u8};
+use trivalibs::{
+	painter::{texture::Texture, wgpu, Painter},
+	prelude::*,
+	rendering::texture::f64_to_u8,
+};
 
 pub fn rand_rgba_f32(width: u32, height: u32) -> Vec<f32> {
 	let mut rgba = vec![0.0; (width * height * 4) as usize];
@@ -76,4 +80,45 @@ pub fn tiled_noise_rgba_f32(width: u32, height: u32, initial_scale: f64) -> Vec<
 	}
 
 	rgba
+}
+
+pub fn textures_u8(
+	p: &mut Painter,
+	width: u32,
+	height: u32,
+	noise_scale: f64,
+) -> (Texture, Texture) {
+	let texture_random = p.texture_2d(width, height).create();
+	texture_random.fill_2d(p, &rand_rgba_u8(width, height));
+
+	let texture_simplex = p.texture_2d(width, height).create();
+	texture_simplex.fill_2d(p, &tiled_noise_rgba_u8(width, height, noise_scale));
+
+	(texture_random, texture_simplex)
+}
+
+pub fn textures_f32(
+	p: &mut Painter,
+	width: u32,
+	height: u32,
+	noise_scale: f64,
+) -> (Texture, Texture) {
+	let texture_random_f32 = p
+		.texture_2d(width, height)
+		.with_format(wgpu::TextureFormat::Rgba32Float)
+		.create();
+
+	texture_random_f32.fill_2d(p, bytemuck::cast_slice(&rand_rgba_f32(width, height)));
+
+	let texture_simplex_f32 = p
+		.texture_2d(width, height)
+		.with_format(wgpu::TextureFormat::Rgba32Float)
+		.create();
+
+	texture_simplex_f32.fill_2d(
+		p,
+		bytemuck::cast_slice(&tiled_noise_rgba_f32(width, height, noise_scale)),
+	);
+
+	(texture_random_f32, texture_simplex_f32)
 }
