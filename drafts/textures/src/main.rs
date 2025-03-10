@@ -1,6 +1,10 @@
 use std::any::Any;
 
-use trivalibs::{map, painter::prelude::*, prelude::*};
+use trivalibs::{
+	map,
+	painter::{prelude::*, texture::Texture},
+	prelude::*,
+};
 use utils::textures_f32;
 
 mod utils;
@@ -21,8 +25,8 @@ struct App {
 	canvas_bos_shaping_fns_1: Layer,
 }
 
-const NOISE_TEXTURE_WIDTH: u32 = 112;
-const NOISE_TEXTURE_HEIGHT: u32 = 512;
+const NOISE_TEXTURE_WIDTH: u32 = 256;
+const NOISE_TEXTURE_HEIGHT: u32 = 256;
 
 impl CanvasApp<()> for App {
 	fn init(p: &mut Painter) -> Self {
@@ -38,72 +42,68 @@ impl CanvasApp<()> for App {
 
 		let u_time = p.uniform_f32();
 
+		let texture_shade_canvas = |p: &mut Painter, tex: Texture| {
+			let s = p
+				.shade_effect()
+				.with_uniforms(&[
+					UNIFORM_TEX2D_FRAG,
+					UNIFORM_SAMPLER_FRAG,
+					UNIFORM_BUFFER_FRAG,
+				])
+				.create();
+
+			let e = p.effect(s).create();
+			let c = p
+				.layer()
+				.with_effect(e)
+				.with_uniforms(map! {
+					0 => tex.uniform(),
+					1 => sampler.uniform(),
+					2 => u_size.uniform()
+				})
+				.create();
+
+			(s, c)
+		};
+
+		let shade_canvas = |p: &mut Painter| {
+			let s = p
+				.shade_effect()
+				.with_uniforms(&[UNIFORM_BUFFER_FRAG, UNIFORM_BUFFER_FRAG])
+				.create();
+
+			let e = p.effect(s).create();
+			let c = p
+				.layer()
+				.with_effect(e)
+				.with_uniforms(map! {
+					0 => u_size.uniform(),
+					1 => u_time.uniform()
+				})
+				.create();
+
+			(s, c)
+		};
+
 		// simplex shader
 
-		let s = p
-			.shade_effect()
-			.with_uniforms(&[UNIFORM_BUFFER_FRAG, UNIFORM_BUFFER_FRAG])
-			.create();
-		load_fragment_shader!(s, p, "../shader/simplex_shader_frag.spv");
-
-		let e = p.effect(s).create();
-		let canvas_simplex_shader = p
-			.layer()
-			.with_effect(e)
-			.with_uniforms(map! {
-				0 => u_size.uniform(),
-				1 => u_time.uniform()
-			})
-			.create();
+		let (s, canvas_simplex_shader) = shade_canvas(p);
+		load_fragment_shader!(s, p, "../shader/simplex_shader.spv");
 
 		// fbm shader
 
-		let s = p
-			.shade_effect()
-			.with_uniforms(&[UNIFORM_BUFFER_FRAG, UNIFORM_BUFFER_FRAG])
-			.create();
-		load_fragment_shader!(s, p, "../shader/fbm_shader_frag.spv");
-
-		let e = p.effect(s).create();
-		let canvas_fbm_shader = p
-			.layer()
-			.with_effect(e)
-			.with_uniforms(map! {
-				0 => u_size.uniform(),
-				1 => u_time.uniform()
-			})
-			.create();
+		let (s, canvas_fbm_shader) = shade_canvas(p);
+		load_fragment_shader!(s, p, "../shader/fbm_shader.spv");
 
 		// simplex prefilled
 
-		let s = p
-			.shade_effect()
-			.with_uniforms(&[
-				UNIFORM_TEX2D_FRAG,
-				UNIFORM_SAMPLER_FRAG,
-				UNIFORM_BUFFER_FRAG,
-			])
-			.create();
-		load_fragment_shader!(s, p, "../shader/simplex_prefilled_frag.spv");
-
-		let e = p.effect(s).create();
-		let canvas_simplex_prefilled = p
-			.layer()
-			.with_effect(e)
-			.with_uniforms(map! {
-				0 => tex_simplex.uniform(),
-				1 => sampler.uniform(),
-				2 => u_size.uniform()
-			})
-			.create();
+		let (s, canvas_simplex_prefilled) = texture_shade_canvas(p, tex_simplex);
+		load_fragment_shader!(s, p, "../shader/simplex_prefilled.spv");
 
 		// bos shaping fns 1
 
-		let s = p.shade_effect().create();
+		let (s, canvas_bos_shaping_fns_1) = shade_canvas(p);
 		load_fragment_shader!(s, p, "../shader/bos_shaping_fns_1.spv");
-
-		let e = p.effect(s).create();
-		let canvas_bos_shaping_fns_1 = p.layer().with_effect(e).create();
 
 		// return App
 

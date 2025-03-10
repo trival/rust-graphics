@@ -5,18 +5,18 @@
     "wgsl_entry_point": "bos_shaping_fns_1"
   },
   {
-    "source_path": "fbm_shader_frag.spv",
-    "entry_point": "fbm_shader_frag",
-    "wgsl_entry_point": "fbm_shader_frag"
+    "source_path": "fbm_shader.spv",
+    "entry_point": "fbm_shader",
+    "wgsl_entry_point": "fbm_shader"
   },
   {
-    "source_path": "simplex_prefilled_frag.spv",
-    "entry_point": "simplex_prefilled_frag",
-    "wgsl_entry_point": "simplex_prefilled_frag"
+    "source_path": "simplex_prefilled.spv",
+    "entry_point": "simplex_prefilled",
+    "wgsl_entry_point": "simplex_prefilled"
   },
   {
-    "source_path": "simplex_shader_frag.spv",
-    "entry_point": "simplex_shader_frag",
-    "wgsl_entry_point": "simplex_shader_frag"
+    "source_path": "simplex_shader.spv",
+    "entry_point": "simplex_shader",
+    "wgsl_entry_point": "simplex_shader"
   }
 ]

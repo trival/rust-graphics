@@ -1,8 +1,6 @@
 #![no_std]
 #![allow(unexpected_cfgs)]
 
-mod book_of_shaders;
-
 use spirv_std::glam::{mat2, vec2, vec3, UVec2, Vec2, Vec4};
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
@@ -10,8 +8,10 @@ use spirv_std::{spirv, Image, Sampler};
 use trivalibs_shaders::fit::Fit;
 use trivalibs_shaders::noise::simplex::{simplex_noise_2d, simplex_noise_3d};
 
+mod book_of_shaders;
+
 #[spirv(fragment)]
-pub fn simplex_shader_frag(
+pub fn simplex_shader(
 	uv: Vec2,
 	#[spirv(uniform, descriptor_set = 0, binding = 0)] size: &UVec2,
 	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
@@ -26,7 +26,7 @@ pub fn simplex_shader_frag(
 }
 
 #[spirv(fragment)]
-pub fn simplex_prefilled_frag(
+pub fn simplex_prefilled(
 	uv: Vec2,
 	#[spirv(descriptor_set = 0, binding = 0)] tex: &Image!(2D, type=f32, sampled),
 	#[spirv(descriptor_set = 0, binding = 1)] sampler: &Sampler,
@@ -60,14 +60,20 @@ fn fbm(st: Vec2) -> f32 {
 }
 
 #[spirv(fragment)]
-pub fn fbm_shader_frag(
+pub fn fbm_shader(
 	uv: Vec2,
 	#[spirv(uniform, descriptor_set = 0, binding = 0)] size: &UVec2,
 	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
 	frag_color: &mut Vec4,
 ) {
 	let aspect = size.x as f32 / size.y as f32;
-	let st = uv * vec2(aspect, 1.0) * 3.0;
+	let st = if aspect > 1.0 {
+		uv * vec2(1.0, 1.0 / aspect)
+	} else {
+		uv * vec2(aspect, 1.0)
+	};
+	let st = st * 3.0;
+
 	let time = *time;
 
 	let q = vec2(
@@ -100,6 +106,11 @@ pub fn fbm_shader_frag(
 }
 
 #[spirv(fragment)]
-pub fn bos_shaping_fns_1(uv: Vec2, frag_color: &mut Vec4) {
+pub fn bos_shaping_fns_1(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
+	frag_color: &mut Vec4,
+) {
 	*frag_color = book_of_shaders::shaping_fns_1(uv);
 }
