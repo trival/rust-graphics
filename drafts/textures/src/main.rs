@@ -22,7 +22,7 @@ struct App {
 	canvas_simplex_shader: Layer,
 	canvas_fbm_shader: Layer,
 
-	canvas_bos_shaping_fns_1: Layer,
+	canvas_bos_shaping_fns: Layer,
 }
 
 const NOISE_TEXTURE_WIDTH: u32 = 256;
@@ -102,8 +102,8 @@ impl CanvasApp<()> for App {
 
 		// bos shaping fns 1
 
-		let (s, canvas_bos_shaping_fns_1) = shade_canvas(p);
-		load_fragment_shader!(s, p, "../shader/bos_shaping_fns_1.spv");
+		let (s, canvas_bos_shaping_fns) = shade_canvas(p);
+		load_fragment_shader!(s, p, "../shader/bos_shaping_fns.spv");
 
 		// return App
 
@@ -116,21 +116,21 @@ impl CanvasApp<()> for App {
 			canvas_simplex_prefilled,
 			canvas_fbm_shader,
 
-			canvas_bos_shaping_fns_1,
+			canvas_bos_shaping_fns,
 		}
 	}
 
 	fn resize(&mut self, p: &mut Painter, width: u32, height: u32) {
 		self.u_size.update(p, uvec2(width, height));
-	}
 
-	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
 		no_op(self.canvas_simplex_prefilled);
 		no_op(self.canvas_simplex_shader);
 		no_op(self.canvas_fbm_shader);
-		no_op(self.canvas_bos_shaping_fns_1);
+		no_op(self.canvas_bos_shaping_fns);
+	}
 
-		p.paint_and_show(self.canvas_fbm_shader)
+	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
+		p.paint_and_show(self.canvas_bos_shaping_fns)
 	}
 
 	fn update(&mut self, p: &mut Painter, tpf: f32) {

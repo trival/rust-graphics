@@ -7,8 +7,10 @@ use spirv_std::num_traits::Float;
 use spirv_std::{spirv, Image, Sampler};
 use trivalibs_shaders::fit::Fit;
 use trivalibs_shaders::noise::simplex::{simplex_noise_2d, simplex_noise_3d};
+use utils::st_from_uv_size;
 
 mod book_of_shaders;
+pub mod utils;
 
 #[spirv(fragment)]
 pub fn simplex_shader(
@@ -66,13 +68,7 @@ pub fn fbm_shader(
 	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
 	frag_color: &mut Vec4,
 ) {
-	let aspect = size.x as f32 / size.y as f32;
-	let st = if aspect > 1.0 {
-		uv * vec2(1.0, 1.0 / aspect)
-	} else {
-		uv * vec2(aspect, 1.0)
-	};
-	let st = st * 3.0;
+	let st = st_from_uv_size(uv, size) * 3.0;
 
 	let time = *time;
 
@@ -106,11 +102,11 @@ pub fn fbm_shader(
 }
 
 #[spirv(fragment)]
-pub fn bos_shaping_fns_1(
+pub fn bos_shaping_fns(
 	uv: Vec2,
 	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
 	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
 	frag_color: &mut Vec4,
 ) {
-	*frag_color = book_of_shaders::shaping_fns_1(uv);
+	*frag_color = book_of_shaders::shaping_fns(uv);
 }

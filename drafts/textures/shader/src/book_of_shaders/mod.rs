@@ -1,22 +1,52 @@
-use spirv_std::glam::{vec3, Vec2, Vec3, Vec4};
-#[allow(unused_imports)]
-use spirv_std::num_traits::Float;
+#![allow(unused_imports)]
 
-fn plot_line_1(st: Vec2) -> f32 {
-	smoothstep(0.02, 0.0, (st.y - st.x).abs())
+use core::f32::consts::PI;
+
+use crate::utils::{flip_y, smoothstep, step};
+use spirv_std::num_traits::Float;
+use spirv_std::{
+	glam::{vec3, Vec2, Vec3, Vec4},
+	num_traits::Pow,
+};
+
+// fn plot_line_1(st: Vec2) -> f32 {
+// 	smoothstep(0.02, 0.0, (st.y - st.x).abs())
+// }
+
+fn plot(st: Vec2, val: f32) -> f32 {
+	// smoothstep(val - 0.02, val, st.y) - smoothstep(val, val + 0.02, st.y)
+	step(val - 0.02, st.y) - step(val + 0.02, st.y)
 }
 
-pub fn shaping_fns_1(st: Vec2) -> Vec4 {
-	let color = Vec3::splat(st.x);
-	let pct = plot_line_1(st);
+const PLOT_COLOR: Vec3 = vec3(0.0, 1.0, 0.0);
 
-	let color = (1.0 - pct) * color + pct * vec3(0.0, 1.0, 0.0);
+pub fn shaping_fns(st: Vec2) -> Vec4 {
+	let st = flip_y(st);
+
+	let x = st.x;
+
+	// let y = x;
+	// let y = x.pow(5.0);
+	// let y = step(0.4, x) - step(0.6, x);
+	// let y = x.pow(5.0) - st.y.pow(5.0);
+	// let y = x.log(0.5);
+	// let y = x.sqrt();
+	// let y = x.pow(0.4);
+	// let y = st.x * 0.5 + 0.5;
+	// let y = x.pow(PI);
+	// let y = (x * 16.0).sin().abs();
+	// let y = 1.0 - (x * 16.0).sin().abs();
+	// let y = (x * 20.0).sin() * 0.5 + 1.0;
+	let y = (x * 8.0).sin().fract();
+	// let y = (x * 8.0).sin();
+
+	let color = Vec3::splat(y);
+
+	let pct = plot(st, y);
+	let color = (1.0 - pct) * color + pct * PLOT_COLOR;
+
+	// gamma correction
+	let color = color.powf(2.2);
 
 	color.extend(1.0)
-}
-
-fn smoothstep(edge0: f32, edge1: f32, x: f32) -> f32 {
-	let t = (x - edge0) / (edge1 - edge0);
-	let t = t.clamp(0.0, 1.0);
-	t * t * (3.0 - 2.0 * t)
 }
