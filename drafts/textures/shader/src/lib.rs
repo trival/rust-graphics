@@ -108,5 +108,15 @@ pub fn bos_shaping_fns(
 	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
 	frag_color: &mut Vec4,
 ) {
-	*frag_color = book_of_shaders::shaping_fns(uv);
+	*frag_color = book_of_shaders::shaping_fns::shaping_fns(uv);
+}
+
+#[spirv(fragment)]
+pub fn bos_shapes_rect(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
+	frag_color: &mut Vec4,
+) {
+	*frag_color = book_of_shaders::shapes::rect(uv);
 }

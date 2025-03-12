@@ -1,5 +1,10 @@
 [
   {
+    "source_path": "bos_shapes_rect.spv",
+    "entry_point": "bos_shapes_rect",
+    "wgsl_entry_point": "bos_shapes_rect"
+  },
+  {
     "source_path": "bos_shaping_fns.spv",
     "entry_point": "bos_shaping_fns",
     "wgsl_entry_point": "bos_shaping_fns"
