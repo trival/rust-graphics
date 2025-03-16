@@ -1,8 +1,9 @@
 #![allow(unused_imports)]
 
-use crate::utils::{flip_y, smoothstep};
-use spirv_std::glam::{vec2, vec3, UVec2, Vec2, Vec4};
+use crate::utils::flip_y;
+use spirv_std::glam::{vec2, vec3, UVec2, Vec2, Vec3, Vec4};
 use spirv_std::num_traits::Float;
+use trivalibs_shaders::smoothstep::smoothstep;
 use trivalibs_shaders::step::{step, Step};
 
 pub fn rect(size: Vec2, center: Vec2, st: Vec2) -> f32 {
@@ -49,15 +50,17 @@ pub fn rect_shader(st: Vec2) -> Vec4 {
 	// let vert = step(0.25, st.x) * step(0.25, 1.0 - st.x);
 	// let horz = step(0.25, st.y) * step(0.25, 1.0 - st.y);
 
-	let size = vec2(0.5, 0.25);
-	let center1 = vec2(0.5, 0.3);
+	let size = vec2(0.8, 0.65);
+
+	let center1 = vec2(0.5, 0.50);
 	let rec1 = rect(size, center1, st);
 
-	let center2 = vec2(0.5, 0.7);
-	let rec2 = smooth_rect(size, center2, st, 0.15);
+	let center2 = vec2(0.5, 0.485);
+	let rec2 = smooth_rect(size, center2, st, 0.12);
 
-	let color1 = vec3(rec1, rec1, 0.0);
-	let color2 = vec3(rec2, 0.0, rec2);
+	let color1 = vec3(1.0, 1.0, 0.0);
+	let color2 = vec3(0.3, 0.3, 0.1);
 
-	(color1 + color2).extend(1.0)
+	let bg_color = Vec3::splat(1.0);
+	bg_color.lerp(color2, rec2).lerp(color1, rec1).extend(1.0)
 }

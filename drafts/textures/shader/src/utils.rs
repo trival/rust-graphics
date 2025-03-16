@@ -12,9 +12,3 @@ pub fn st_from_uv_size(uv: Vec2, size: &UVec2) -> Vec2 {
 pub fn flip_y(uv: Vec2) -> Vec2 {
 	vec2(uv.x, 1.0 - uv.y)
 }
-
-pub fn smoothstep(edge0: f32, edge1: f32, x: f32) -> f32 {
-	let t = (x - edge0) / (edge1 - edge0);
-	let t = t.clamp(0.0, 1.0);
-	t * t * (3.0 - 2.0 * t)
-}

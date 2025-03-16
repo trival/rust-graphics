@@ -1,6 +1,6 @@
 #![allow(unused_imports)]
 
-use crate::utils::{flip_y, smoothstep};
+use crate::utils::flip_y;
 use core::f32::consts::PI;
 use spirv_std::num_traits::Float;
 use spirv_std::{
