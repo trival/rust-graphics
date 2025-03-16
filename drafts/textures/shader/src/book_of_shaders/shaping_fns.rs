@@ -1,13 +1,13 @@
 #![allow(unused_imports)]
 
+use crate::utils::{flip_y, smoothstep};
 use core::f32::consts::PI;
-
-use crate::utils::{flip_y, smoothstep, step};
 use spirv_std::num_traits::Float;
 use spirv_std::{
 	glam::{vec3, Vec2, Vec3, Vec4},
 	num_traits::Pow,
 };
+use trivalibs_shaders::step::{step, Step};
 
 // fn plot_line_1(st: Vec2) -> f32 {
 // 	smoothstep(0.02, 0.0, (st.y - st.x).abs())

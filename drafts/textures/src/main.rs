@@ -138,16 +138,23 @@ impl CanvasApp<()> for App {
 	}
 
 	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
+		// p.request_next_frame();
 		p.paint_and_show(self.canvas_bos_shapes_rect)
 	}
 
 	fn update(&mut self, p: &mut Painter, tpf: f32) {
 		self.time += tpf;
 		self.u_time.update(p, self.time);
-		p.request_next_frame();
 	}
 
-	fn event(&mut self, _e: Event<()>, _p: &mut Painter) {}
+	fn event(&mut self, e: Event<()>, p: &mut Painter) {
+		match e {
+			Event::ShaderReloadEvent => {
+				p.request_next_frame();
+			}
+			_ => {}
+		}
+	}
 }
 
 pub fn main() {
