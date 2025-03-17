@@ -1,16 +1,20 @@
-use std::any::Any;
-
 use trivalibs::{
 	map,
-	painter::{prelude::*, texture::Texture},
+	painter::{
+		prelude::*,
+		texture::Texture,
+		winit::event::{ElementState, MouseButton, WindowEvent},
+	},
 	prelude::*,
 };
 use utils::textures_f32;
 
 mod utils;
 
-fn no_op(layer: Layer) {
-	let _ = layer.type_id();
+#[derive(Copy, Clone)]
+struct Canvas {
+	layer: Layer,
+	animated: bool,
 }
 
 struct App {
@@ -18,12 +22,8 @@ struct App {
 	u_size: UniformBuffer<UVec2>,
 	u_time: UniformBuffer<f32>,
 
-	canvas_simplex_prefilled: Layer,
-	canvas_simplex_shader: Layer,
-	canvas_fbm_shader: Layer,
-
-	canvas_bos_shaping_fns: Layer,
-	canvas_bos_shapes_rect: Layer,
+	canvases: Vec<Canvas>,
+	current_canvas: usize,
 }
 
 const NOISE_TEXTURE_WIDTH: u32 = 256;
@@ -43,7 +43,7 @@ impl CanvasApp<()> for App {
 
 		let u_time = p.uniform_f32();
 
-		let texture_shade_canvas = |p: &mut Painter, tex: Texture| {
+		let texture_shade_canvas = |p: &mut Painter, tex: Texture, animated: bool| {
 			let s = p
 				.shade_effect()
 				.with_uniforms(&[
@@ -54,7 +54,7 @@ impl CanvasApp<()> for App {
 				.create();
 
 			let e = p.effect(s).create();
-			let c = p
+			let layer = p
 				.layer()
 				.with_effect(e)
 				.with_uniforms(map! {
@@ -64,17 +64,17 @@ impl CanvasApp<()> for App {
 				})
 				.create();
 
-			(s, c)
+			(s, Canvas { layer, animated })
 		};
 
-		let shade_canvas = |p: &mut Painter| {
+		let shade_canvas = |p: &mut Painter, animated: bool| {
 			let s = p
 				.shade_effect()
 				.with_uniforms(&[UNIFORM_BUFFER_FRAG, UNIFORM_BUFFER_FRAG])
 				.create();
 
 			let e = p.effect(s).create();
-			let c = p
+			let layer = p
 				.layer()
 				.with_effect(e)
 				.with_uniforms(map! {
@@ -83,32 +83,32 @@ impl CanvasApp<()> for App {
 				})
 				.create();
 
-			(s, c)
+			(s, Canvas { layer, animated })
 		};
 
 		// simplex shader
 
-		let (s, canvas_simplex_shader) = shade_canvas(p);
+		let (s, canvas_simplex_shader) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/simplex_shader.spv");
 
 		// fbm shader
 
-		let (s, canvas_fbm_shader) = shade_canvas(p);
+		let (s, canvas_fbm_shader) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/fbm_shader.spv");
 
 		// simplex prefilled
 
-		let (s, canvas_simplex_prefilled) = texture_shade_canvas(p, tex_simplex);
+		let (s, canvas_simplex_prefilled) = texture_shade_canvas(p, tex_simplex, false);
 		load_fragment_shader!(s, p, "../shader/simplex_prefilled.spv");
 
 		// bos shaping fns 1
 
-		let (s, canvas_bos_shaping_fns) = shade_canvas(p);
+		let (s, canvas_bos_shaping_fns) = shade_canvas(p, false);
 		load_fragment_shader!(s, p, "../shader/bos_shaping_fns.spv");
 
 		// bos shapes rect
 
-		let (s, canvas_bos_shapes_rect) = shade_canvas(p);
+		let (s, canvas_bos_shapes_rect) = shade_canvas(p, false);
 		load_fragment_shader!(s, p, "../shader/bos_shapes_rect.spv");
 
 		// return App
@@ -118,28 +118,27 @@ impl CanvasApp<()> for App {
 			u_size,
 			u_time,
 
-			canvas_simplex_shader,
-			canvas_simplex_prefilled,
-			canvas_fbm_shader,
-
-			canvas_bos_shaping_fns,
-			canvas_bos_shapes_rect,
+			canvases: vec![
+				canvas_bos_shapes_rect,
+				canvas_bos_shaping_fns,
+				canvas_fbm_shader,
+				canvas_simplex_prefilled,
+				canvas_simplex_shader,
+			],
+			current_canvas: 0,
 		}
 	}
 
 	fn resize(&mut self, p: &mut Painter, width: u32, height: u32) {
 		self.u_size.update(p, uvec2(width, height));
-
-		no_op(self.canvas_simplex_prefilled);
-		no_op(self.canvas_simplex_shader);
-		no_op(self.canvas_fbm_shader);
-		no_op(self.canvas_bos_shaping_fns);
-		no_op(self.canvas_bos_shapes_rect);
 	}
 
 	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
-		// p.request_next_frame();
-		p.paint_and_show(self.canvas_bos_shapes_rect)
+		let c = &self.canvases[self.current_canvas];
+		if c.animated {
+			p.request_next_frame();
+		}
+		p.paint_and_show(c.layer)
 	}
 
 	fn update(&mut self, p: &mut Painter, tpf: f32) {
@@ -151,6 +150,20 @@ impl CanvasApp<()> for App {
 		match e {
 			Event::ShaderReloadEvent => {
 				p.request_next_frame();
+			}
+			Event::WindowEvent(WindowEvent::MouseInput { state, button, .. }) => {
+				if state == ElementState::Released {
+					p.request_next_frame();
+					match button {
+						MouseButton::Left => {
+							self.current_canvas = (self.current_canvas + 1) % self.canvases.len();
+						}
+						_ => {
+							self.current_canvas =
+								(self.current_canvas + self.canvases.len() - 1) % self.canvases.len();
+						}
+					}
+				}
 			}
 			_ => {}
 		}

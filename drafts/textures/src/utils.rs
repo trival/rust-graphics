@@ -42,9 +42,15 @@ pub fn tiled_noise(u: f64, v: f64, scale: f64, seed: u32) -> f64 {
 	value * 0.5 + 0.5
 }
 
-pub fn tiled_noise_rgba_u8(width: u32, height: u32, initial_scale: f64) -> Vec<u8> {
+pub fn tiled_noise_rgba<T: Copy + Clone>(
+	width: u32,
+	height: u32,
+	initial_scale: f64,
+	scale_factor: f64,
+	f: fn(f64) -> T,
+) -> Vec<T> {
 	let size = (width * height) as usize;
-	let mut rgba = vec![0; size * 4];
+	let mut rgba = vec![f(0.0); size * 4];
 	let seed_r = rand_f32().floor() as u32;
 	let seed_g = rand_f32().floor() as u32;
 	let seed_b = rand_f32().floor() as u32;
@@ -54,31 +60,20 @@ pub fn tiled_noise_rgba_u8(width: u32, height: u32, initial_scale: f64) -> Vec<u
 		let u = (i % width as usize) as f64 / width as f64;
 		let v = (i / width as usize) as f64 / height as f64;
 		let i = i * 4;
-		rgba[i] = f64_to_u8(tiled_noise(u, v, initial_scale, seed_r));
-		rgba[i + 1] = f64_to_u8(tiled_noise(u, v, initial_scale * 2.025, seed_g));
-		rgba[i + 2] = f64_to_u8(tiled_noise(u, v, initial_scale * 4.05, seed_b));
-		rgba[i + 3] = f64_to_u8(tiled_noise(u, v, initial_scale * 8.1, seed_a));
-	}
-
-	rgba
-}
-
-pub fn tiled_noise_rgba_f32(width: u32, height: u32, initial_scale: f64) -> Vec<f32> {
-	let size = (width * height) as usize;
-	let mut rgba = vec![0.0; size * 4];
-	let seed_r = rand_f32().floor() as u32;
-	let seed_g = rand_f32().floor() as u32;
-	let seed_b = rand_f32().floor() as u32;
-	let seed_a = rand_f32().floor() as u32;
-
-	for i in 0..size {
-		let u = (i % width as usize) as f64 / width as f64;
-		let v = (i / width as usize) as f64 / height as f64;
-		let i = i * 4;
-		rgba[i] = tiled_noise(u, v, initial_scale, seed_r) as f32;
-		rgba[i + 1] = tiled_noise(u, v, initial_scale * 2.0, seed_g) as f32;
-		rgba[i + 2] = tiled_noise(u, v, initial_scale * 4.0, seed_b) as f32;
-		rgba[i + 3] = tiled_noise(u, v, initial_scale * 8.0, seed_a) as f32;
+		rgba[i] = f(tiled_noise(u, v, initial_scale, seed_r));
+		rgba[i + 1] = f(tiled_noise(u, v, initial_scale * scale_factor, seed_g));
+		rgba[i + 2] = f(tiled_noise(
+			u,
+			v,
+			initial_scale * scale_factor * 2.0,
+			seed_b,
+		));
+		rgba[i + 3] = f(tiled_noise(
+			u,
+			v,
+			initial_scale * scale_factor * 4.0,
+			seed_a,
+		));
 	}
 
 	rgba
@@ -94,7 +89,10 @@ pub fn textures_u8(
 	texture_random.fill_2d(p, &rand_rgba_u8(width, height));
 
 	let texture_simplex = p.texture_2d(width, height).create();
-	texture_simplex.fill_2d(p, &tiled_noise_rgba_u8(width, height, noise_scale));
+	texture_simplex.fill_2d(
+		p,
+		&tiled_noise_rgba(width, height, noise_scale, 2.0, f64_to_u8),
+	);
 
 	(texture_random, texture_simplex)
 }
@@ -119,7 +117,9 @@ pub fn textures_f32(
 
 	texture_simplex_f32.fill_2d(
 		p,
-		bytemuck::cast_slice(&tiled_noise_rgba_f32(width, height, noise_scale)),
+		bytemuck::cast_slice(&tiled_noise_rgba(width, height, noise_scale, 2.0, |x| {
+			x as f32
+		})),
 	);
 
 	(texture_random_f32, texture_simplex_f32)
