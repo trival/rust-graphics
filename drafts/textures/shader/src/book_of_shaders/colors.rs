@@ -24,9 +24,12 @@ pub fn color_test(uv: Vec2, time: f32) -> Vec4 {
 	let circle = circle_smooth(center, radius, uv, 0.05);
 
 	let polar = PolarCoord::from_2d_with_center(uv, center);
+	let c_polar = hsv2rgb_smooth(vec3(
+		polar.angle / TAU + 0.5,
+		polar.radius / (radius - 0.01),
+		1.0,
+	));
 
-	let c_polar = hsv2rgb_smooth(vec3(polar.angle / TAU + 0.5, polar.radius / radius, 1.0));
-
-	c_rgb.lerp(c_polar, 1.0 - circle).extend(1.0)
+	c_polar.lerp(c_rgb, circle).extend(1.0)
 	// c.extend(1.0)
 }
