@@ -120,3 +120,23 @@ pub fn bos_shapes_rect(
 ) {
 	*frag_color = book_of_shaders::shapes::rect_shader(uv);
 }
+
+#[spirv(fragment)]
+pub fn bos_shapes_circles(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
+	frag_color: &mut Vec4,
+) {
+	*frag_color = book_of_shaders::shapes::rect_shader(uv);
+}
+
+#[spirv(fragment)]
+pub fn bos_colors(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
+	frag_color: &mut Vec4,
+) {
+	*frag_color = book_of_shaders::colors::color_test(uv, *time);
+}
