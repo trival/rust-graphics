@@ -12,7 +12,7 @@ pub fn rect(size: Vec2, center: Vec2, st: Vec2) -> f32 {
 	rect.x * rect.y
 }
 
-pub fn smooth_rect(size: Vec2, center: Vec2, st: Vec2, radius: f32) -> f32 {
+pub fn rect_smooth(size: Vec2, center: Vec2, st: Vec2, radius: f32) -> f32 {
 	let half_size = size * 0.5;
 	let half_radius = radius * 0.5;
 
@@ -39,6 +39,16 @@ pub fn smooth_rect(size: Vec2, center: Vec2, st: Vec2, radius: f32) -> f32 {
 	x * y
 }
 
+pub fn circle(center: Vec2, radius: f32, st: Vec2) -> f32 {
+	let dist = (st - center).length();
+	step(radius, dist)
+}
+
+pub fn circle_smooth(center: Vec2, radius: f32, st: Vec2, smoothness: f32) -> f32 {
+	let dist = (st - center).length();
+	smoothstep(radius - smoothness, radius + smoothness, dist)
+}
+
 pub fn rect_shader(st: Vec2) -> Vec4 {
 	let st = flip_y(st);
 
@@ -56,7 +66,7 @@ pub fn rect_shader(st: Vec2) -> Vec4 {
 	let rec1 = rect(size, center1, st);
 
 	let center2 = vec2(0.5, 0.485);
-	let rec2 = smooth_rect(size, center2, st, 0.12);
+	let rec2 = rect_smooth(size, center2, st, 0.12);
 
 	let color1 = vec3(1.0, 1.0, 0.0);
 	let color2 = vec3(0.3, 0.3, 0.1);
