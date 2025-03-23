@@ -129,9 +129,9 @@ impl CanvasApp<()> for App {
 			u_time,
 
 			canvases: vec![
-				canvas_bos_colors,
 				canvas_bos_shapes_circles,
 				canvas_bos_shapes_rect,
+				canvas_bos_colors,
 				canvas_bos_shaping_fns,
 				canvas_fbm_shader,
 				canvas_simplex_prefilled,
