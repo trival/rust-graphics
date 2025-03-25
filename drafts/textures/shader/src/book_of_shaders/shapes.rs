@@ -6,50 +6,67 @@ use crate::utils::flip_y;
 use spirv_std::glam::{vec2, vec3, UVec2, Vec2, Vec3, Vec4};
 use spirv_std::num_traits::Float;
 use trivalibs_shaders::coords::PolarCoord;
-use trivalibs_shaders::smoothstep::smoothstep;
+use trivalibs_shaders::smoothstep::{smoothstep, Smoothstep};
 use trivalibs_shaders::step::{step, Step};
 
 pub fn rect(size: Vec2, center: Vec2, st: Vec2) -> f32 {
 	let half_size = size * 0.5;
-	let rect = (center - half_size).step(st) * (1.0 - (center + half_size).step(st));
-	rect.x * rect.y
+
+	// This is the first strategy of the book of shaders
+	// let rect = (center - half_size).step(st) * (1.0 - (center + half_size).step(st));
+	// rect.x * rect.y
+
+	let rect = (center - st).abs() / half_size;
+	// 1.0 - (rect.x.max(rect.y)).clamp(0.0, 1.0).floor()
+	1.0.step(rect.x.max(rect.y))
 }
 
-pub fn rect_smooth(size: Vec2, center: Vec2, st: Vec2, radius: f32) -> f32 {
+pub fn rect_smooth(size: Vec2, center: Vec2, st: Vec2, smoothness: f32) -> f32 {
 	let half_size = size * 0.5;
-	let half_radius = radius * 0.5;
 
-	let left = center.x - half_size.x;
-	let le1 = left + half_radius;
-	let le2 = left - half_radius;
+	// let half_radius = radius * 0.5;
 
-	let right = center.x + half_size.x;
-	let re1 = right + half_radius;
-	let re2 = right - half_radius;
+	// let left = center.x - half_size.x;
+	// let le1 = left + half_radius;
+	// let le2 = left - half_radius;
 
-	let x = smoothstep(le2, le1, st.x) - smoothstep(re2, re1, st.x);
+	// let right = center.x + half_size.x;
+	// let re1 = right + half_radius;
+	// let re2 = right - half_radius;
 
-	let bottom = center.y - half_size.y;
-	let be1 = bottom + half_radius;
-	let be2 = bottom - half_radius;
+	// let x = smoothstep(le2, le1, st.x) - smoothstep(re2, re1, st.x);
 
-	let top = center.y + half_size.y;
-	let te1 = top + half_radius;
-	let te2 = top - half_radius;
+	// let bottom = center.y - half_size.y;
+	// let be1 = bottom + half_radius;
+	// let be2 = bottom - half_radius;
 
-	let y = smoothstep(be2, be1, st.y) - smoothstep(te2, te1, st.y);
+	// let top = center.y + half_size.y;
+	// let te1 = top + half_radius;
+	// let te2 = top - half_radius;
 
-	x * y
+	// let y = smoothstep(be2, be1, st.y) - smoothstep(te2, te1, st.y);
+
+	// x * y
+
+	let rect = (center - st).abs() / half_size;
+
+	let s = smoothness / size;
+	let e0 = Vec2::ONE + s;
+	let e1 = Vec2::ONE - s;
+
+	let smooth = rect.smoothstep(e0, e1);
+
+	smooth.x * smooth.y
 }
 
 pub fn circle(center: Vec2, radius: f32, st: Vec2) -> f32 {
 	let dist = (st - center).length();
-	dist.step(radius)
+	radius.step(dist) // inverting edge and x results in 1.0 - x.step(egde)
 }
 
 pub fn circle_smooth(center: Vec2, radius: f32, st: Vec2, smoothness: f32) -> f32 {
 	let dist = (st - center).length();
-	smoothstep(radius - smoothness, radius + smoothness, dist)
+	dist.smoothstep(radius - smoothness, radius + smoothness)
 }
 
 pub fn rect_shader(st: Vec2) -> Vec4 {
@@ -75,7 +92,10 @@ pub fn rect_shader(st: Vec2) -> Vec4 {
 	let color2 = vec3(0.3, 0.3, 0.1);
 
 	let bg_color = Vec3::splat(1.0);
-	bg_color.lerp(color2, rec2).lerp(color1, rec1).extend(1.0)
+	bg_color
+		.lerp(color2, rec2) //
+		.lerp(color1, rec1)
+		.extend(1.0)
 }
 
 pub fn circle_shader(st: Vec2, time: f32) -> Vec4 {
