@@ -60,7 +60,8 @@ pub fn rect_smooth(size: Vec2, center: Vec2, st: Vec2, smoothness: f32) -> f32 {
 }
 
 pub fn circle(center: Vec2, radius: f32, st: Vec2) -> f32 {
-	let dist = (st - center).length();
+	// let dist = (st - center).length();
+	let dist = (st - center).length_squared() / radius; // eqivalent (why?) and omits the sqrt of length()
 	radius.step(dist) // inverting edge and x results in 1.0 - x.step(egde)
 }
 
@@ -102,7 +103,7 @@ pub fn circle_shader(st: Vec2, time: f32) -> Vec4 {
 	let st = flip_y(st);
 
 	let center = vec2(0.5, 0.5);
-	let radius = 0.3;
+	let radius = (time * 0.8).sin() * 0.06 + 0.3;
 
 	let circle1 = circle(center, radius, st);
 	let circle2 = circle_smooth(center - vec2(0.0, 0.01), radius, st, 0.05);
@@ -133,4 +134,21 @@ pub fn circle_shader(st: Vec2, time: f32) -> Vec4 {
 		color_shadow.lerp(bg_color, circle2)
 	};
 	color.extend(1.0)
+}
+
+pub fn shader_circles(st: Vec2) -> Vec4 {
+	let c1 = (Vec2::splat(0.4) - st).length();
+	let c2 = (Vec2::splat(0.6) - st).length();
+
+	let val = c1 + c2;
+	let val = (c1 + c2) / 2.;
+	// let val = c1 - c2;
+	let val = c1 * c2;
+	let val = c1.min(c2);
+	let val = c1.max(c2);
+	let val = c1.powf(c2);
+	let val = c2.powf(c1);
+
+	let color = Vec3::splat(val);
+	return color.extend(1.0);
 }

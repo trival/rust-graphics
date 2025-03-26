@@ -5,6 +5,11 @@
     "wgsl_entry_point": "bos_colors"
   },
   {
+    "source_path": "bos_shapes_circle.spv",
+    "entry_point": "bos_shapes_circle",
+    "wgsl_entry_point": "bos_shapes_circle"
+  },
+  {
     "source_path": "bos_shapes_circles.spv",
     "entry_point": "bos_shapes_circles",
     "wgsl_entry_point": "bos_shapes_circles"

@@ -122,7 +122,7 @@ pub fn bos_shapes_rect(
 }
 
 #[spirv(fragment)]
-pub fn bos_shapes_circles(
+pub fn bos_shapes_circle(
 	uv: Vec2,
 	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
 	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
@@ -139,4 +139,14 @@ pub fn bos_colors(
 	frag_color: &mut Vec4,
 ) {
 	*frag_color = book_of_shaders::colors::color_test(uv, *time);
+}
+
+#[spirv(fragment)]
+pub fn bos_shapes_circles(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
+	frag_color: &mut Vec4,
+) {
+	*frag_color = book_of_shaders::shapes::shader_circles(uv);
 }
