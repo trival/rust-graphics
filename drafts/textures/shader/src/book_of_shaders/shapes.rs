@@ -1,11 +1,12 @@
 #![allow(unused_imports)]
 
-use core::f32::consts::TAU;
+use core::f32::consts::{PI, TAU};
 
 use crate::utils::flip_y;
 use spirv_std::glam::{vec2, vec3, UVec2, Vec2, Vec3, Vec4};
 use spirv_std::num_traits::Float;
 use trivalibs_shaders::coords::PolarCoord;
+use trivalibs_shaders::random::hash::hash;
 use trivalibs_shaders::smoothstep::{smoothstep, Smoothstep};
 use trivalibs_shaders::step::{step, Step};
 
@@ -136,19 +137,45 @@ pub fn circle_shader(st: Vec2, time: f32) -> Vec4 {
 	color.extend(1.0)
 }
 
-pub fn shader_circles(st: Vec2) -> Vec4 {
+pub fn shader_circles(st: Vec2, t: f32) -> Vec4 {
 	let c1 = (Vec2::splat(0.4) - st).length();
 	let c2 = (Vec2::splat(0.6) - st).length();
 
+	let line_count = 35.;
 	// let val = c1 + c2;
 	// let val = (c1 + c2) / 2.;
 	// let val = c1 - c2;
-	// let val = c1 * c2;
+	let val = (c1 * c2).powf(0.92);
+	// let val = (c1 * c2);
 	// let val = c1.min(c2);
 	// let val = c1.max(c2);
 	// let val = c1.powf(c2);
-	let val = c2.powf(c1);
+	// let val = c2.powf(c1);
 
-	let color = Vec3::splat(val);
+	let i = (val * line_count).floor();
+
+	let c1 = Vec3::ZERO;
+	let c2 = Vec3::ONE;
+
+	let center = vec2(0.5, 0.5) - st;
+	let angle = (center.y.atan2(center.x) + PI) / TAU;
+
+	let color = if i == 0.0 {
+		let line = circle_line(1.0, line_count, t, angle);
+		c2.lerp(c1, line)
+	} else {
+		let line = circle_line(i, line_count, t, angle);
+		c1.lerp(c2, line)
+	};
+
 	return color.extend(1.0);
+}
+
+fn circle_line(i: f32, line_count: f32, t: f32, angle: f32) -> f32 {
+	let v1 = hash(i as u32 * 2) * 0.5;
+	let v2 = hash(i as u32 + line_count as u32) * 0.5 + 0.5;
+
+	let s = if v2 > 0.75 { 1.0 } else { -1.0 };
+	let a = (angle + t * v1 * (0.8 / (i.powf(0.5))) * s).fract().abs();
+	step(v1, a) * step(a, v2)
 }
