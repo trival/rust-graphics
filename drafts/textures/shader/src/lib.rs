@@ -6,7 +6,7 @@ use spirv_std::glam::{mat2, vec2, vec3, UVec2, Vec2, Vec4};
 use spirv_std::num_traits::Float;
 use spirv_std::{spirv, Image, Sampler};
 use trivalibs_shaders::fit::Fit;
-use trivalibs_shaders::noise::simplex::{simplex_noise_2d, simplex_noise_3d};
+use trivalibs_shaders::random::simplex::{simplex_noise_2d, simplex_noise_3d};
 use utils::st_from_uv_size;
 
 mod book_of_shaders;

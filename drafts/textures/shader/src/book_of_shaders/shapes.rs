@@ -140,13 +140,13 @@ pub fn shader_circles(st: Vec2) -> Vec4 {
 	let c1 = (Vec2::splat(0.4) - st).length();
 	let c2 = (Vec2::splat(0.6) - st).length();
 
-	let val = c1 + c2;
-	let val = (c1 + c2) / 2.;
+	// let val = c1 + c2;
+	// let val = (c1 + c2) / 2.;
 	// let val = c1 - c2;
-	let val = c1 * c2;
-	let val = c1.min(c2);
-	let val = c1.max(c2);
-	let val = c1.powf(c2);
+	// let val = c1 * c2;
+	// let val = c1.min(c2);
+	// let val = c1.max(c2);
+	// let val = c1.powf(c2);
 	let val = c2.powf(c1);
 
 	let color = Vec3::splat(val);
