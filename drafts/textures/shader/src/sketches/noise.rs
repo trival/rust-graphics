@@ -1,12 +1,16 @@
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
 use spirv_std::{
-	glam::{mat2, vec2, vec3, UVec2, Vec2, Vec4},
+	glam::{mat2, uvec2, vec2, vec3, UVec2, Vec2, Vec3, Vec4},
 	Image, Sampler,
 };
 use trivalibs_shaders::{
+	bits::FloatBits,
 	fit::Fit,
-	random::simplex::{simplex_noise_2d, simplex_noise_3d},
+	random::{
+		hash::{hash, hash21, hash2d, hash3d, hashi},
+		simplex::{simplex_noise_2d, simplex_noise_3d},
+	},
 };
 
 use crate::utils::st_from_uv_size;
@@ -84,4 +88,28 @@ pub fn fbm_shader(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 	color = color.lerp(vec3(0.666667, 1.0, 1.0), r.length().clamp(0.0, 1.0));
 
 	((f * f * f + 0.6 * f * f + 0.5 * f) * color).extend(1.0)
+}
+
+pub fn hash_test(uv: Vec2, time: f32) -> Vec4 {
+	let q_uv = (uv * 2.).fract();
+	let q_idx = (uv * 2.).floor().as_uvec2();
+
+	let color = if q_uv.x > 0.98 || q_uv.y > 0.98 || q_uv.x < 0.02 || q_uv.y < 0.02 {
+		Vec3::ZERO
+	} else if q_idx.eq(&uvec2(0, 0)) {
+		let v = hash(q_uv.x.to_bits() + hashi((q_uv.y + time).to_bits()));
+		Vec3::splat(v)
+	} else if q_idx.eq(&uvec2(1, 0)) {
+		let v = hash21((q_uv + time).to_bits());
+		Vec3::splat(v)
+	} else if q_idx.eq(&uvec2(0, 1)) {
+		let v = hash2d((q_uv + time).to_bits());
+		v.extend(1.0)
+	} else if q_idx.eq(&uvec2(1, 1)) {
+		hash3d(q_uv.extend(time).to_bits())
+	} else {
+		vec3(0.0, 1.0, 1.0)
+	};
+
+	color.extend(1.0)
 }

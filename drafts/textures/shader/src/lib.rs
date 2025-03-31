@@ -90,3 +90,13 @@ pub fn bos_shapes_circles(
 ) {
 	*out = book_of_shaders::shapes::shader_circles(uv, *time);
 }
+
+#[spirv(fragment)]
+pub fn hash_test(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
+	out: &mut Vec4,
+) {
+	*out = sketches::noise::hash_test(uv, *time);
+}

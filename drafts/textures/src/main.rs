@@ -126,6 +126,10 @@ impl CanvasApp<()> for App {
 		let (s, canvas_bos_shapes_circles) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/bos_shapes_circles.spv");
 
+		// hash test
+		let (s, canvas_hash_test) = shade_canvas(p, true);
+		load_fragment_shader!(s, p, "../shader/hash_test.spv");
+
 		// return App
 
 		Self {
@@ -134,6 +138,7 @@ impl CanvasApp<()> for App {
 			u_time,
 
 			canvases: vec![
+				canvas_hash_test,
 				canvas_bos_shapes_circles,
 				canvas_bos_shapes_circle,
 				canvas_bos_shapes_rect,

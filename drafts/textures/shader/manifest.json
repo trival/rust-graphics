@@ -30,6 +30,11 @@
     "wgsl_entry_point": "fbm_shader"
   },
   {
+    "source_path": "hash_test.spv",
+    "entry_point": "hash_test",
+    "wgsl_entry_point": "hash_test"
+  },
+  {
     "source_path": "simplex_prefilled.spv",
     "entry_point": "simplex_prefilled",
     "wgsl_entry_point": "simplex_prefilled"
