@@ -148,7 +148,7 @@ pub fn noisy_lines_1(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 	let bg = Vec3::splat((noise + 1.0) / 4.0);
 
 	let color = if (uv_current.x * LINE_COUNT).fract() < 0.02 {
-		Vec3::new(0.0, 0.0, 0.0)
+		Vec3::ZERO
 	} else if line_curr > 0.0 {
 		bg.lerp(Vec3::new(1.0, 1.0, 1.0), line_curr)
 	} else if line_next > 0.0 {
