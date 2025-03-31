@@ -11,6 +11,7 @@ use trivalibs_shaders::{
 		hash::{hash, hash21, hash2d, hash3d, hashi},
 		simplex::{simplex_noise_2d, simplex_noise_3d},
 	},
+	smoothstep::Smoothstep,
 };
 
 use crate::utils::aspect_preserving_uv;
@@ -114,4 +115,15 @@ pub fn hash_test(uv: Vec2, time: f32) -> Vec4 {
 	};
 
 	color.extend(1.0)
+}
+
+pub fn noisy_lines_1(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
+	let uv = aspect_preserving_uv(uv, size);
+
+	let noise = simplex_noise_3d((uv * 2.5 - vec2(0., time * 1.2)).extend(time * 0.4));
+	let x_pos = uv.x * 30.;
+	let x = x_pos.fract() - 0.5 + noise * 0.45;
+	let line = x.smoothstep(-0.19, -0.15) * x.smoothstep(0.19, 0.15);
+
+	Vec3::ZERO.lerp(Vec3::ONE, line).extend(1.0)
 }

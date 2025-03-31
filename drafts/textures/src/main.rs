@@ -86,53 +86,38 @@ impl CanvasApp<()> for App {
 			(s, Canvas { layer, animated })
 		};
 
-		// simplex shader
-
 		let (s, canvas_simplex_shader) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/simplex_shader.spv");
-
-		// fbm shader
 
 		let (s, canvas_fbm_shader) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/fbm_shader.spv");
 
-		// simplex prefilled
-
 		let (s, canvas_simplex_prefilled) = texture_shade_canvas(p, tex_simplex, false);
 		load_fragment_shader!(s, p, "../shader/simplex_prefilled.spv");
-
-		// bos shaping fns 1
 
 		let (s, canvas_bos_shaping_fns) = shade_canvas(p, false);
 		load_fragment_shader!(s, p, "../shader/bos_shaping_fns.spv");
 
-		// bos colors
-
 		let (s, canvas_bos_colors) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/bos_colors.spv");
-
-		// bos shapes rect
 
 		let (s, canvas_bos_shapes_rect) = shade_canvas(p, false);
 		load_fragment_shader!(s, p, "../shader/bos_shapes_rect.spv");
 
-		// bos shapes circle
-
 		let (s, canvas_bos_shapes_circle) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/bos_shapes_circle.spv");
-
-		// bos shapes circles
 
 		let (s, canvas_bos_shapes_circles) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/bos_shapes_circles.spv");
 
-		// hash test
 		let (s, canvas_hash_test) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/hash_test.spv");
 
-		// tile plates
 		let (s, canvas_tiles) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/tiled_plates.spv");
+
+		let (s, canvas_noisy_lines_1) = shade_canvas(p, true);
+		load_fragment_shader!(s, p, "../shader/noisy_lines_1.spv");
 
 		// return App
 
@@ -142,6 +127,7 @@ impl CanvasApp<()> for App {
 			u_time,
 
 			canvases: vec![
+				canvas_noisy_lines_1,
 				canvas_tiles,
 				canvas_hash_test,
 				canvas_bos_shapes_circles,

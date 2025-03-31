@@ -35,6 +35,11 @@
     "wgsl_entry_point": "hash_test"
   },
   {
+    "source_path": "noisy_lines_1.spv",
+    "entry_point": "noisy_lines_1",
+    "wgsl_entry_point": "noisy_lines_1"
+  },
+  {
     "source_path": "simplex_prefilled.spv",
     "entry_point": "simplex_prefilled",
     "wgsl_entry_point": "simplex_prefilled"
