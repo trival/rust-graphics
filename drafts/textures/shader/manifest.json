@@ -43,5 +43,10 @@
     "source_path": "simplex_shader.spv",
     "entry_point": "simplex_shader",
     "wgsl_entry_point": "simplex_shader"
+  },
+  {
+    "source_path": "tiled_plates.spv",
+    "entry_point": "tiled_plates",
+    "wgsl_entry_point": "tiled_plates"
   }
 ]

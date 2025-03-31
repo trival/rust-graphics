@@ -100,3 +100,13 @@ pub fn hash_test(
 ) {
 	*out = sketches::noise::hash_test(uv, *time);
 }
+
+#[spirv(fragment)]
+pub fn tiled_plates(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
+	out: &mut Vec4,
+) {
+	*out = sketches::tiles::tiled_plates(uv, *size, *time);
+}

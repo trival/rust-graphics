@@ -13,7 +13,7 @@ use trivalibs_shaders::{
 	},
 };
 
-use crate::utils::st_from_uv_size;
+use crate::utils::aspect_preserving_uv;
 
 pub fn simplex_shader(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 	let aspect = size.x as f32 / size.y as f32;
@@ -57,7 +57,7 @@ fn fbm(st: Vec2) -> f32 {
 }
 
 pub fn fbm_shader(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
-	let st = st_from_uv_size(uv, size) * 3.0;
+	let st = aspect_preserving_uv(uv, size) * 3.0;
 
 	let time = time;
 
@@ -94,14 +94,16 @@ pub fn hash_test(uv: Vec2, time: f32) -> Vec4 {
 	let q_uv = (uv * 2.).fract();
 	let q_idx = (uv * 2.).floor().as_uvec2();
 
-	let color = if q_uv.x > 0.98 || q_uv.y > 0.98 || q_uv.x < 0.02 || q_uv.y < 0.02 {
+	let color = if uv.x > 0.98 || uv.y > 0.98 || uv.x < 0.02 || uv.y < 0.02 {
+		Vec3::ZERO
+	} else if q_uv.x > 0.98 || q_uv.y > 0.98 || q_uv.x < 0.02 || q_uv.y < 0.02 {
 		Vec3::ZERO
 	} else if q_idx.eq(&uvec2(0, 0)) {
 		let v = hash(q_uv.x.to_bits() + hashi((q_uv.y + time).to_bits()));
-		Vec3::splat(v)
+		vec3(v, 0.0, 0.0)
 	} else if q_idx.eq(&uvec2(1, 0)) {
 		let v = hash21((q_uv + time).to_bits());
-		Vec3::splat(v)
+		vec3(0.0, v, 0.0)
 	} else if q_idx.eq(&uvec2(0, 1)) {
 		let v = hash2d((q_uv + time).to_bits());
 		v.extend(1.0)
