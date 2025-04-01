@@ -120,3 +120,13 @@ pub fn noisy_lines_1(
 ) {
 	*out = sketches::noise::noisy_lines_1(uv, *size, *time);
 }
+
+#[spirv(fragment)]
+pub fn tiled_lines(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
+	out: &mut Vec4,
+) {
+	*out = sketches::tiles::tiled_lines(uv, *size, *time);
+}

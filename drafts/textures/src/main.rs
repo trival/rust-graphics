@@ -119,6 +119,9 @@ impl CanvasApp<()> for App {
 		let (s, canvas_noisy_lines_1) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/noisy_lines_1.spv");
 
+		let (s, canvas_tiled_lines) = shade_canvas(p, true);
+		load_fragment_shader!(s, p, "../shader/tiled_lines.spv");
+
 		// return App
 
 		Self {
@@ -127,6 +130,7 @@ impl CanvasApp<()> for App {
 			u_time,
 
 			canvases: vec![
+				canvas_tiled_lines,
 				canvas_noisy_lines_1,
 				canvas_tiles,
 				canvas_hash_test,

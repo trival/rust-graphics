@@ -50,6 +50,11 @@
     "wgsl_entry_point": "simplex_shader"
   },
   {
+    "source_path": "tiled_lines.spv",
+    "entry_point": "tiled_lines",
+    "wgsl_entry_point": "tiled_lines"
+  },
+  {
     "source_path": "tiled_plates.spv",
     "entry_point": "tiled_plates",
     "wgsl_entry_point": "tiled_plates"
