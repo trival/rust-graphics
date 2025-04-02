@@ -130,9 +130,9 @@ impl CanvasApp<()> for App {
 			u_time,
 
 			canvases: vec![
+				canvas_tiles,
 				canvas_tiled_lines,
 				canvas_noisy_lines_1,
-				canvas_tiles,
 				canvas_hash_test,
 				canvas_bos_shapes_circles,
 				canvas_bos_shapes_circle,
