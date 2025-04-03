@@ -1,3 +1,4 @@
+use crate::utils::aspect_preserving_uv;
 use spirv_std::glam::{vec2, vec3, UVec2, Vec2, Vec3, Vec4};
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
@@ -12,8 +13,6 @@ use trivalibs_shaders::{
 	},
 	smoothstep::Smoothstep,
 };
-
-use crate::{book_of_shaders::shapes::rect_smooth, utils::aspect_preserving_uv};
 
 const NUM_TILES: f32 = 10.;
 
@@ -87,6 +86,8 @@ pub fn tiled_plates(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
 			let height = tile.height;
 			if height > ground.height {
 				let uv = &uvs[i];
+
+				// smooth rect
 				let smoothness = (height - ground.height) * 0.9;
 				let rect = uv.abs() * 2.0;
 				let e0 = Vec2::ONE + smoothness;
