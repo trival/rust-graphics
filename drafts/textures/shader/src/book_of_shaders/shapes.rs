@@ -25,30 +25,6 @@ pub fn rect(size: Vec2, center: Vec2, st: Vec2) -> f32 {
 pub fn rect_smooth(size: Vec2, center: Vec2, st: Vec2, smoothness: f32) -> f32 {
 	let half_size = size * 0.5;
 
-	// let half_radius = radius * 0.5;
-
-	// let left = center.x - half_size.x;
-	// let le1 = left + half_radius;
-	// let le2 = left - half_radius;
-
-	// let right = center.x + half_size.x;
-	// let re1 = right + half_radius;
-	// let re2 = right - half_radius;
-
-	// let x = smoothstep(le2, le1, st.x) - smoothstep(re2, re1, st.x);
-
-	// let bottom = center.y - half_size.y;
-	// let be1 = bottom + half_radius;
-	// let be2 = bottom - half_radius;
-
-	// let top = center.y + half_size.y;
-	// let te1 = top + half_radius;
-	// let te2 = top - half_radius;
-
-	// let y = smoothstep(be2, be1, st.y) - smoothstep(te2, te1, st.y);
-
-	// x * y
-
 	let rect = (center - st).abs() / half_size;
 
 	let s = smoothness / size;

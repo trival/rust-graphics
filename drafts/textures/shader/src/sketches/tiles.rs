@@ -6,7 +6,10 @@ use trivalibs_shaders::{
 	color::hsv2rgb,
 	fit::Fit,
 	lerp::Lerp,
-	random::{hash::hash3d, simplex::simplex_noise_2d},
+	random::{
+		hash::{hash2d, hash3d},
+		simplex::simplex_noise_2d,
+	},
 	smoothstep::Smoothstep,
 };
 
@@ -18,19 +21,18 @@ const NUM_TILES: f32 = 10.;
 struct Tile {
 	hue: f32,
 	height: f32,
-	scale: f32,
 }
 
-fn tile(idx: Vec2) -> Tile {
-	let r = hash3d(idx.extend(2.5 + idx.x * idx.y).to_bits());
-	let hue = r.x;
-	let height = r.y;
-	let scale = 1.0 + r.z * 0.25;
+fn tile(idx: Vec2, time: f32) -> Tile {
+	let r = hash2d((idx * 17.123411).to_bits());
+	let hue = (r.x + time * 0.01).fract();
+	// let hue = r.x;
+	let height = (time * (r.x + 0.2) + r.y).cos().fit1101();
 
-	Tile { hue, height, scale }
+	Tile { hue, height }
 }
 
-pub fn tiled_plates(uv: Vec2, size: UVec2, _time: f32) -> Vec4 {
+pub fn tiled_plates(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
 	let uv = aspect_preserving_uv(uv, size);
 
 	let uv_scaled = uv * NUM_TILES;
@@ -46,21 +48,21 @@ pub fn tiled_plates(uv: Vec2, size: UVec2, _time: f32) -> Vec4 {
 	let dir_bc = vec2(0.0, 1.0);
 	let dir_bl = vec2(-1.0, 1.0);
 
-	let cc = tile(idx);
+	let cc = tile(idx, t);
 
-	let tr = tile(idx + dir_tr);
-	let tc = tile(idx + dir_tc);
-	let tl = tile(idx + dir_tl);
-	let cr = tile(idx + dir_cr);
-	let cl = tile(idx + dir_cl);
-	let br = tile(idx + dir_br);
-	let bc = tile(idx + dir_bc);
-	let bl = tile(idx + dir_bl);
+	let tr = tile(idx + dir_tr, t);
+	let tc = tile(idx + dir_tc, t);
+	let tl = tile(idx + dir_tl, t);
+	let cr = tile(idx + dir_cr, t);
+	let cl = tile(idx + dir_cl, t);
+	let br = tile(idx + dir_br, t);
+	let bc = tile(idx + dir_bc, t);
+	let bl = tile(idx + dir_bl, t);
 
 	let quadrant_color = |t1: Tile, t2: Tile, t3: Tile, dir1: Vec2, dir2: Vec2, dir3: Vec2| {
-		let uv1 = uv_tile - dir1 / t1.scale;
-		let uv2 = uv_tile - dir2 / t2.scale;
-		let uv3 = uv_tile - dir3 / t3.scale;
+		let uv1 = (uv_tile - dir1) * (1. - t1.height * 0.14);
+		let uv2 = (uv_tile - dir2) * (1. - t2.height * 0.14);
+		let uv3 = (uv_tile - dir3) * (1. - t3.height * 0.14);
 
 		let tiles = [cc, t1, t2, t3];
 		let uvs = [uv_tile, uv1, uv2, uv3];
@@ -84,13 +86,23 @@ pub fn tiled_plates(uv: Vec2, size: UVec2, _time: f32) -> Vec4 {
 			let tile = tiles[i];
 			let height = tile.height;
 			if height > ground.height {
-				let uv = uvs[i];
-				shadow += rect_smooth(Vec2::ONE, Vec2::ZERO, uv, (height - ground.height) * 0.9);
+				let uv = &uvs[i];
+				let smoothness = (height - ground.height) * 0.9;
+				let rect = uv.abs() * 2.0;
+				let e0 = Vec2::ONE + smoothness;
+				let e1 = Vec2::ONE - smoothness;
+				let s = rect.smoothstep(e0, e1);
+				shadow += s.x * s.y;
 			}
 		}
 
 		// hsv2rgb(vec3(cc.hue, 0.8, cc.height * 0.8 + 0.2))
-		hsv2rgb(vec3(ground.hue, 0.8, ground.height * 0.8 + 0.2)).lerp(Vec3::ZERO, shadow)
+		hsv2rgb(vec3(
+			ground.hue,
+			0.7 + ground.height * 0.15,
+			ground.height * 0.45 + 0.45,
+		))
+		.lerp(Vec3::ZERO, (shadow * 0.7).clamp(0., 1.))
 	};
 
 	let color;
