@@ -12,6 +12,7 @@ use trivalibs_shaders::{
 		simplex::simplex_noise_2d,
 	},
 	smoothstep::Smoothstep,
+	step::Step,
 };
 
 const NUM_TILES: f32 = 10.;
@@ -71,15 +72,18 @@ pub fn tiled_plates(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
 		for i in 1..4 {
 			if tiles[i].height > tiles[ground_i].height {
 				let uv = &uvs[i];
-				if uv.x > -0.5 && uv.x < 0.5 && uv.y > -0.5 && uv.y < 0.5 {
+				let d = uv.abs() - 0.4;
+				let d = d.x.min(d.y);
+				let square = d.smoothstep(-0.05, 0.05);
+				if square > 0.5 {
 					ground_i = i;
 				}
 			}
 		}
 
-		let mut shadow = 0.;
-
 		let ground = tiles[ground_i];
+
+		let mut shadow = 0.;
 
 		for i in 0..4 {
 			let tile = tiles[i];

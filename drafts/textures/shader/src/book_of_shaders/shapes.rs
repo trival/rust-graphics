@@ -6,6 +6,7 @@ use crate::utils::flip_y;
 use spirv_std::glam::{vec2, vec3, UVec2, Vec2, Vec3, Vec4};
 use spirv_std::num_traits::Float;
 use trivalibs_shaders::coords::PolarCoord;
+use trivalibs_shaders::fit::Fit;
 use trivalibs_shaders::random::hash::hash;
 use trivalibs_shaders::smoothstep::{smoothstep, Smoothstep};
 use trivalibs_shaders::step::{step, Step};
@@ -154,4 +155,20 @@ fn circle_line(i: f32, line_count: f32, t: f32, angle: f32) -> f32 {
 	let s = if v2 > 0.75 { 1.0 } else { -1.0 };
 	let a = (angle + t * v1 * (0.8 / (i.powf(0.5))) * s).fract().abs();
 	step(v1, a) * step(a, v2)
+}
+
+pub fn rounded_rect_shader(st: Vec2) -> Vec4 {
+	let uv = (st * 3.0).fract().fit0111();
+	let idx_v2 = (st * 3.0).floor();
+	let idx = (idx_v2.x + idx_v2.y * 3.0) / 9.0;
+
+	let size = vec2(1.8, 1.65);
+
+	let center1 = vec2(0.0, 0.0);
+	let rec1 = rect_smooth(size, center1, uv, (idx * 0.3) + 0.01);
+
+	let color1 = vec3(0.1, 0.0, 0.0);
+
+	let bg_color = Vec3::splat(1.0);
+	bg_color.lerp(color1, rec1).extend(1.0)
 }

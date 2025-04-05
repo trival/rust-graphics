@@ -130,3 +130,13 @@ pub fn tiled_lines(
 ) {
 	*out = sketches::tiles::tiled_lines(uv, *size, *time);
 }
+
+#[spirv(fragment)]
+pub fn bos_shapes_rounded_rect(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
+	out: &mut Vec4,
+) {
+	*out = book_of_shaders::shapes::rounded_rect_shader(uv);
+}

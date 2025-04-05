@@ -104,6 +104,9 @@ impl CanvasApp<()> for App {
 		let (s, canvas_bos_shapes_rect) = shade_canvas(p, false);
 		load_fragment_shader!(s, p, "../shader/bos_shapes_rect.spv");
 
+		let (s, canvas_bos_shapes_rounded_rect) = shade_canvas(p, false);
+		load_fragment_shader!(s, p, "../shader/bos_shapes_rounded_rect.spv");
+
 		let (s, canvas_bos_shapes_circle) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/bos_shapes_circle.spv");
 
@@ -130,6 +133,7 @@ impl CanvasApp<()> for App {
 			u_time,
 
 			canvases: vec![
+				canvas_bos_shapes_rounded_rect,
 				canvas_tiles,
 				canvas_tiled_lines,
 				canvas_noisy_lines_1,
