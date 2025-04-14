@@ -1,45 +1,15 @@
+use spirv_std::glam::{mat2, vec2, vec3, UVec2, Vec2, Vec3, Vec4};
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
-use spirv_std::{
-	glam::{mat2, uvec2, vec2, vec3, UVec2, Vec2, Vec3, Vec4},
-	Image, Sampler,
-};
 use trivalibs_shaders::{
-	bits::FloatBits,
 	fit::Fit,
-	random::{
-		hash::{hash, hash21, hash2d, hash3d, hashi},
-		simplex::{simplex_noise_2d, simplex_noise_3d},
-	},
+	random::simplex::{simplex_noise_2d, simplex_noise_3d},
 	smoothstep::Smoothstep,
 };
 
 use crate::utils::aspect_preserving_uv;
 
-pub fn simplex_shader(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
-	let aspect = size.x as f32 / size.y as f32;
-	let uv = uv * vec2(aspect, 1.0);
-	let uv = uv * 10.0;
-	let noise = simplex_noise_3d(uv.extend(time)).fit1101();
-	// let noise = simplex_noise_2d(uv * time.sin()).fit1101();
-	Vec4::new(noise, noise, noise, 1.0)
-}
-
-pub fn simplex_prefilled(
-	uv: Vec2,
-	tex: &Image!(2D, type=f32, sampled),
-	sampler: &Sampler,
-	size: &UVec2,
-) -> Vec4 {
-	let aspect = size.x as f32 / size.y as f32;
-	let noise = tex.sample(*sampler, vec2(uv.x * aspect * 3., uv.y * 3.));
-	let val = (noise.x + noise.y * 0.5 + noise.z * 0.25 + noise.w * 0.125) / 1.875;
-	// let val = noise.w;
-	Vec4::new(val, val, val, 1.0)
-}
-
 // Fbm shader ported from https://thebookofshaders.com/13/
-
 const NUM_OCTAVES: usize = 5;
 
 fn fbm(st: Vec2) -> f32 {
@@ -89,32 +59,6 @@ pub fn fbm_shader(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 	color = color.lerp(vec3(0.666667, 1.0, 1.0), r.length().clamp(0.0, 1.0));
 
 	((f * f * f + 0.6 * f * f + 0.5 * f) * color).extend(1.0)
-}
-
-pub fn hash_test(uv: Vec2, time: f32) -> Vec4 {
-	let q_uv = (uv * 2.).fract();
-	let q_idx = (uv * 2.).floor().as_uvec2();
-
-	let color = if uv.x > 0.98 || uv.y > 0.98 || uv.x < 0.02 || uv.y < 0.02 {
-		Vec3::ZERO
-	} else if q_uv.x > 0.98 || q_uv.y > 0.98 || q_uv.x < 0.02 || q_uv.y < 0.02 {
-		Vec3::ZERO
-	} else if q_idx.eq(&uvec2(0, 0)) {
-		let v = hash(q_uv.x.to_bits() + hashi((q_uv.y + time).to_bits()));
-		vec3(v, 0.0, 0.0)
-	} else if q_idx.eq(&uvec2(1, 0)) {
-		let v = hash21((q_uv + time).to_bits());
-		vec3(0.0, v, 0.0)
-	} else if q_idx.eq(&uvec2(0, 1)) {
-		let v = hash2d((q_uv + time).to_bits());
-		v.extend(1.0)
-	} else if q_idx.eq(&uvec2(1, 1)) {
-		hash3d(q_uv.extend(time).to_bits())
-	} else {
-		vec3(0.0, 1.0, 1.0)
-	};
-
-	color.extend(1.0)
 }
 
 const LINE_COUNT: f32 = 30.;

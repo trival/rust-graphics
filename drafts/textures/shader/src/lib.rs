@@ -134,7 +134,7 @@ pub fn tiled_lines(
 #[spirv(fragment)]
 pub fn bos_shapes_rounded_rect(
 	uv: Vec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 0)] size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
 	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
 	out: &mut Vec4,
 ) {
