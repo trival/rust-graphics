@@ -11,16 +11,6 @@ pub mod sketches;
 pub mod utils;
 
 #[spirv(fragment)]
-pub fn simplex_shader(
-	uv: Vec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 0)] size: &UVec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
-	out: &mut Vec4,
-) {
-	*out = sketches::noise::simplex_shader(uv, *size, *time);
-}
-
-#[spirv(fragment)]
 pub fn simplex_prefilled(
 	uv: Vec2,
 	#[spirv(descriptor_set = 0, binding = 0)] tex: &Image!(2D, type=f32, sampled),
@@ -89,16 +79,6 @@ pub fn bos_shapes_circles(
 	out: &mut Vec4,
 ) {
 	*out = book_of_shaders::shapes::shader_circles(uv, *time);
-}
-
-#[spirv(fragment)]
-pub fn hash_test(
-	uv: Vec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
-	out: &mut Vec4,
-) {
-	*out = sketches::noise::hash_test(uv, *time);
 }
 
 #[spirv(fragment)]

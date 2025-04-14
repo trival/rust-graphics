@@ -1,13 +1,28 @@
-use spirv_std::glam::{mat2, vec2, vec3, UVec2, Vec2, Vec3, Vec4};
+use crate::utils::aspect_preserving_uv;
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
+use spirv_std::{
+	glam::{mat2, vec2, vec3, UVec2, Vec2, Vec3, Vec4},
+	Image, Sampler,
+};
 use trivalibs_shaders::{
 	fit::Fit,
 	random::simplex::{simplex_noise_2d, simplex_noise_3d},
 	smoothstep::Smoothstep,
 };
 
-use crate::utils::aspect_preserving_uv;
+pub fn simplex_prefilled(
+	uv: Vec2,
+	tex: &Image!(2D, type=f32, sampled),
+	sampler: &Sampler,
+	size: &UVec2,
+) -> Vec4 {
+	let aspect = size.x as f32 / size.y as f32;
+	let noise = tex.sample(*sampler, vec2(uv.x * aspect * 3., uv.y * 3.));
+	let val = (noise.x + noise.y * 0.5 + noise.z * 0.25 + noise.w * 0.125) / 1.875;
+	// let val = noise.w;
+	Vec4::new(val, val, val, 1.0)
+}
 
 // Fbm shader ported from https://thebookofshaders.com/13/
 const NUM_OCTAVES: usize = 5;

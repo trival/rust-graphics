@@ -12,7 +12,6 @@ use trivalibs_shaders::{
 		simplex::simplex_noise_2d,
 	},
 	smoothstep::Smoothstep,
-	step::Step,
 };
 
 const NUM_TILES: f32 = 10.;

@@ -86,9 +86,6 @@ impl CanvasApp<()> for App {
 			(s, Canvas { layer, animated })
 		};
 
-		let (s, canvas_simplex_shader) = shade_canvas(p, true);
-		load_fragment_shader!(s, p, "../shader/simplex_shader.spv");
-
 		let (s, canvas_fbm_shader) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/fbm_shader.spv");
 
@@ -113,9 +110,6 @@ impl CanvasApp<()> for App {
 		let (s, canvas_bos_shapes_circles) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/bos_shapes_circles.spv");
 
-		let (s, canvas_hash_test) = shade_canvas(p, true);
-		load_fragment_shader!(s, p, "../shader/hash_test.spv");
-
 		let (s, canvas_tiles) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/tiled_plates.spv");
 
@@ -137,7 +131,6 @@ impl CanvasApp<()> for App {
 				canvas_tiles,
 				canvas_tiled_lines,
 				canvas_noisy_lines_1,
-				canvas_hash_test,
 				canvas_bos_shapes_circles,
 				canvas_bos_shapes_circle,
 				canvas_bos_shapes_rect,
@@ -145,7 +138,6 @@ impl CanvasApp<()> for App {
 				canvas_bos_shaping_fns,
 				canvas_fbm_shader,
 				canvas_simplex_prefilled,
-				canvas_simplex_shader,
 			],
 			current_canvas: 0,
 		}

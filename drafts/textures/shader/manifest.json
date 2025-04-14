@@ -35,11 +35,6 @@
     "wgsl_entry_point": "fbm_shader"
   },
   {
-    "source_path": "hash_test.spv",
-    "entry_point": "hash_test",
-    "wgsl_entry_point": "hash_test"
-  },
-  {
     "source_path": "noisy_lines_1.spv",
     "entry_point": "noisy_lines_1",
     "wgsl_entry_point": "noisy_lines_1"
@@ -48,11 +43,6 @@
     "source_path": "simplex_prefilled.spv",
     "entry_point": "simplex_prefilled",
     "wgsl_entry_point": "simplex_prefilled"
-  },
-  {
-    "source_path": "simplex_shader.spv",
-    "entry_point": "simplex_shader",
-    "wgsl_entry_point": "simplex_shader"
   },
   {
     "source_path": "tiled_lines.spv",
