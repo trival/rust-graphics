@@ -13,7 +13,7 @@ use trivalibs_shaders::{
 	random::{
 		hash::{hash, hash21, hash2d, hash3d, hashi},
 		simplex::{
-			simplex_noise_2d, simplex_noise_3d, simplex_noise_4d, tiling_noise_2d_r,
+			simplex_noise_2d, simplex_noise_3d, simplex_noise_4d, tiling_noise_2d_r, tiling_noise_2d_r,
 			tiling_simplex_noise_2d,
 		},
 	},
@@ -104,7 +104,13 @@ pub fn tiling_noise_shader(
 ) {
 	let uv = aspect_preserving_uv(uv, *size);
 
-	let noise = tiling_noise_2d_r((uv * 2.5).fract() * 8., Vec2::ONE * 8., *time * 0.3).fit1101();
+	let noise = tiling_noise_2d_r(
+		(uv * 2.5).fract() * 4. + 0.5, // shift by 0.5 to avoid tiling artifacts
+		vec2(1.0, 1.0) * 4.,
+		*time * 0.8,
+	)
+	.0
+	.fit1101();
 
 	let color = Vec3::splat(noise).powf(GAMMA).extend(1.0);
 	*out = color;
