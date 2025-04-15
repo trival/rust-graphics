@@ -5,13 +5,12 @@ use spirv_std::num_traits::Float;
 use trivalibs_shaders::{
 	bits::FloatBits,
 	color::hsv2rgb,
-	fit::Fit,
-	lerp::Lerp,
+	float_ext::FloatExt,
 	random::{
 		hash::{hash2d, hash3d},
 		simplex::simplex_noise_2d,
 	},
-	smoothstep::Smoothstep,
+	vec_ext::VecExt,
 };
 
 const NUM_TILES: f32 = 10.;

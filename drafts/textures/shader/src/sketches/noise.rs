@@ -6,9 +6,8 @@ use spirv_std::{
 	Image, Sampler,
 };
 use trivalibs_shaders::{
-	fit::Fit,
+	float_ext::FloatExt,
 	random::simplex::{simplex_noise_2d, simplex_noise_3d},
-	smoothstep::Smoothstep,
 };
 
 pub fn simplex_prefilled(

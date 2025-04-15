@@ -20,9 +20,14 @@
     "wgsl_entry_point": "simplex_4d_shader"
   },
   {
-    "source_path": "tiling_noise_shader.spv",
-    "entry_point": "tiling_noise_shader",
-    "wgsl_entry_point": "tiling_noise_shader"
+    "source_path": "tiling_noise_2d_shader.spv",
+    "entry_point": "tiling_noise_2d_shader",
+    "wgsl_entry_point": "tiling_noise_2d_shader"
+  },
+  {
+    "source_path": "tiling_noise_3d_shader.spv",
+    "entry_point": "tiling_noise_3d_shader",
+    "wgsl_entry_point": "tiling_noise_3d_shader"
   },
   {
     "source_path": "tiling_simplex_shader.spv",

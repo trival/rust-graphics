@@ -58,8 +58,11 @@ impl CanvasApp<()> for App {
 		let (s, tiling_simplex_test) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/tiling_simplex_shader.spv");
 
-		let (s, tiling_noise_test) = shade_canvas(p, true);
-		load_fragment_shader!(s, p, "../shader/tiling_noise_shader.spv");
+		let (s, tiling_noise_2d_test) = shade_canvas(p, true);
+		load_fragment_shader!(s, p, "../shader/tiling_noise_2d_shader.spv");
+
+		let (s, tiling_noise_3d_test) = shade_canvas(p, true);
+		load_fragment_shader!(s, p, "../shader/tiling_noise_3d_shader.spv");
 
 		let (s, hash_test) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/hash_shader.spv");
@@ -77,7 +80,8 @@ impl CanvasApp<()> for App {
 				simplex_3d_test,
 				simplex_4d_test,
 				tiling_simplex_test,
-				tiling_noise_test,
+				tiling_noise_2d_test,
+				tiling_noise_3d_test,
 			],
 			current_canvas: 0,
 		}

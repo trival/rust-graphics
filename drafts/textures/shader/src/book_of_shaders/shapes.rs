@@ -6,10 +6,9 @@ use crate::utils::flip_y;
 use spirv_std::glam::{vec2, vec3, UVec2, Vec2, Vec3, Vec4};
 use spirv_std::num_traits::Float;
 use trivalibs_shaders::coords::PolarCoord;
-use trivalibs_shaders::fit::Fit;
+use trivalibs_shaders::float_ext::{step, FloatExt};
 use trivalibs_shaders::random::hash::hash;
-use trivalibs_shaders::smoothstep::{smoothstep, Smoothstep};
-use trivalibs_shaders::step::{step, Step};
+use trivalibs_shaders::vec_ext::VecExt;
 
 pub fn rect(size: Vec2, center: Vec2, st: Vec2) -> f32 {
 	let half_size = size * 0.5;

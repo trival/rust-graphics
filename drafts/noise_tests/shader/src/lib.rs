@@ -9,11 +9,11 @@ use spirv_std::{
 };
 use trivalibs_shaders::{
 	bits::FloatBits,
-	fit::Fit,
+	float_ext::FloatExt,
 	random::{
 		hash::{hash, hash21, hash2d, hash3d, hashi},
 		simplex::{
-			simplex_noise_2d, simplex_noise_3d, simplex_noise_4d, tiling_noise_2d_r, tiling_noise_2d_r,
+			simplex_noise_2d, simplex_noise_3d, simplex_noise_4d, tiling_noise_2d_r, tiling_noise_3d_r,
 			tiling_simplex_noise_2d,
 		},
 	},
@@ -96,7 +96,7 @@ pub fn tiling_simplex_shader(
 }
 
 #[spirv(fragment)]
-pub fn tiling_noise_shader(
+pub fn tiling_noise_2d_shader(
 	uv: Vec2,
 	#[spirv(uniform, descriptor_set = 0, binding = 0)] size: &UVec2,
 	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
@@ -107,6 +107,27 @@ pub fn tiling_noise_shader(
 	let noise = tiling_noise_2d_r(
 		(uv * 2.5).fract() * 4. + 0.5, // shift by 0.5 to avoid tiling artifacts
 		vec2(1.0, 1.0) * 4.,
+		*time * 0.8,
+	)
+	.0
+	.fit1101();
+
+	let color = Vec3::splat(noise).powf(GAMMA).extend(1.0);
+	*out = color;
+}
+
+#[spirv(fragment)]
+pub fn tiling_noise_3d_shader(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
+	out: &mut Vec4,
+) {
+	let uv = aspect_preserving_uv(uv, *size);
+
+	let noise = tiling_noise_3d_r(
+		((uv * 2.5).fract() * 4. + 0.5).extend(*time), // shift by 0.5 to avoid tiling artifacts
+		vec3(1.0, 1.0, 1.0) * 4.,
 		*time * 0.8,
 	)
 	.0
