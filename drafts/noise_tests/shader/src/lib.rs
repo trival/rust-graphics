@@ -126,9 +126,10 @@ pub fn tiling_noise_3d_shader(
 	let uv = aspect_preserving_uv(uv, *size);
 
 	let noise = tiling_noise_3d_r(
-		((uv * 2.5).fract() * 4. + 0.5).extend(*time), // shift by 0.5 to avoid tiling artifacts
-		vec3(1.0, 1.0, 1.0) * 4.,
-		*time * 0.8,
+		((uv * 2.5).fract() * 8. + 0.5) // shift by 0.5 to avoid tiling artifacts
+			.extend(*time * 0.2),
+		Vec3::ONE * 8.,
+		*time * 0.3345,
 	)
 	.0
 	.fit1101();
