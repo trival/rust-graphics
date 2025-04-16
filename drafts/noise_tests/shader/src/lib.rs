@@ -69,7 +69,7 @@ pub fn simplex_4d_shader(
 	out: &mut Vec4,
 ) {
 	let uv = aspect_preserving_uv(uv, *size);
-	let uv = uv * 20.0;
+	let uv = uv * 10.0;
 
 	let noise = simplex_noise_4d(uv.extend(123. + *time * 0.2345).extend(*time)).fit1101();
 
@@ -126,9 +126,9 @@ pub fn tiling_noise_3d_shader(
 	let uv = aspect_preserving_uv(uv, *size);
 
 	let noise = tiling_noise_3d_r(
-		((uv * 2.5).fract() * 8. + 0.5) // shift by 0.5 to avoid tiling artifacts
+		((uv * 2.5).fract() * 4. + 0.5) // shift by 0.5 to avoid tiling artifacts
 			.extend(*time * 0.2),
-		Vec3::ONE * 8.,
+		Vec3::ONE * 4.,
 		*time * 0.3345,
 	)
 	.0
