@@ -1,4 +1,7 @@
-use crate::utils::aspect_preserving_uv;
+use crate::{
+	book_of_shaders::shapes::{rounded_rect, rounded_rect_smooth},
+	utils::aspect_preserving_uv,
+};
 use spirv_std::glam::{vec2, vec3, UVec2, Vec2, Vec3, Vec4};
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
@@ -18,6 +21,7 @@ const NUM_TILES: f32 = 10.;
 #[derive(Copy, Clone)]
 struct Tile {
 	hue: f32,
+	lightness: f32,
 	height: f32,
 }
 
@@ -26,8 +30,14 @@ fn tile(idx: Vec2, time: f32) -> Tile {
 	let hue = (r.x + time * 0.01).fract();
 	// let hue = r.x;
 	let height = (time * (r.x + 0.2) + r.y).cos().fit1101();
+	let l = r.y * r.x * 0.4;
+	let lightness = if r.y > 0.5 { 1.0 - l } else { l };
 
-	Tile { hue, height }
+	Tile {
+		hue,
+		height,
+		lightness,
+	}
 }
 
 pub fn tiled_plates(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
@@ -58,23 +68,24 @@ pub fn tiled_plates(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
 	let bl = tile(idx + dir_bl, t);
 
 	let quadrant_color = |t1: Tile, t2: Tile, t3: Tile, dir1: Vec2, dir2: Vec2, dir3: Vec2| {
+		let uv0 = uv_tile * (1. - cc.height * 0.14);
 		let uv1 = (uv_tile - dir1) * (1. - t1.height * 0.14);
 		let uv2 = (uv_tile - dir2) * (1. - t2.height * 0.14);
 		let uv3 = (uv_tile - dir3) * (1. - t3.height * 0.14);
 
 		let tiles = [cc, t1, t2, t3];
-		let uvs = [uv_tile, uv1, uv2, uv3];
+		let uvs = [uv0, uv1, uv2, uv3];
 
 		let mut ground_i = 0;
+		let mut miss = true;
 
-		for i in 1..4 {
-			if tiles[i].height > tiles[ground_i].height {
-				let uv = &uvs[i];
-				let d = uv.abs() - 0.4;
-				let d = d.x.min(d.y);
-				let square = d.smoothstep(-0.05, 0.05);
+		for i in 0..4 {
+			if tiles[i].height >= tiles[ground_i].height {
+				let uv = uvs[i];
+				let square = rounded_rect(uv, Vec2::ZERO, Vec2::splat(1.0), 0.2);
 				if square > 0.5 {
 					ground_i = i;
+					miss = false;
 				}
 			}
 		}
@@ -87,25 +98,26 @@ pub fn tiled_plates(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
 			let tile = tiles[i];
 			let height = tile.height;
 			if height > ground.height {
-				let uv = &uvs[i];
+				let uv = uvs[i];
 
 				// smooth rect
-				let smoothness = (height - ground.height) * 0.9;
-				let rect = uv.abs() * 2.0;
-				let e0 = Vec2::ONE + smoothness;
-				let e1 = Vec2::ONE - smoothness;
-				let s = rect.smoothstep(e0, e1);
-				shadow += s.x * s.y;
+				let smoothness = (height - ground.height) * 0.7;
+				let rect = rounded_rect_smooth(uv, Vec2::ZERO, Vec2::ONE, 0.2, smoothness);
+				shadow += rect.powf(0.9);
 			}
 		}
 
 		// hsv2rgb(vec3(cc.hue, 0.8, cc.height * 0.8 + 0.2))
-		hsv2rgb(vec3(
-			ground.hue,
-			0.7 + ground.height * 0.15,
-			ground.height * 0.45 + 0.45,
-		))
-		.lerp(Vec3::ZERO, (shadow * 0.7).clamp(0., 1.))
+		if miss {
+			Vec3::ZERO
+		} else {
+			hsv2rgb(vec3(
+				ground.hue,
+				0.7 + ground.height * 0.15,
+				(ground.height * 0.45 + 0.55) * (ground.lightness * 0.9 + 0.1),
+			))
+			.lerp(Vec3::ZERO, (shadow * 0.7).clamp(0., 1.))
+		}
 	};
 
 	let color;

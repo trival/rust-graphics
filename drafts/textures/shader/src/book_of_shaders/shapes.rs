@@ -156,18 +156,42 @@ fn circle_line(i: f32, line_count: f32, t: f32, angle: f32) -> f32 {
 	step(v1, a) * step(a, v2)
 }
 
+pub fn rounded_rect(st: Vec2, center: Vec2, size: Vec2, radius: f32) -> f32 {
+	let offset = size / 2. - radius;
+	let d = ((st - center).abs() - offset).max(Vec2::ZERO).length();
+	radius.step(d)
+}
+
+pub fn rounded_rect_smooth(
+	st: Vec2,
+	center: Vec2,
+	size: Vec2,
+	radius: f32,
+	smoothness: f32,
+) -> f32 {
+	let offset = size / 2. - radius;
+	let d = ((st - center).abs() - offset).max(Vec2::ZERO).length();
+
+	let s = smoothness / 2.;
+	let e0 = radius + s;
+	let e1 = radius - s;
+
+	d.smoothstep(e0, e1)
+}
+
 pub fn rounded_rect_shader(st: Vec2) -> Vec4 {
 	let uv = (st * 3.0).fract().fit0111();
 	let idx_v2 = (st * 3.0).floor();
 	let idx = (idx_v2.x + idx_v2.y * 3.0) / 9.0;
 
-	let size = vec2(1.8, 1.65);
+	let size = vec2(1.2, 1.0);
 
-	let center1 = vec2(0.0, 0.0);
-	let rec1 = rect_smooth(size, center1, uv, (idx * 0.3) + 0.01);
+	let center = vec2((idx * TAU).cos(), (idx * TAU).sin()) * 0.3;
 
-	let color1 = vec3(0.1, 0.0, 0.0);
+	let rec = rounded_rect_smooth(uv, center, size, idx * 0.7, 0.3);
+
+	let color = vec3(0.1, 0.0, 0.0);
 
 	let bg_color = Vec3::splat(1.0);
-	bg_color.lerp(color1, rec1).extend(1.0)
+	bg_color.lerp(color, rec).extend(1.0)
 }

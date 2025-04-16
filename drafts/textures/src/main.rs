@@ -127,7 +127,6 @@ impl CanvasApp<()> for App {
 			u_time,
 
 			canvases: vec![
-				canvas_bos_shapes_rounded_rect,
 				canvas_tiles,
 				canvas_tiled_lines,
 				canvas_noisy_lines_1,
@@ -138,6 +137,7 @@ impl CanvasApp<()> for App {
 				canvas_bos_shaping_fns,
 				canvas_fbm_shader,
 				canvas_simplex_prefilled,
+				canvas_bos_shapes_rounded_rect,
 			],
 			current_canvas: 0,
 		}
