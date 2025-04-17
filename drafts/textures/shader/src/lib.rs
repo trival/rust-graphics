@@ -120,3 +120,13 @@ pub fn bos_shapes_rounded_rect(
 ) {
 	*out = book_of_shaders::shapes::rounded_rect_shader(uv);
 }
+
+#[spirv(fragment)]
+pub fn noisy_lines_2(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
+	out: &mut Vec4,
+) {
+	*out = sketches::lines::noisy_lines_2(uv, *size, *time);
+}

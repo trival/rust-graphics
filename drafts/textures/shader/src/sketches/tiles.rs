@@ -7,7 +7,7 @@ use spirv_std::glam::{vec2, vec3, UVec2, Vec2, Vec3, Vec4};
 use spirv_std::num_traits::Float;
 use trivalibs_shaders::{
 	bits::FloatBits,
-	color::hsv2rgb,
+	color::hsv2rgb_smooth,
 	float_ext::FloatExt,
 	random::{
 		hash::{hash2d, hash3d},
@@ -16,7 +16,7 @@ use trivalibs_shaders::{
 	vec_ext::VecExt,
 };
 
-const NUM_TILES: f32 = 10.;
+const NUM_TILES: f32 = 15.;
 
 #[derive(Copy, Clone)]
 struct Tile {
@@ -111,7 +111,7 @@ pub fn tiled_plates(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
 		if miss {
 			Vec3::ZERO
 		} else {
-			hsv2rgb(vec3(
+			hsv2rgb_smooth(vec3(
 				ground.hue,
 				0.7 + ground.height * 0.15,
 				(ground.height * 0.45 + 0.55) * (ground.lightness * 0.9 + 0.1),
@@ -139,7 +139,7 @@ pub fn tiled_plates(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
 		color = quadrant_color(br, bc, cr, dir_br, dir_bc, dir_cr);
 	}
 
-	color.extend(1.)
+	color.powf(1.2).extend(1.)
 }
 
 const NUM_LINES: u32 = 15;
@@ -200,5 +200,5 @@ pub fn tiled_lines(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 		}
 	}
 
-	color.extend(1.)
+	color.powf(2.2).extend(1.)
 }
