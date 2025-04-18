@@ -130,3 +130,13 @@ pub fn noisy_lines_2(
 ) {
 	*out = sketches::lines::noisy_lines_2(uv, *size, *time);
 }
+
+#[spirv(fragment)]
+pub fn net(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
+	out: &mut Vec4,
+) {
+	*out = sketches::misc::net(uv, *size);
+}

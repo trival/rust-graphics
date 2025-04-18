@@ -35,6 +35,11 @@
     "wgsl_entry_point": "fbm_shader"
   },
   {
+    "source_path": "net.spv",
+    "entry_point": "net",
+    "wgsl_entry_point": "net"
+  },
+  {
     "source_path": "noisy_lines_1.spv",
     "entry_point": "noisy_lines_1",
     "wgsl_entry_point": "noisy_lines_1"
