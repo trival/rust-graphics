@@ -16,7 +16,6 @@ pub fn net(uv: Vec2, _size: UVec2) -> Vec4 {
 	let tube = if (idx.x + idx.y) % 2.0 == 1.0 {
 		if tube_x < (tube_y * 0.2) {
 			tube_y * (tube_x * 0.2 + 0.8)
-			// tube_y
 		} else {
 			tube_x * (tube_y * 0.2 + 0.8)
 		}
