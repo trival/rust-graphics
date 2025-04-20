@@ -1,4 +1,7 @@
-use crate::utils::aspect_preserving_uv;
+use crate::{
+	book_of_shaders::shapes::{rect, rounded_rect_smooth},
+	utils::aspect_preserving_uv,
+};
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
 use spirv_std::{
@@ -6,8 +9,13 @@ use spirv_std::{
 	Image, Sampler,
 };
 use trivalibs_shaders::{
+	bits::FloatBits,
 	float_ext::FloatExt,
-	random::simplex::{simplex_noise_2d, simplex_noise_3d},
+	random::{
+		hash::hash2d,
+		simplex::{simplex_noise_2d, simplex_noise_3d},
+	},
+	vec_ext::VecExt,
 };
 
 pub fn simplex_prefilled(
@@ -119,4 +127,35 @@ pub fn noisy_lines_1(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 	// bg.lerp(Vec3::ONE, line_curr + line_prev + line_next);
 
 	color.extend(1.0)
+}
+
+pub fn noisy_squares(uv: Vec2, time: f32) -> Vec4 {
+	let idx = (uv * 3.0).floor() + 1.0;
+	let tile_uv = (uv * 3.0).fract().fit0111();
+
+	let size = hash2d(idx.to_bits()) * 0.6 + 0.9;
+
+	let noise1 = simplex_noise_3d((uv * vec2(4.5, 2.5) - vec2(0., time * 0.6)).extend(time * 0.2));
+	let noise2 =
+		simplex_noise_3d((uv * vec2(11.5, 7.5) - vec2(0., time * 0.6)).extend(time * 0.2 + 0.6));
+	let noise3 =
+		simplex_noise_3d((uv * vec2(21.5, 21.5) - vec2(0., time * 0.6)).extend(time * 0.2 + 1.2));
+
+	let noise = (noise1 + noise2 * 0.7 + noise3 * 0.2) / 1.9;
+
+	let square = rounded_rect_smooth(
+		tile_uv * (noise * 0.12 + 0.88),
+		Vec2::ZERO,
+		size,
+		0.03,
+		0.01,
+	);
+
+	let col1 = vec3(0.1, 0.2, 0.3);
+
+	let col2 = vec3(0.45, 0.5, 0.55);
+
+	let col = col1.lerp(col2, square);
+
+	col.powf(2.2).extend(1.0)
 }

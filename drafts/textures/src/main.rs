@@ -122,6 +122,9 @@ impl CanvasApp<()> for App {
 		let (s, canvas_noisy_lines_2) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/noisy_lines_2.spv");
 
+		let (s, canvas_noisy_quads) = shade_canvas(p, true);
+		load_fragment_shader!(s, p, "../shader/noisy_quads.spv");
+
 		let (s, canvas_net) = shade_canvas(p, false);
 		load_fragment_shader!(s, p, "../shader/net.spv");
 
@@ -133,6 +136,7 @@ impl CanvasApp<()> for App {
 			u_time,
 
 			canvases: vec![
+				canvas_noisy_quads,
 				canvas_net,
 				canvas_noisy_lines_2,
 				canvas_tiles,

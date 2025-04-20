@@ -140,3 +140,13 @@ pub fn net(
 ) {
 	*out = sketches::misc::net(uv, *size);
 }
+
+#[spirv(fragment)]
+pub fn noisy_quads(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
+	out: &mut Vec4,
+) {
+	*out = sketches::noise::noisy_squares(uv, *time);
+}

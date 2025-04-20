@@ -50,6 +50,11 @@
     "wgsl_entry_point": "noisy_lines_2"
   },
   {
+    "source_path": "noisy_quads.spv",
+    "entry_point": "noisy_quads",
+    "wgsl_entry_point": "noisy_quads"
+  },
+  {
     "source_path": "simplex_prefilled.spv",
     "entry_point": "simplex_prefilled",
     "wgsl_entry_point": "simplex_prefilled"
