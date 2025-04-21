@@ -136,7 +136,6 @@ impl CanvasApp<()> for App {
 			u_time,
 
 			canvases: vec![
-				canvas_noisy_quads,
 				canvas_net,
 				canvas_noisy_lines_2,
 				canvas_tiles,
@@ -150,6 +149,7 @@ impl CanvasApp<()> for App {
 				canvas_fbm_shader,
 				canvas_simplex_prefilled,
 				canvas_bos_shapes_rounded_rect,
+				canvas_noisy_quads,
 			],
 			current_canvas: 0,
 		}

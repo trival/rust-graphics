@@ -1,7 +1,4 @@
-use crate::{
-	book_of_shaders::shapes::{rect, rounded_rect_smooth},
-	utils::aspect_preserving_uv,
-};
+use crate::{book_of_shaders::shapes::rounded_rect_smooth, utils::aspect_preserving_uv};
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
 use spirv_std::{
@@ -13,7 +10,9 @@ use trivalibs_shaders::{
 	float_ext::FloatExt,
 	random::{
 		hash::hash2d,
-		simplex::{simplex_noise_2d, simplex_noise_3d},
+		simplex::{
+			rot_noise_2d, simplex_noise_2d, simplex_noise_3d, tiling_rot_noise_2d, tiling_rot_noise_3d,
+		},
 	},
 	vec_ext::VecExt,
 };
@@ -32,16 +31,14 @@ pub fn simplex_prefilled(
 }
 
 // Fbm shader ported from https://thebookofshaders.com/13/
-const NUM_OCTAVES: usize = 5;
-
-fn fbm(st: Vec2) -> f32 {
+fn fbm(st: Vec2, num_octaves: usize) -> f32 {
 	let mut v = 0.0;
 	let mut a = 0.5;
 	let mut st = st;
 	let shift = vec2(100.0, 100.0);
 	// Rotate to reduce axial bias
 	let rot = mat2(vec2(0.5.cos(), 0.5.sin()), vec2(-0.5.sin(), 0.5.cos()));
-	for _ in 0..NUM_OCTAVES {
+	for _ in 0..num_octaves {
 		v += a * simplex_noise_2d(st).fit1101();
 		st = rot * st * 2.0 + shift;
 		a *= 0.5;
@@ -57,19 +54,19 @@ pub fn fbm_shader(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 	let q = vec2(
 		// simplex_noise_3d(st.extend(time)).fit1101(),
 		// simplex_noise_3d((st + vec2(1.0, 0.0)).extend(time)).fit1101(),
-		fbm(st),
-		fbm(st + vec2(10.0, 10.0)),
+		fbm(st, 5),
+		fbm(st + vec2(10.0, 10.0), 5),
 	);
 
 	let r = vec2(
 		// simplex_noise_3d((st + 1.0 * q + vec2(1.7, 9.2)).extend(0.15 * time)).fit1101(),
 		// simplex_noise_3d((st + 1.0 * q + vec2(8.3, 2.8)).extend(0.126 * time)).fit1101(),
-		fbm(st + 1.1 * q + 0.15 * time),
-		fbm(st + 1.0 * q + 0.126 * time),
+		fbm(st + 1.1 * q + 0.15 * time, 5),
+		fbm(st + 1.0 * q + 0.126 * time, 5),
 	);
 
 	// let f = simplex_noise_2d(st + r).fit1101();
-	let f = fbm(st + r + time * 0.1);
+	let f = fbm(st + r + time * 0.1, 5);
 
 	let mut color = vec3(0.101961, 0.619608, 0.666667).lerp(
 		vec3(0.666667, 0.666667, 0.198039),
@@ -129,24 +126,32 @@ pub fn noisy_lines_1(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 	color.extend(1.0)
 }
 
-pub fn noisy_squares(uv: Vec2, time: f32) -> Vec4 {
+pub fn noisy_squares(uv: Vec2, size: Vec2, time: f32) -> Vec4 {
 	let idx = (uv * 3.0).floor() + 1.0;
 	let tile_uv = (uv * 3.0).fract().fit0111();
 
-	let size = hash2d(idx.to_bits()) * 0.6 + 0.9;
+	let quad_size = hash2d(idx.to_bits()) * 0.6 + 0.9;
 
-	let noise1 = simplex_noise_3d((uv * vec2(4.5, 2.5) - vec2(0., time * 0.6)).extend(time * 0.2));
-	let noise2 =
-		simplex_noise_3d((uv * vec2(11.5, 7.5) - vec2(0., time * 0.6)).extend(time * 0.2 + 0.6));
-	let noise3 =
-		simplex_noise_3d((uv * vec2(21.5, 21.5) - vec2(0., time * 0.6)).extend(time * 0.2 + 1.2));
+	let fbm = |scale: f32, fade: f32, num_octaves: usize| {
+		let mut noise = 0.0;
+		let mut a = 1.0;
+		let mut st = uv;
+		let shift = vec2(100.0, 100.0);
+		let rot = (1.0 / (num_octaves as f32 * 2.0 + 1.0)) * 2.0;
+		for i in 0..num_octaves {
+			noise += a * rot_noise_2d(st, rot * i as f32).0.fit1101();
+			st = st * scale + shift;
+			a *= fade;
+		}
+		noise
+	};
 
-	let noise = (noise1 + noise2 * 0.7 + noise3 * 0.2) / 1.9;
+	let noise = fbm(idx.x + 1.1, 1.2 / idx.y, 5);
 
 	let square = rounded_rect_smooth(
 		tile_uv * (noise * 0.12 + 0.88),
 		Vec2::ZERO,
-		size,
+		quad_size,
 		0.03,
 		0.01,
 	);
