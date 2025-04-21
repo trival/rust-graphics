@@ -488,23 +488,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "draft_noise_tests"
-version = "0.1.0"
-dependencies = [
- "bytemuck",
- "noise",
- "trivalibs",
-]
-
-[[package]]
-name = "draft_noise_tests_shader"
-version = "0.1.0"
-dependencies = [
- "spirv-std",
- "trivalibs_shaders",
-]
-
-[[package]]
 name = "draft_room"
 version = "0.1.0"
 dependencies = [
