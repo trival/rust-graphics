@@ -75,12 +75,12 @@ pub fn create_ball_geom() -> BufferedGeometry {
 
 		if v0.pos.y == -5.0 {
 			// v0 == v1
-			geom.add_face3_data(v0, v2, v3, face_data(v0));
+			geom.add_face3_data([v0, v2, v3], face_data(v0));
 		} else if v2.pos.y == 5.0 {
 			// v2 == v3
-			geom.add_face3_data(v0, v1, v2, face_data(v0));
+			geom.add_face3_data([v0, v1, v2], face_data(v0));
 		} else {
-			geom.add_face4_data(v0, v1, v2, v3, face_data(v0));
+			geom.add_face4_data([v0, v1, v2, v3], face_data(v0));
 		}
 	}
 
