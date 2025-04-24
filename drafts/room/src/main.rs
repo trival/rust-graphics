@@ -1,23 +1,17 @@
-use geom::create_ground_plane;
+use geom::create_plane;
 use trivalibs::{
 	map,
-	math::transform::Transform,
 	painter::prelude::*,
 	prelude::*,
-	rendering::{
-		camera::{CamProps, PerspectiveCamera},
-		scene::SceneObject,
-	},
+	rendering::camera::{CamProps, PerspectiveCamera},
 };
 
 mod geom;
 
 struct App {
 	cam: PerspectiveCamera,
-	ground_transform: Transform,
 
-	mvp: UniformBuffer<Mat4>,
-	norm: UniformBuffer<Mat3U>,
+	vp: UniformBuffer<Mat4>,
 	canvas: Layer,
 }
 
@@ -25,46 +19,51 @@ impl CanvasApp<()> for App {
 	fn init(p: &mut Painter) -> Self {
 		let shade = p
 			.shade(&[Float32x3, Float32x3, Float32x2])
-			.with_uniforms(&[UNIFORM_BUFFER_VERT, UNIFORM_BUFFER_VERT])
+			.with_uniforms(&[UNIFORM_BUFFER_VERT])
 			.create();
 		load_vertex_shader!(shade, p, "../shader/ground_vert.spv");
 		load_fragment_shader!(shade, p, "../shader/ground_frag.spv");
 
-		let form = p.form(&create_ground_plane()).create();
+		let cam = PerspectiveCamera::create(CamProps {
+			fov: Some(0.6),
+			translation: Some(vec3(0.0, 3.0, 15.0)),
+			// rot_horizontal: Some(PI),
+			..default()
+		});
 
-		let mvp = p.uniform_mat4();
-		let norm = p.uniform_mat3();
-
-		let shape = p
-			.shape(form, shade)
-			.with_uniforms(map! {
-				0 => mvp.uniform(),
-				1 => norm.uniform(),
-			})
+		let ground_form = p
+			.form(&create_plane(100.0, 100.0, Vec3::Y, Vec3::ZERO))
 			.create();
+		let roof_form = p
+			.form(&create_plane(100.0, 100.0, -Vec3::Y, vec3(0.0, 10.0, 0.0)))
+			.create();
+		let wall_form = p
+			.form(&create_plane(20.5, 5.0, Vec3::Z, vec3(15.0, 3.0, 0.0)))
+			.create();
+
+		let ground_shape = p.shape(ground_form, shade).create();
+		let wall_shape = p.shape(wall_form, shade).create();
+		let roof_shape = p.shape(roof_form, shade).create();
+
+		let vp = p.uniform_mat4();
 
 		let canvas = p
 			.layer()
-			.with_shapes(vec![shape])
+			.with_shapes(vec![ground_shape, wall_shape, roof_shape])
 			.with_clear_color(wgpu::Color {
 				r: 0.5,
 				g: 0.6,
 				b: 0.7,
 				a: 1.0,
 			})
+			.with_uniforms(map! {
+				0 => vp.uniform(),
+			})
 			.with_multisampling()
+			.with_depth_test()
 			.create();
 
-		Self {
-			cam: PerspectiveCamera::create(CamProps {
-				fov: Some(0.6),
-				..default()
-			}),
-			ground_transform: Transform::from_translation(vec3(0.0, -3.0, 0.0)),
-			canvas,
-			mvp,
-			norm,
-		}
+		Self { cam, canvas, vp }
 	}
 
 	fn resize(&mut self, _p: &mut Painter, width: u32, height: u32) {
@@ -72,15 +71,12 @@ impl CanvasApp<()> for App {
 	}
 
 	fn update(&mut self, p: &mut Painter, tpf: f32) {
-		self.ground_transform.rotate_y(tpf * 0.1);
+		self.cam.set(CamProps {
+			rot_horizontal: Some(self.cam.rot_horizontal + tpf * -0.1),
+			..default()
+		});
 
-		self
-			.mvp
-			.update(p, self.ground_transform.model_view_proj_mat(&self.cam));
-
-		self
-			.norm
-			.update_mat3(p, self.ground_transform.view_normal_mat(&self.cam));
+		self.vp.update(p, self.cam.view_proj_mat());
 
 		p.request_next_frame();
 	}
