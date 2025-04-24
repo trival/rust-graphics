@@ -2,6 +2,7 @@ use trivalibs::{
 	prelude::*,
 	rendering::{
 		mesh_geometry::{
+			face_normal,
 			utils::{vert_pos_uv, Vert3dUv},
 			MeshBufferType, MeshGeometry,
 		},
@@ -15,7 +16,7 @@ pub fn create_plane(width: f32, height: f32, normal: Vec3, center: Vec3) -> Buff
 		Quad3D::from_dimensions_center_f(width, height, normal, center, vert_pos_uv).into();
 
 	let mut geom = MeshGeometry::new();
-	geom.add_face4(plane.to_ccw_verts());
+	geom.add_face4_data(plane.to_ccw_verts(), face_normal(plane.normal));
 
 	geom.to_buffered_geometry_by_type(MeshBufferType::FaceNormals)
 }
