@@ -1,4 +1,5 @@
 use geom::create_plane;
+use input_state::{CameraController, InputState};
 use trivalibs::{
 	map,
 	painter::prelude::*,
@@ -7,12 +8,15 @@ use trivalibs::{
 };
 
 mod geom;
+mod input_state;
 
 struct App {
 	cam: PerspectiveCamera,
-
 	vp: UniformBuffer<Mat4>,
 	canvas: Layer,
+
+	input: InputState,
+	cam_controller: CameraController,
 }
 
 impl CanvasApp<()> for App {
@@ -63,7 +67,13 @@ impl CanvasApp<()> for App {
 			.with_depth_test()
 			.create();
 
-		Self { cam, canvas, vp }
+		Self {
+			cam,
+			canvas,
+			vp,
+			input: InputState::default(),
+			cam_controller: CameraController::new(1.0, 1.0),
+		}
 	}
 
 	fn resize(&mut self, _p: &mut Painter, width: u32, height: u32) {
@@ -71,10 +81,9 @@ impl CanvasApp<()> for App {
 	}
 
 	fn update(&mut self, p: &mut Painter, tpf: f32) {
-		self.cam.set(CamProps {
-			rot_horizontal: Some(self.cam.rot_horizontal + tpf * -0.1),
-			..default()
-		});
+		self
+			.cam_controller
+			.update_camera(&mut self.cam, &self.input, tpf);
 
 		self.vp.update(p, self.cam.view_proj_mat());
 
@@ -85,7 +94,9 @@ impl CanvasApp<()> for App {
 		p.paint_and_show(self.canvas)
 	}
 
-	fn event(&mut self, _e: Event<()>, _p: &mut Painter) {}
+	fn event(&mut self, e: Event<()>, _p: &mut Painter) {
+		self.input.process_event(e);
+	}
 }
 
 pub fn main() {
