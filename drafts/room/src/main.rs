@@ -11,7 +11,7 @@ mod geom;
 
 struct App {
 	cam: PerspectiveCamera,
-	vp: UniformBuffer<Mat4>,
+	vp_mat: UniformBuffer<Mat4>,
 	canvas: Layer,
 
 	input: InputState,
@@ -48,7 +48,7 @@ impl CanvasApp<()> for App {
 		let wall_shape = p.shape(wall_form, shade).create();
 		let roof_shape = p.shape(roof_form, shade).create();
 
-		let vp = p.uniform_mat4();
+		let vp_mat = p.uniform_mat4();
 
 		let canvas = p
 			.layer()
@@ -60,7 +60,7 @@ impl CanvasApp<()> for App {
 				a: 1.0,
 			})
 			.with_uniforms(map! {
-				0 => vp.uniform(),
+				0 => vp_mat.uniform(),
 			})
 			.with_multisampling()
 			.with_depth_test()
@@ -69,7 +69,7 @@ impl CanvasApp<()> for App {
 		Self {
 			cam,
 			canvas,
-			vp,
+			vp_mat,
 			input: default(),
 			cam_controller: BasicFirstPersonCameraController::new(1.0, 3.0),
 		}
@@ -85,7 +85,7 @@ impl CanvasApp<()> for App {
 			.cam_controller
 			.update_camera(&mut self.cam, &self.input, tpf);
 
-		self.vp.update(p, self.cam.view_proj_mat());
+		self.vp_mat.update(p, self.cam.view_proj_mat());
 
 		p.request_next_frame();
 	}
