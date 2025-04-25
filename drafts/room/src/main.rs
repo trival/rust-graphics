@@ -1,14 +1,13 @@
 use geom::create_plane;
-use input_state::{CameraController, InputState};
 use trivalibs::{
+	common_utils::camera_controls::BasicFirstPersonCameraController,
 	map,
-	painter::prelude::*,
+	painter::{prelude::*, utils::input_state::InputState},
 	prelude::*,
 	rendering::camera::{CamProps, PerspectiveCamera},
 };
 
 mod geom;
-mod input_state;
 
 struct App {
 	cam: PerspectiveCamera,
@@ -16,7 +15,7 @@ struct App {
 	canvas: Layer,
 
 	input: InputState,
-	cam_controller: CameraController,
+	cam_controller: BasicFirstPersonCameraController,
 }
 
 impl CanvasApp<()> for App {
@@ -71,13 +70,14 @@ impl CanvasApp<()> for App {
 			cam,
 			canvas,
 			vp,
-			input: InputState::default(),
-			cam_controller: CameraController::new(1.0, 1.0),
+			input: default(),
+			cam_controller: BasicFirstPersonCameraController::new(1.0, 3.0),
 		}
 	}
 
 	fn resize(&mut self, _p: &mut Painter, width: u32, height: u32) {
 		self.cam.set_aspect_ratio(width as f32 / height as f32);
+		self.cam_controller.set_screen_size(width, height);
 	}
 
 	fn update(&mut self, p: &mut Painter, tpf: f32) {
