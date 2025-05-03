@@ -2,36 +2,27 @@ use crate::utils::aspect_preserving_uv;
 use spirv_std::glam::{vec2, vec3, UVec2, Vec2, Vec3, Vec4};
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
-use trivalibs_shaders::{float_ext::FloatExt, random::simplex::simplex_noise_3d};
-
-const LINE_COUNT: f32 = 30.;
+use trivalibs_shaders::{float_ext::FloatExt, random::simplex::simplex_noise_2d};
 
 pub fn noisy_lines_2(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 	let uv_current = aspect_preserving_uv(uv, size);
 
-	let noise1 =
-		simplex_noise_3d((uv_current * vec2(4.5, -2.5) - vec2(0., time * 0.6)).extend(time * 0.2));
-	let noise2 = simplex_noise_3d(
-		(uv_current * vec2(4.5, -2.5) - vec2(0., time * 0.6)).extend(time * 0.2 + 0.3),
-	);
-	let noise3 =
-		simplex_noise_3d((uv_current * vec2(6.5, 3.5) - vec2(0., time * 0.6)).extend(time * 0.2 + 0.6));
+	let uv = uv_current * 2.0 - 1.0;
 
-	let noise = (noise1 + noise2 + noise3 * 0.7) / 2.7;
+	let noise = simplex_noise_2d(vec2(uv.y * 0.3, time * 0.5)).fit1101();
 
-	let x_offset = 1.0 / LINE_COUNT;
-	let y_offset = 1.0 / LINE_COUNT;
+	let y = uv.y * 1.01;
+	let caps = 1.0 - y.abs().smoothstep(1.01, 0.60);
+	let caps = 1.0.lerp(50.0, caps.powf(20.0));
 
-	let mut color = Vec3::ZERO;
+	let x = uv.x * 5.0 * caps + noise * 1.5 * caps;
 
-	for i in 0..LINE_COUNT as u32 {
-		let y = (i as f32 + noise1).fract();
-		let y_start = y * y_offset;
-		let y_end = (y + x_offset).fract() * y_offset;
+	let line = x.abs().smoothstep(1.01, 0.99);
 
-		color += uv_current.y.smoothstep(y_start, y_start + 0.05)
-			* uv_current.y.smoothstep(y_end, y_end - 0.05);
-	}
+	let col_bg = Vec3::ONE;
+	let col_line = vec3(0.2, 0.2, 0.2);
 
-	vec3(noise.fit1101(), color.y, color.z).powf(2.2).extend(1.)
+	let col = col_bg.lerp(col_line, line);
+
+	col.powf(2.2).extend(1.0)
 }
