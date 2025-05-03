@@ -10,9 +10,7 @@ use trivalibs_shaders::{
 	float_ext::FloatExt,
 	random::{
 		hash::hash2d,
-		simplex::{
-			rot_noise_2d, simplex_noise_2d, simplex_noise_3d, tiling_rot_noise_2d, tiling_rot_noise_3d,
-		},
+		simplex::{rot_noise_2d, simplex_noise_2d, simplex_noise_3d},
 	},
 	vec_ext::VecExt,
 };
@@ -126,7 +124,7 @@ pub fn noisy_lines_1(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 	color.extend(1.0)
 }
 
-pub fn noisy_squares(uv: Vec2, size: Vec2, time: f32) -> Vec4 {
+pub fn noisy_squares(uv: Vec2, _size: Vec2, _time: f32) -> Vec4 {
 	let idx = (uv * 3.0).floor() + 1.0;
 	let tile_uv = (uv * 3.0).fract().fit0111();
 
