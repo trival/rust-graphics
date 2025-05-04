@@ -116,7 +116,7 @@ pub fn tiled_plates(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
 				0.7 + ground.height * 0.15,
 				(ground.height * 0.45 + 0.55) * (ground.lightness * 0.9 + 0.1),
 			))
-			.lerp(Vec3::ZERO, (shadow * 0.7).clamp(0., 1.))
+			.lerp(Vec3::ZERO, (shadow * 0.7).clamp01())
 		}
 	};
 

@@ -68,12 +68,12 @@ pub fn fbm_shader(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 
 	let mut color = vec3(0.101961, 0.619608, 0.666667).lerp(
 		vec3(0.666667, 0.666667, 0.198039),
-		((f * f) * 4.0).clamp(0.0, 1.0),
+		((f * f) * 4.0).clamp01(),
 	);
 
-	color = color.lerp(vec3(0.0, 0.0, 0.164706), q.length().clamp(0.0, 1.0));
+	color = color.lerp(vec3(0.0, 0.0, 0.164706), q.length().clamp01());
 
-	color = color.lerp(vec3(0.666667, 1.0, 1.0), r.length().clamp(0.0, 1.0));
+	color = color.lerp(vec3(0.666667, 1.0, 1.0), r.length().clamp01());
 
 	((f * f * f + 0.6 * f * f + 0.5 * f) * color).extend(1.0)
 }
