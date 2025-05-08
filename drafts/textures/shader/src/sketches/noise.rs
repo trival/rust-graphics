@@ -90,13 +90,10 @@ pub fn noisy_lines_1(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 	let curr_x = uv_current.x;
 	let next_x = curr_x + x_offset;
 	let prev_x = curr_x - x_offset;
-	// fract() does not work with negative numbers.
-	// Without this the first column would have no previous (green) line.
-	let prev_x = if prev_x < 0.0 { 1.0 + prev_x } else { prev_x };
 
-	let curr_x_pos = ((curr_x * LINE_COUNT).fract() - 0.5) / 3.;
-	let prev_x_pos = ((prev_x * LINE_COUNT).fract() - 0.5) / 3. + 1. / 3.;
-	let next_x_pos = ((next_x * LINE_COUNT).fract() - 0.5) / 3. - 1. / 3.;
+	let curr_x_pos = ((curr_x * LINE_COUNT).frct() - 0.5) / 3.;
+	let prev_x_pos = ((prev_x * LINE_COUNT).frct() - 0.5) / 3. + 1. / 3.;
+	let next_x_pos = ((next_x * LINE_COUNT).frct() - 0.5) / 3. - 1. / 3.;
 
 	let get_line = |x: f32| x.smoothstep(-0.06, -0.04) * x.smoothstep(0.06, 0.04);
 
@@ -108,7 +105,7 @@ pub fn noisy_lines_1(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 
 	let bg = Vec3::splat((noise + 1.0) / 4.0);
 
-	let color = if (uv_current.x * LINE_COUNT).fract() < 0.02 {
+	let color = if (uv_current.x * LINE_COUNT).frct() < 0.02 {
 		Vec3::ZERO
 	} else if line_curr > 0.0 {
 		bg.lerp(Vec3::new(1.0, 1.0, 1.0), line_curr)
@@ -126,7 +123,7 @@ pub fn noisy_lines_1(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 
 pub fn noisy_squares(uv: Vec2, _size: Vec2, _time: f32) -> Vec4 {
 	let idx = (uv * 3.0).floor() + 1.0;
-	let tile_uv = (uv * 3.0).fract().fit0111();
+	let tile_uv = (uv * 3.0).frct().fit0111();
 
 	let quad_size = hash2d(idx.to_bits()) * 0.6 + 0.9;
 

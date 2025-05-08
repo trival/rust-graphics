@@ -87,46 +87,49 @@ impl CanvasApp<()> for App {
 		};
 
 		let (s, canvas_fbm_shader) = shade_canvas(p, true);
-		load_fragment_shader!(s, p, "../shader/fbm_shader.spv");
+		load_fragment_shader!(s, p, "../shader/out/fbm_shader.spv");
 
 		let (s, canvas_simplex_prefilled) = texture_shade_canvas(p, tex_simplex, false);
-		load_fragment_shader!(s, p, "../shader/simplex_prefilled.spv");
+		load_fragment_shader!(s, p, "../shader/out/simplex_prefilled.spv");
 
 		let (s, canvas_bos_shaping_fns) = shade_canvas(p, false);
-		load_fragment_shader!(s, p, "../shader/bos_shaping_fns.spv");
+		load_fragment_shader!(s, p, "../shader/out/bos_shaping_fns.spv");
 
 		let (s, canvas_bos_colors) = shade_canvas(p, true);
-		load_fragment_shader!(s, p, "../shader/bos_colors.spv");
+		load_fragment_shader!(s, p, "../shader/out/bos_colors.spv");
 
 		let (s, canvas_bos_shapes_rect) = shade_canvas(p, false);
-		load_fragment_shader!(s, p, "../shader/bos_shapes_rect.spv");
+		load_fragment_shader!(s, p, "../shader/out/bos_shapes_rect.spv");
 
 		let (s, canvas_bos_shapes_rounded_rect) = shade_canvas(p, false);
-		load_fragment_shader!(s, p, "../shader/bos_shapes_rounded_rect.spv");
+		load_fragment_shader!(s, p, "../shader/out/bos_shapes_rounded_rect.spv");
 
 		let (s, canvas_bos_shapes_circle) = shade_canvas(p, true);
-		load_fragment_shader!(s, p, "../shader/bos_shapes_circle.spv");
+		load_fragment_shader!(s, p, "../shader/out/bos_shapes_circle.spv");
 
 		let (s, canvas_bos_shapes_circles) = shade_canvas(p, true);
-		load_fragment_shader!(s, p, "../shader/bos_shapes_circles.spv");
+		load_fragment_shader!(s, p, "../shader/out/bos_shapes_circles.spv");
 
 		let (s, canvas_tiles) = shade_canvas(p, true);
-		load_fragment_shader!(s, p, "../shader/tiled_plates.spv");
+		load_fragment_shader!(s, p, "../shader/out/tiled_plates.spv");
 
 		let (s, canvas_noisy_lines_1) = shade_canvas(p, true);
-		load_fragment_shader!(s, p, "../shader/noisy_lines_1.spv");
+		load_fragment_shader!(s, p, "../shader/out/noisy_lines_1.spv");
 
 		let (s, canvas_tiled_lines) = shade_canvas(p, true);
-		load_fragment_shader!(s, p, "../shader/tiled_lines.spv");
+		load_fragment_shader!(s, p, "../shader/out/tiled_lines.spv");
 
 		let (s, canvas_noisy_lines_2) = shade_canvas(p, true);
-		load_fragment_shader!(s, p, "../shader/noisy_lines_2.spv");
+		load_fragment_shader!(s, p, "../shader/out/noisy_lines_2.spv");
 
 		let (s, canvas_noisy_quads) = shade_canvas(p, true);
-		load_fragment_shader!(s, p, "../shader/noisy_quads.spv");
+		load_fragment_shader!(s, p, "../shader/out/noisy_quads.spv");
 
 		let (s, canvas_net) = shade_canvas(p, false);
-		load_fragment_shader!(s, p, "../shader/net.spv");
+		load_fragment_shader!(s, p, "../shader/out/net.spv");
+
+		let (s, canvas_pool_tiles) = shade_canvas(p, false);
+		load_fragment_shader!(s, p, "../shader/out/pool_tiles.spv");
 
 		// return App
 
@@ -136,9 +139,10 @@ impl CanvasApp<()> for App {
 			u_time,
 
 			canvases: vec![
-				canvas_net,
+				canvas_pool_tiles,
 				canvas_noisy_lines_2,
 				canvas_tiles,
+				canvas_net,
 				canvas_tiled_lines,
 				canvas_noisy_lines_1,
 				canvas_bos_shapes_circles,

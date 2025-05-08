@@ -95,10 +95,10 @@ pub fn circle_shader(st: Vec2, time: f32) -> Vec4 {
 		// color1
 		let uv = (st - center) / (radius * 2.0);
 		let mut polar = PolarCoord::from_2d(uv);
-		polar.angle = ((polar.angle + time * 0.2) / (TAU / 2.0)).fract() * TAU / 1.0;
+		polar.angle = ((polar.angle + time * 0.2) / (TAU / 2.0)).frct() * TAU / 1.0;
 		let uv = polar.to_2d();
 
-		let cell_uv = (uv * 6.0).fract();
+		let cell_uv = (uv * 6.0).frct();
 		let cell = (uv * 6.0).floor();
 		if cell_uv.x < 0.2 || cell_uv.y < 0.2 {
 			Vec3::ZERO
@@ -152,7 +152,7 @@ fn circle_line(i: f32, line_count: f32, t: f32, angle: f32) -> f32 {
 	let v2 = hash(i as u32 + line_count as u32) * 0.5 + 0.5;
 
 	let s = if v2 > 0.75 { 1.0 } else { -1.0 };
-	let a = (angle + t * v1 * (0.8 / (i.powf(0.5))) * s).fract().abs();
+	let a = (angle + t * v1 * (0.8 / (i.powf(0.5))) * s).frct().abs();
 	step(v1, a) * step(a, v2)
 }
 
@@ -180,7 +180,7 @@ pub fn rounded_rect_smooth(
 }
 
 pub fn rounded_rect_shader(st: Vec2) -> Vec4 {
-	let uv = (st * 3.0).fract().fit0111();
+	let uv = (st * 3.0).frct().fit0111();
 	let idx_v2 = (st * 3.0).floor();
 	let idx = (idx_v2.x + idx_v2.y * 3.0) / 9.0;
 

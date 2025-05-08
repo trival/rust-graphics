@@ -7,7 +7,7 @@ use spirv_std::{
 	glam::{vec3, Vec2, Vec3, Vec4},
 	num_traits::Pow,
 };
-use trivalibs_shaders::float_ext::step;
+use trivalibs_shaders::float_ext::{step, FloatExt};
 
 // fn plot_line_1(st: Vec2) -> f32 {
 // 	smoothstep(0.02, 0.0, (st.y - st.x).abs())
@@ -37,7 +37,7 @@ pub fn shaping_fns(st: Vec2) -> Vec4 {
 	// let y = (x * 16.0).sin().abs();
 	// let y = 1.0 - (x * 16.0).sin().abs();
 	// let y = (x * 20.0).sin() * 0.5 + 1.0;
-	let y = (x * 8.0).sin().fract();
+	let y = (x * 8.0).sin().frct();
 	// let y = (x * 8.0).sin();
 
 	let color = Vec3::splat(y);

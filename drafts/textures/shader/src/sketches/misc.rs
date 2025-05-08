@@ -3,9 +3,11 @@ use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4};
 use spirv_std::num_traits::Float;
 use trivalibs_shaders::{float_ext::FloatExt, vec_ext::VecExt};
 
+use crate::utils::aspect_preserving_uv;
+
 pub fn net(uv: Vec2, _size: UVec2) -> Vec4 {
 	let idx = (uv * 8.0).floor() % 2.0;
-	let uv = (uv * 8.0).fract().fit0111();
+	let uv = (uv * 8.0).frct().fit0111();
 	// let uv = uv.fit0111();
 	let tube_x = (1.1 - uv.x.abs().max(0.0)) * 0.85;
 	let tube_x = tube_x.smoothen();
@@ -28,6 +30,16 @@ pub fn net(uv: Vec2, _size: UVec2) -> Vec4 {
 	};
 
 	let color = Vec3::splat(tube);
+
+	color.powf(2.2).extend(1.0)
+}
+
+pub fn pool_tiles(uv: Vec2, size: UVec2) -> Vec4 {
+	let uv = aspect_preserving_uv(uv, size);
+	let uv = uv * 20.0;
+	let idx = (uv * 20.0).floor();
+
+	let color = Vec3::splat(1.0);
 
 	color.powf(2.2).extend(1.0)
 }

@@ -150,3 +150,13 @@ pub fn noisy_quads(
 ) {
 	*out = sketches::noise::noisy_squares(uv, size.as_vec2(), *time);
 }
+
+#[spirv(fragment)]
+pub fn pool_tiles(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
+	out: &mut Vec4,
+) {
+	*out = sketches::misc::pool_tiles(uv, *size);
+}

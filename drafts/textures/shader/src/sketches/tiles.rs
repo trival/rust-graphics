@@ -27,7 +27,7 @@ struct Tile {
 
 fn tile(idx: Vec2, time: f32) -> Tile {
 	let r = hash2d((idx * 17.123411).to_bits());
-	let hue = (r.x + time * 0.01).fract();
+	let hue = (r.x + time * 0.01).frct();
 	// let hue = r.x;
 	let height = (time * (r.x + 0.2) + r.y).cos().fit1101();
 	let l = r.y * r.x * 0.4;
@@ -44,7 +44,7 @@ pub fn tiled_plates(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
 	let uv = aspect_preserving_uv(uv, size);
 
 	let uv_scaled = uv * NUM_TILES;
-	let uv_tile = uv_scaled.fract() - 0.5;
+	let uv_tile = uv_scaled.frct() - 0.5;
 	let idx = uv_scaled.floor() + 11.;
 
 	let dir_tr = vec2(1.0, -1.0);
@@ -148,7 +148,7 @@ pub fn tiled_lines(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 	let uv = aspect_preserving_uv(uv, size);
 
 	let uv_scaled = uv * 10.;
-	let uv_tile = uv_scaled.fract().fit0111();
+	let uv_tile = uv_scaled.frct().fit0111();
 	let idx = uv_scaled.floor();
 
 	let mut color = Vec3::ONE;
@@ -165,7 +165,7 @@ pub fn tiled_lines(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 				let mut end_x = start_x + 0.75.lerp(1. - start_x, r.y);
 				let y = r.z.fit0111() / 2.7 + noise * 0.15;
 
-				let t = ((time * 0.2 + r.y) * (r.z + 0.1)).fract();
+				let t = ((time * 0.2 + r.y) * (r.z + 0.1)).frct();
 				if t < 0.5 {
 					end_x = start_x.lerp(end_x, t * 2.);
 				} else {
