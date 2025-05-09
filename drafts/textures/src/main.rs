@@ -128,7 +128,7 @@ impl CanvasApp<()> for App {
 		let (s, canvas_net) = shade_canvas(p, false);
 		load_fragment_shader!(s, p, "../shader/out/net.spv");
 
-		let (s, canvas_pool_tiles) = shade_canvas(p, false);
+		let (s, canvas_pool_tiles) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/out/pool_tiles.spv");
 
 		// return App
