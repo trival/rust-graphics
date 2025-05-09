@@ -3,7 +3,7 @@ use spirv_std::glam::{vec3, UVec2, Vec2, Vec3, Vec4};
 use spirv_std::num_traits::Float;
 use trivalibs_shaders::{
 	bits::FloatBits,
-	color::{hsv2rgb, hsv2rgb_smooth},
+	color::hsv2rgb,
 	coords::PolarCoord,
 	float_ext::FloatExt,
 	random::{
@@ -49,28 +49,26 @@ pub fn pool_tiles(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
 		let rnd = hash21(tile_idx.to_bits());
 		let n = simplex_noise_2d(tile_idx * 0.2).fit1101();
 
-		let val = n * 0.7 + rnd * 0.3;
+		let test = n * 0.7 + rnd * 0.3;
+		let val = ((rnd.fit0111() * 0.7).round() + tile_idx.x + 50. * tile_idx.y) % 3.;
+		let tile_rnd = hash(val as u32 + 345);
 
-		let color = if val > 0.5 {
-			let val = (rnd * 3.).floor();
-			let n = hash(val as u32 + 123);
-			hsv2rgb_smooth(vec3(0.6, 0.1, val / 3. + n * 0.3))
+		let color = if test > 0.5 {
+			hsv2rgb(vec3(0.6, 0.1, val / 2.5 + tile_rnd * 0.3))
 		} else {
-			let val = (val * 2. * 3.).floor();
-			let n = hash(val as u32 + 345);
-			hsv2rgb(vec3(0.43 + n * 0.3, 0.4 - n * 0.1, 0.7))
+			hsv2rgb(vec3(tile_rnd * 0.5 + 0.15, 0.3 - tile_rnd * 0.1, 0.7))
 		};
 		color
 	}
 
 	let uv = aspect_preserving_uv(uv, size);
 
-	let mut pc = PolarCoord::from_2d(uv - 0.5);
-	pc.radius = pc.radius - (pc.radius * 10.1 - t * 3.).cos().powf(8.) * 0.01;
-	let uv = pc.to_2d();
+	let mut pc = PolarCoord::from_2d(uv - 1.2);
+	pc.radius = pc.radius + (pc.radius * 10.1 - t * 3.).sin().powf(6.) * 0.004;
+	let uv = pc.to_2d() + 1.2;
 
-	let uv = uv * 30.0;
-	let idx = (uv).floor();
+	let uv = uv * 50.0;
+	let idx = uv.floor();
 
 	let color = tile_color(idx);
 
