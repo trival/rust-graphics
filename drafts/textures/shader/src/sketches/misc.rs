@@ -44,6 +44,10 @@ pub fn net(uv: Vec2, _size: UVec2) -> Vec4 {
 	color.powf(2.2).extend(1.0)
 }
 
+// Improvement ideas:
+// * skew and add perspective projection to ground tiles
+// * rotate and move ground tiles
+// * improve water caustics
 pub fn pool_tiles(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
 	fn tile_color(tile_idx: Vec2) -> Vec3 {
 		let rnd = hash21(tile_idx.to_bits());
