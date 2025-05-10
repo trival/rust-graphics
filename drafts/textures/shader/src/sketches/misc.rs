@@ -62,15 +62,14 @@ pub fn pool_tiles(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
 	let tile_scale = 50. * 1.0.lerp(0.6, uv.y) * 1.0.lerp(0.85, uv.x);
 	let uv = uv * tile_scale;
 
+	let n = simplex_noise_2d(Vec2::splat(t * 0.006)) * 2.;
+	let mat = Mat2::from_angle(n);
+	let uv = mat * uv;
+
 	let nx = simplex_noise_2d(Vec2::splat(t * 0.01 - 100.));
 	let ny = simplex_noise_2d(Vec2::splat(t * 0.01 - 200.));
 	let offset = vec2(nx, ny) * 33.;
 	let uv = uv + offset;
-
-	let n = simplex_noise_2d(Vec2::splat(t * 0.006)) * 2.;
-
-	let mat = Mat2::from_angle(n);
-	let uv = mat * (uv - offset) + offset;
 
 	let idx = uv.floor();
 
