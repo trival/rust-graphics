@@ -181,6 +181,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
+name = "ball"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "png",
+ "trivalibs",
+]
+
+[[package]]
+name = "ball_shader"
+version = "0.1.0"
+dependencies = [
+ "spirv-std",
+]
+
+[[package]]
 name = "bit-set"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -329,6 +345,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b63caa9aa9397e2d9480a9b13673856c78d8ac123288526c37d7839f2a86990"
 
 [[package]]
+name = "columns"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "trivalibs",
+]
+
+[[package]]
+name = "columns_shader"
+version = "0.1.0"
+dependencies = [
+ "spirv-std",
+ "trivalibs_shaders",
+]
+
+[[package]]
 name = "combine"
 version = "4.6.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -464,55 +496,6 @@ name = "dpi"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
-
-[[package]]
-name = "draft_ball"
-version = "0.1.0"
-dependencies = [
- "bytemuck",
- "png",
- "trivalibs",
-]
-
-[[package]]
-name = "draft_ball_shader"
-version = "0.1.0"
-dependencies = [
- "spirv-std",
-]
-
-[[package]]
-name = "draft_room"
-version = "0.1.0"
-dependencies = [
- "bytemuck",
- "trivalibs",
-]
-
-[[package]]
-name = "draft_room_shader"
-version = "0.1.0"
-dependencies = [
- "spirv-std",
- "trivalibs_shaders",
-]
-
-[[package]]
-name = "draft_tex_shader"
-version = "0.1.0"
-dependencies = [
- "spirv-std",
- "trivalibs_shaders",
-]
-
-[[package]]
-name = "draft_textures"
-version = "0.1.0"
-dependencies = [
- "bytemuck",
- "noise",
- "trivalibs",
-]
 
 [[package]]
 name = "env_filter"
@@ -1781,6 +1764,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "19b30a45b0cd0bcca8037f3d0dc3421eaf95327a17cad11964fb8179b4fc4832"
 
 [[package]]
+name = "room"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "trivalibs",
+]
+
+[[package]]
+name = "room_shader"
+version = "0.1.0"
+dependencies = [
+ "spirv-std",
+ "trivalibs_shaders",
+]
+
+[[package]]
 name = "run-watch"
 version = "0.1.0"
 dependencies = [
@@ -2075,6 +2074,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06794f8f6c5c898b3275aebefa6b8a1cb24cd2c6c79397ab15774837a0bc5755"
 dependencies = [
  "winapi-util",
+]
+
+[[package]]
+name = "tex_shader"
+version = "0.1.0"
+dependencies = [
+ "spirv-std",
+ "trivalibs_shaders",
+]
+
+[[package]]
+name = "textures"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "noise",
+ "trivalibs",
 ]
 
 [[package]]

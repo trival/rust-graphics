@@ -1,6 +1,6 @@
 
 [package]
-name = "draft_textures"
+name = "textures"
 edition.workspace = true
 version = "0.1.0"
 
