@@ -107,7 +107,7 @@ impl CanvasApp<()> for App {
 		});
 
 		let ground_form = p
-			.form(&create_plane(100.0, 100.0, Vec3::Y, Vec3::ZERO))
+			.form(&create_plane(200.0, 200.0, Vec3::Y, Vec3::ZERO))
 			.create();
 		let g_m_mat = p.uniform_const_mat4(Mat4::IDENTITY);
 		let g_n_mat = p.uniform_const_mat3(Mat3::IDENTITY);
@@ -119,30 +119,40 @@ impl CanvasApp<()> for App {
 			})
 			.create();
 
-		let column_form = p.form(&create_column_form(3., 30.)).create();
+		let col_space = 12.;
+		let col_height = 40.;
+		let col_width = 2.;
+
+		let column_form = p.form(&create_column_form(col_width, col_height)).create();
 		let mut column_transforms = vec![];
-		for i in -2..=2 {
+		for i in -6..=6 {
 			column_transforms.push(Transform::from_translation(vec3(
-				-25.,
-				15.,
-				i as f32 * 25. / 2.,
+				-3. * col_space,
+				col_height / 2.,
+				i as f32 * col_space,
 			)));
 			column_transforms.push(Transform::from_translation(vec3(
-				25.,
-				15.,
-				i as f32 * 25. / 2.,
-			)));
-			column_transforms.push(Transform::from_translation(vec3(
-				i as f32 * 25. / 2.,
-				15.,
-				-25.,
-			)));
-			column_transforms.push(Transform::from_translation(vec3(
-				i as f32 * 25. / 2.,
-				15.,
-				25.,
+				3. * col_space,
+				col_height / 2.,
+				i as f32 * col_space,
 			)));
 		}
+
+		for i in -3..=3 {
+			column_transforms.push(Transform::from_translation(vec3(
+				i as f32 * col_space,
+				col_height / 2.,
+				-6. * col_space,
+			)));
+			column_transforms.push(Transform::from_translation(vec3(
+				i as f32 * col_space,
+				col_height / 2.,
+				6. * col_space,
+			)));
+		}
+
+		let to_instances = |transforms: Vec<Transform>| transforms;
+
 		let column_instances = column_transforms
 			.iter()
 			.map(|t| {
@@ -164,20 +174,36 @@ impl CanvasApp<()> for App {
 			.with_instances(column_instances)
 			.create();
 
-		let balk_form = p.form(&create_balk_form(3., 9., 50.)).create();
-		let mut balk_transforms = vec![];
-		for i in -2..=2 {
-			balk_transforms.push(Transform::from_translation(vec3(
-				i as f32 * 25. / 2.,
-				30.,
+		let balk1_form = p
+			.form(&create_balk_form(
+				col_width,
+				col_width * 3.,
+				(6. * 2.) * col_space,
+			))
+			.create();
+		let balk2_form = p
+			.form(&create_balk_form(
+				col_width,
+				col_width * 3.,
+				(3. * 2.) * col_space,
+			))
+			.create();
+		let mut balk1_transforms = vec![];
+		for i in -3..=3 {
+			balk1_transforms.push(Transform::from_translation(vec3(
+				i as f32 * col_space,
+				col_height,
 				0.,
 			)));
-			balk_transforms.push(
-				Transform::from_translation(vec3(0., 30., i as f32 * 25. / 2.))
+		}
+		let mut balk2_transforms = vec![];
+		for i in -6..=6 {
+			balk2_transforms.push(
+				Transform::from_translation(vec3(0., col_height, i as f32 * col_space))
 					.with_rotation(Quat::from_rotation_y(PI / 2.)),
 			);
 		}
-		let balk_instances = balk_transforms
+		let balk1_instances = balk1_transforms
 			.iter()
 			.map(|t| {
 				let m_mat = t.model_mat();
@@ -193,16 +219,36 @@ impl CanvasApp<()> for App {
 				}
 			})
 			.collect();
-		let balk_shape = p
-			.shape(balk_form, shade)
-			.with_instances(balk_instances)
+		let balk1_shape = p
+			.shape(balk1_form, shade)
+			.with_instances(balk1_instances)
+			.create();
+		let balk2_instances = balk2_transforms
+			.iter()
+			.map(|t| {
+				let m_mat = t.model_mat();
+				let n_mat = t.model_normal_mat();
+				let u_m_mat = p.uniform_const_mat4(m_mat);
+				let u_n_mat = p.uniform_const_mat3(n_mat);
+				InstanceUniforms {
+					uniforms: map! {
+						0 => u_m_mat,
+						1 => u_n_mat
+					},
+					..default()
+				}
+			})
+			.collect();
+		let balk2_shape = p
+			.shape(balk2_form, shade)
+			.with_instances(balk2_instances)
 			.create();
 
 		let vp_mat = p.uniform_mat4();
 
 		let canvas = p
 			.layer()
-			.with_shapes(vec![ground_shape, column_shape, balk_shape])
+			.with_shapes(vec![ground_shape, column_shape, balk1_shape, balk2_shape])
 			.with_clear_color(wgpu::Color {
 				r: 0.5,
 				g: 0.6,
