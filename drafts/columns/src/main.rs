@@ -1,4 +1,4 @@
-use std::f32::consts::PI;
+use std::f32::consts::{PI, TAU};
 
 use trivalibs::{
 	common_utils::camera_controls::BasicFirstPersonCameraController,
@@ -9,7 +9,7 @@ use trivalibs::{
 	rendering::{
 		camera::{CamProps, PerspectiveCamera},
 		mesh_geometry::{
-			face_normal, face_section,
+			face_normal,
 			utils::{vert_pos_uv, Vert3dUv},
 			FaceDataProps, MeshBufferType, MeshGeometry,
 		},
@@ -24,8 +24,7 @@ pub fn create_plane(width: f32, height: f32, normal: Vec3, center: Vec3) -> Buff
 		Quad3D::from_dimensions_center_f(width, height, normal, center, vert_pos_uv).into();
 
 	let mut geom = MeshGeometry::new();
-	// geom.add_face4_data(plane.to_ccw_verts(), face_normal(plane.normal));
-	geom.add_face4(plane.to_ccw_verts());
+	geom.add_face4_data(plane.to_ccw_verts(), face_normal(plane.normal));
 
 	geom.to_buffered_geometry_by_type(MeshBufferType::FaceNormals)
 }
@@ -35,23 +34,20 @@ pub fn create_balk_form(width: f32, height: f32, length: f32) -> BufferedGeometr
 
 	let mut geom = MeshGeometry::new();
 
-	// let face_data = |normal: Vec3, section: usize| FaceDataProps {
-	// 	normal: Some(normal),
-	// 	section: Some(section),
-	// 	data: None,
-	// };
+	let face_data = |normal: Vec3, section: usize| FaceDataProps {
+		normal: Some(normal),
+		section: Some(section),
+		data: None,
+	};
 
 	let left = bbox.left_face_f(|pos, uvw| vert_pos_uv(pos, vec2(1.0 - uvw.z, uvw.y)));
-	// geom.add_face4_data(left.to_ccw_verts(), face_data(left.normal, 2));
-	geom.add_face4_data(left.to_ccw_verts(), face_section(2));
+	geom.add_face4_data(left.to_ccw_verts(), face_data(left.normal, 2));
 
 	let right = bbox.right_face_f(|pos, uvw| vert_pos_uv(pos, vec2(uvw.z, uvw.y)));
-	// geom.add_face4_data(right.to_ccw_verts(), face_data(right.normal, 3));
-	geom.add_face4_data(right.to_ccw_verts(), face_section(3));
+	geom.add_face4_data(right.to_ccw_verts(), face_data(right.normal, 3));
 
 	let bottom = bbox.bottom_face_f(|pos, uvw| vert_pos_uv(pos, vec2(uvw.x, uvw.z)));
-	// geom.add_face4_data(bottom.to_ccw_verts(), face_data(bottom.normal, 5));
-	geom.add_face4_data(bottom.to_ccw_verts(), face_section(5));
+	geom.add_face4_data(bottom.to_ccw_verts(), face_data(bottom.normal, 5));
 
 	geom.to_buffered_geometry_by_type(MeshBufferType::FaceNormals)
 }
@@ -94,7 +90,7 @@ struct App {
 impl CanvasApp<()> for App {
 	fn init(p: &mut Painter) -> Self {
 		let shade = p
-			.shade(&[Float32x3, Float32x3, Float32x2])
+			.shade(&[Float32x3, Float32x2, Float32x3])
 			.with_uniforms(&[
 				UNIFORM_BUFFER_VERT,
 				UNIFORM_BUFFER_VERT,
@@ -110,25 +106,37 @@ impl CanvasApp<()> for App {
 			..default()
 		});
 
+		let to_uniform = |p: &mut Painter, t: Transform| {
+			let m_mat = t.model_mat();
+			let n_mat = t.model_normal_mat();
+			let u_m_mat = p.uniform_const_mat4(m_mat);
+			let u_n_mat = p.uniform_const_mat3(n_mat);
+			InstanceUniforms {
+				uniforms: map! {
+					0 => u_m_mat,
+					1 => u_n_mat
+				},
+				..default()
+			}
+		};
+
+		let to_instances = |p: &mut Painter, transforms: Vec<Transform>| {
+			transforms.iter().map(|t| to_uniform(p, *t)).collect()
+		};
+
 		let ground_form = p
 			.form(&create_plane(200.0, 200.0, Vec3::Y, Vec3::ZERO))
 			.create();
-		let g_m_mat = p.uniform_const_mat4(Mat4::IDENTITY);
-		let g_n_mat = p.uniform_const_mat3(Mat3::IDENTITY);
-		let ground_shape = p
-			.shape(ground_form, shade)
-			.with_uniforms(map! {
-				0 => g_m_mat,
-				1 => g_n_mat
-			})
-			.create();
+		let u = to_uniform(p, Transform::IDENTITY).uniforms;
+		let ground_shape = p.shape(ground_form, shade).with_uniforms(u).create();
 
 		let col_space = 12.;
 		let col_height = 40.;
 		let col_width = 2.;
+		let balk_height = col_width * 3.4;
 
-		let cols_count_z_half = 6.;
-		let cols_count_x_half = 3.;
+		let cols_count_z_half = 8.;
+		let cols_count_x_half = 4.;
 
 		let i_cols_count_z_half = cols_count_z_half as i32;
 		let i_cols_count_x_half = cols_count_x_half as i32;
@@ -146,6 +154,16 @@ impl CanvasApp<()> for App {
 				col_height / 2.,
 				i as f32 * col_space,
 			)));
+			column_transforms.push(Transform::from_translation(vec3(
+				-(cols_count_x_half - 1.) * col_space,
+				col_height / 2.,
+				i as f32 * col_space,
+			)));
+			column_transforms.push(Transform::from_translation(vec3(
+				(cols_count_x_half - 1.) * col_space,
+				col_height / 2.,
+				i as f32 * col_space,
+			)));
 		}
 
 		for i in -i_cols_count_x_half..=i_cols_count_x_half {
@@ -159,26 +177,17 @@ impl CanvasApp<()> for App {
 				col_height / 2.,
 				cols_count_z_half * col_space,
 			)));
+			column_transforms.push(Transform::from_translation(vec3(
+				i as f32 * col_space,
+				col_height / 2.,
+				-(cols_count_z_half - 1.) * col_space,
+			)));
+			column_transforms.push(Transform::from_translation(vec3(
+				i as f32 * col_space,
+				col_height / 2.,
+				(cols_count_z_half - 1.) * col_space,
+			)));
 		}
-
-		let to_instances = |p: &mut Painter, transforms: Vec<Transform>| {
-			transforms
-				.iter()
-				.map(|t| {
-					let m_mat = t.model_mat();
-					let n_mat = t.model_normal_mat();
-					let u_m_mat = p.uniform_const_mat4(m_mat);
-					let u_n_mat = p.uniform_const_mat3(n_mat);
-					InstanceUniforms {
-						uniforms: map! {
-							0 => u_m_mat,
-							1 => u_n_mat
-						},
-						..default()
-					}
-				})
-				.collect()
-		};
 
 		let column_instances = to_instances(p, column_transforms);
 		let column_shape = p
@@ -187,23 +196,28 @@ impl CanvasApp<()> for App {
 			.create();
 
 		let balk_form = p
-			.form(&create_balk_form(col_width, col_width * 3., col_space))
+			.form(&create_balk_form(col_width, balk_height, col_space))
 			.create();
 		let mut balk_transforms = vec![];
 		for i in -i_cols_count_x_half..=i_cols_count_x_half {
 			balk_transforms.push(
-				Transform::from_translation(vec3(i as f32 * col_space, col_height, 0.)).with_scale(vec3(
-					1.,
-					1.,
-					cols_count_z_half * 2.,
-				)),
+				Transform::from_translation(vec3(
+					i as f32 * col_space,
+					col_height - balk_height / 2.,
+					0.,
+				))
+				.with_scale(vec3(1., 1., cols_count_z_half * 2.)),
 			);
 		}
 		for i in -i_cols_count_z_half..=i_cols_count_z_half {
 			balk_transforms.push(
-				Transform::from_translation(vec3(0., col_height, i as f32 * col_space))
-					.with_scale(vec3(1.0, 1., cols_count_x_half * 2.))
-					.with_rotation(Quat::from_rotation_y(PI / 2.)),
+				Transform::from_translation(vec3(
+					0.,
+					col_height - balk_height / 2.0,
+					i as f32 * col_space,
+				))
+				.with_scale(vec3(1.0, 1., cols_count_x_half * 2.))
+				.with_rotation(Quat::from_rotation_y(PI / 2.)),
 			);
 		}
 		let balk_instances = to_instances(p, balk_transforms);
@@ -212,15 +226,47 @@ impl CanvasApp<()> for App {
 			.with_instances(balk_instances)
 			.create();
 
+		let wall_form = p
+			.form(&create_plane(
+				col_space,
+				col_height,
+				Vec3::Z,
+				vec3(0., col_height / 2., 0.),
+			))
+			.create();
+
+		let wall_transforms = vec![
+			Transform::from_xyz(0., 0., -cols_count_z_half * col_space).with_scale(vec3(
+				cols_count_x_half * 2. + 2.,
+				1.,
+				1.,
+			)),
+			Transform::from_xyz(-cols_count_x_half * col_space, 0., 0.)
+				.with_rotation(Quat::from_rotation_y(TAU * 1. / 4.))
+				.with_scale(vec3(cols_count_z_half * 2. + 2., 1., 1.)),
+			Transform::from_xyz(0., 0., cols_count_z_half * col_space)
+				.with_scale(vec3(cols_count_x_half * 2. + 2., 1., 1.))
+				.with_rotation(Quat::from_rotation_y(TAU * 0.5)),
+			Transform::from_xyz(cols_count_x_half * col_space, 0., 0.)
+				.with_rotation(Quat::from_rotation_y(TAU * 3. / 4.))
+				.with_scale(vec3(cols_count_z_half * 2. + 2., 1., 1.)),
+		];
+
+		let wall_instances = to_instances(p, wall_transforms);
+		let wall_shape = p
+			.shape(wall_form, shade)
+			.with_instances(wall_instances)
+			.create();
+
 		let vp_mat = p.uniform_mat4();
 
 		let canvas = p
 			.layer()
-			.with_shapes(vec![ground_shape, column_shape, balk_shape])
+			.with_shapes(vec![ground_shape, column_shape, balk_shape, wall_shape])
 			.with_clear_color(wgpu::Color {
-				r: 0.5,
-				g: 0.6,
-				b: 0.7,
+				r: 0.9,
+				g: 0.95,
+				b: 0.99,
 				a: 1.0,
 			})
 			.with_uniforms(map! {
@@ -235,7 +281,7 @@ impl CanvasApp<()> for App {
 			canvas,
 			vp_mat,
 			input: default(),
-			cam_controller: BasicFirstPersonCameraController::new(1.0, 3.0),
+			cam_controller: BasicFirstPersonCameraController::new(3.0, 4.0),
 		}
 	}
 
