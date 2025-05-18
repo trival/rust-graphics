@@ -9,7 +9,7 @@ use trivalibs::{
 	rendering::{
 		camera::{CamProps, PerspectiveCamera},
 		mesh_geometry::{
-			face_normal,
+			face_normal, face_section,
 			utils::{vert_pos_uv, Vert3dUv},
 			FaceDataProps, MeshBufferType, MeshGeometry,
 		},
@@ -24,7 +24,8 @@ pub fn create_plane(width: f32, height: f32, normal: Vec3, center: Vec3) -> Buff
 		Quad3D::from_dimensions_center_f(width, height, normal, center, vert_pos_uv).into();
 
 	let mut geom = MeshGeometry::new();
-	geom.add_face4_data(plane.to_ccw_verts(), face_normal(plane.normal));
+	// geom.add_face4_data(plane.to_ccw_verts(), face_normal(plane.normal));
+	geom.add_face4(plane.to_ccw_verts());
 
 	geom.to_buffered_geometry_by_type(MeshBufferType::FaceNormals)
 }
@@ -34,20 +35,23 @@ pub fn create_balk_form(width: f32, height: f32, length: f32) -> BufferedGeometr
 
 	let mut geom = MeshGeometry::new();
 
-	let face_data = |normal: Vec3, section: usize| FaceDataProps {
-		normal: Some(normal),
-		section: Some(section),
-		data: None,
-	};
+	// let face_data = |normal: Vec3, section: usize| FaceDataProps {
+	// 	normal: Some(normal),
+	// 	section: Some(section),
+	// 	data: None,
+	// };
 
 	let left = bbox.left_face_f(|pos, uvw| vert_pos_uv(pos, vec2(1.0 - uvw.z, uvw.y)));
-	geom.add_face4_data(left.to_ccw_verts(), face_data(left.normal, 2));
+	// geom.add_face4_data(left.to_ccw_verts(), face_data(left.normal, 2));
+	geom.add_face4_data(left.to_ccw_verts(), face_section(2));
 
 	let right = bbox.right_face_f(|pos, uvw| vert_pos_uv(pos, vec2(uvw.z, uvw.y)));
-	geom.add_face4_data(right.to_ccw_verts(), face_data(right.normal, 3));
+	// geom.add_face4_data(right.to_ccw_verts(), face_data(right.normal, 3));
+	geom.add_face4_data(right.to_ccw_verts(), face_section(3));
 
 	let bottom = bbox.bottom_face_f(|pos, uvw| vert_pos_uv(pos, vec2(uvw.x, uvw.z)));
-	geom.add_face4_data(bottom.to_ccw_verts(), face_data(bottom.normal, 5));
+	// geom.add_face4_data(bottom.to_ccw_verts(), face_data(bottom.normal, 5));
+	geom.add_face4_data(bottom.to_ccw_verts(), face_section(5));
 
 	geom.to_buffered_geometry_by_type(MeshBufferType::FaceNormals)
 }
@@ -123,132 +127,96 @@ impl CanvasApp<()> for App {
 		let col_height = 40.;
 		let col_width = 2.;
 
+		let cols_count_z_half = 6.;
+		let cols_count_x_half = 3.;
+
+		let i_cols_count_z_half = cols_count_z_half as i32;
+		let i_cols_count_x_half = cols_count_x_half as i32;
+
 		let column_form = p.form(&create_column_form(col_width, col_height)).create();
 		let mut column_transforms = vec![];
-		for i in -6..=6 {
+		for i in -i_cols_count_z_half..=i_cols_count_z_half {
 			column_transforms.push(Transform::from_translation(vec3(
-				-3. * col_space,
+				-cols_count_x_half * col_space,
 				col_height / 2.,
 				i as f32 * col_space,
 			)));
 			column_transforms.push(Transform::from_translation(vec3(
-				3. * col_space,
+				cols_count_x_half * col_space,
 				col_height / 2.,
 				i as f32 * col_space,
 			)));
 		}
 
-		for i in -3..=3 {
+		for i in -i_cols_count_x_half..=i_cols_count_x_half {
 			column_transforms.push(Transform::from_translation(vec3(
 				i as f32 * col_space,
 				col_height / 2.,
-				-6. * col_space,
+				-cols_count_z_half * col_space,
 			)));
 			column_transforms.push(Transform::from_translation(vec3(
 				i as f32 * col_space,
 				col_height / 2.,
-				6. * col_space,
+				cols_count_z_half * col_space,
 			)));
 		}
 
-		let to_instances = |transforms: Vec<Transform>| transforms;
+		let to_instances = |p: &mut Painter, transforms: Vec<Transform>| {
+			transforms
+				.iter()
+				.map(|t| {
+					let m_mat = t.model_mat();
+					let n_mat = t.model_normal_mat();
+					let u_m_mat = p.uniform_const_mat4(m_mat);
+					let u_n_mat = p.uniform_const_mat3(n_mat);
+					InstanceUniforms {
+						uniforms: map! {
+							0 => u_m_mat,
+							1 => u_n_mat
+						},
+						..default()
+					}
+				})
+				.collect()
+		};
 
-		let column_instances = column_transforms
-			.iter()
-			.map(|t| {
-				let m_mat = t.model_mat();
-				let n_mat = t.model_normal_mat();
-				let u_m_mat = p.uniform_const_mat4(m_mat);
-				let u_n_mat = p.uniform_const_mat3(n_mat);
-				InstanceUniforms {
-					uniforms: map! {
-						0 => u_m_mat,
-						1 => u_n_mat
-					},
-					..default()
-				}
-			})
-			.collect();
+		let column_instances = to_instances(p, column_transforms);
 		let column_shape = p
 			.shape(column_form, shade)
 			.with_instances(column_instances)
 			.create();
 
-		let balk1_form = p
-			.form(&create_balk_form(
-				col_width,
-				col_width * 3.,
-				(6. * 2.) * col_space,
-			))
+		let balk_form = p
+			.form(&create_balk_form(col_width, col_width * 3., col_space))
 			.create();
-		let balk2_form = p
-			.form(&create_balk_form(
-				col_width,
-				col_width * 3.,
-				(3. * 2.) * col_space,
-			))
-			.create();
-		let mut balk1_transforms = vec![];
-		for i in -3..=3 {
-			balk1_transforms.push(Transform::from_translation(vec3(
-				i as f32 * col_space,
-				col_height,
-				0.,
-			)));
+		let mut balk_transforms = vec![];
+		for i in -i_cols_count_x_half..=i_cols_count_x_half {
+			balk_transforms.push(
+				Transform::from_translation(vec3(i as f32 * col_space, col_height, 0.)).with_scale(vec3(
+					1.,
+					1.,
+					cols_count_z_half * 2.,
+				)),
+			);
 		}
-		let mut balk2_transforms = vec![];
-		for i in -6..=6 {
-			balk2_transforms.push(
+		for i in -i_cols_count_z_half..=i_cols_count_z_half {
+			balk_transforms.push(
 				Transform::from_translation(vec3(0., col_height, i as f32 * col_space))
+					.with_scale(vec3(1.0, 1., cols_count_x_half * 2.))
 					.with_rotation(Quat::from_rotation_y(PI / 2.)),
 			);
 		}
-		let balk1_instances = balk1_transforms
-			.iter()
-			.map(|t| {
-				let m_mat = t.model_mat();
-				let n_mat = t.model_normal_mat();
-				let u_m_mat = p.uniform_const_mat4(m_mat);
-				let u_n_mat = p.uniform_const_mat3(n_mat);
-				InstanceUniforms {
-					uniforms: map! {
-						0 => u_m_mat,
-						1 => u_n_mat
-					},
-					..default()
-				}
-			})
-			.collect();
-		let balk1_shape = p
-			.shape(balk1_form, shade)
-			.with_instances(balk1_instances)
-			.create();
-		let balk2_instances = balk2_transforms
-			.iter()
-			.map(|t| {
-				let m_mat = t.model_mat();
-				let n_mat = t.model_normal_mat();
-				let u_m_mat = p.uniform_const_mat4(m_mat);
-				let u_n_mat = p.uniform_const_mat3(n_mat);
-				InstanceUniforms {
-					uniforms: map! {
-						0 => u_m_mat,
-						1 => u_n_mat
-					},
-					..default()
-				}
-			})
-			.collect();
-		let balk2_shape = p
-			.shape(balk2_form, shade)
-			.with_instances(balk2_instances)
+		let balk_instances = to_instances(p, balk_transforms);
+		let balk_shape = p
+			.shape(balk_form, shade)
+			.with_instances(balk_instances)
 			.create();
 
 		let vp_mat = p.uniform_mat4();
 
 		let canvas = p
 			.layer()
-			.with_shapes(vec![ground_shape, column_shape, balk1_shape, balk2_shape])
+			.with_shapes(vec![ground_shape, column_shape, balk_shape])
 			.with_clear_color(wgpu::Color {
 				r: 0.5,
 				g: 0.6,

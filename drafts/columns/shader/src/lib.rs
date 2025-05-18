@@ -3,6 +3,7 @@
 
 use spirv_std::glam::{vec3, Mat3, Mat4, Vec2, Vec3, Vec4};
 use spirv_std::spirv;
+use trivalibs_shaders::vec_ext::VecExt;
 
 #[spirv(vertex)]
 pub fn ground_vert(
@@ -17,19 +18,20 @@ pub fn ground_vert(
 	out_uv: &mut Vec2,
 ) {
 	*out_pos = *vp_mat * *m_mat * position.extend(1.0);
-	*out_norm = *n_mat * normal;
+	*out_norm = normal;
 	*out_uv = uv;
 }
 
 #[spirv(fragment)]
-pub fn ground_frag(_in_norm: Vec3, in_uv: Vec2, out: &mut Vec4) {
+pub fn ground_frag(in_norm: Vec3, in_uv: Vec2, out: &mut Vec4) {
 	let uv = in_uv * 40.0;
 	let uv = uv.fract();
 
 	let col = if uv.x < 0.05 || uv.y < 0.05 {
 		Vec3::splat(0.4)
 	} else {
-		vec3(in_uv.x, in_uv.y, 0.5)
+		// vec3(in_uv.x, in_uv.y, 0.5)
+		in_norm
 	};
 
 	*out = col.powf(2.2).extend(1.0);
