@@ -34,18 +34,20 @@ impl CanvasApp<()> for App {
 		// Grab the bytes of the image.
 		let tex_rgba = &buf[..info.buffer_size()];
 
-		let texture = p.texture_2d(info.width, info.height).create();
-
-		texture.fill_2d(p, tex_rgba);
+		let texture = p
+			.layer()
+			.with_size(info.width, info.height)
+			.with_static_texture_data(tex_rgba)
+			.create();
 
 		let shade = p
 			.shade(&[Float32x3, Float32x2, Float32x3, Float32x3])
 			.with_bindings(&[
 				BINDING_BUFFER_VERT,
 				BINDING_BUFFER_VERT,
-				BINDING_LAYER_FRAG,
 				BINDING_SAMPLER_FRAG,
 			])
+			.with_layers(&[BINDING_LAYER_FRAG])
 			.create();
 		load_vertex_shader!(shade, p, "../shader/vertex.spv");
 		load_fragment_shader!(shade, p, "../shader/fragment.spv");
@@ -62,8 +64,10 @@ impl CanvasApp<()> for App {
 			.with_bindings(map! {
 				0 => mvp.binding(),
 				1 => norm.binding(),
-				2 => texture.binding(),
-				3 => s
+				2 => s
+			})
+			.with_layers(map! {
+				0 => texture.binding()
 			})
 			.create();
 
