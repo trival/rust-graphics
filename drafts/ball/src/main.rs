@@ -16,8 +16,8 @@ struct App {
 	cam: PerspectiveCamera,
 	ball_transform: Transform,
 
-	mvp: UniformBuffer<Mat4>,
-	norm: UniformBuffer<Mat3U>,
+	mvp: BindingBuffer<Mat4>,
+	norm: BindingBuffer<Mat3U>,
 	canvas: Layer,
 }
 
@@ -40,11 +40,11 @@ impl CanvasApp<()> for App {
 
 		let shade = p
 			.shade(&[Float32x3, Float32x2, Float32x3, Float32x3])
-			.with_uniforms(&[
-				UNIFORM_BUFFER_VERT,
-				UNIFORM_BUFFER_VERT,
-				UNIFORM_TEX2D_FRAG,
-				UNIFORM_SAMPLER_FRAG,
+			.with_bindings(&[
+				BINDING_BUFFER_VERT,
+				BINDING_BUFFER_VERT,
+				BINDING_LAYER_FRAG,
+				BINDING_SAMPLER_FRAG,
 			])
 			.create();
 		load_vertex_shader!(shade, p, "../shader/vertex.spv");
@@ -52,17 +52,17 @@ impl CanvasApp<()> for App {
 
 		let form = p.form(&create_ball_geom()).create();
 
-		let mvp = p.uniform_mat4();
-		let norm = p.uniform_mat3();
+		let mvp = p.bind_mat4();
+		let norm = p.bind_mat3();
 
-		let s = p.sampler_linear().uniform();
+		let s = p.sampler_linear().binding();
 
 		let shape = p
 			.shape(form, shade)
-			.with_uniforms(map! {
-				0 => mvp.uniform(),
-				1 => norm.uniform(),
-				2 => texture.uniform(),
+			.with_bindings(map! {
+				0 => mvp.binding(),
+				1 => norm.binding(),
+				2 => texture.binding(),
 				3 => s
 			})
 			.create();

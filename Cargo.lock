@@ -2272,6 +2272,7 @@ dependencies = [
 name = "trivalibs_shaders"
 version = "0.1.0"
 dependencies = [
+ "glam",
  "spirv-std",
 ]
 
