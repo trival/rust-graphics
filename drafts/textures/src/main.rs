@@ -2,7 +2,6 @@ use trivalibs::{
 	map,
 	painter::{
 		prelude::*,
-		texture::Texture,
 		winit::event::{ElementState, MouseButton, WindowEvent},
 	},
 	prelude::*,
@@ -43,14 +42,11 @@ impl CanvasApp<()> for App {
 
 		let u_time = p.bind_f32();
 
-		let texture_shade_canvas = |p: &mut Painter, tex: Texture, animated: bool| {
+		let texture_shade_canvas = |p: &mut Painter, tex: Layer, animated: bool| {
 			let s = p
 				.shade_effect()
-				.with_bindings(&[
-					BINDING_LAYER_FRAG,
-					BINDING_SAMPLER_FRAG,
-					BINDING_BUFFER_FRAG,
-				])
+				.with_bindings(&[BINDING_BUFFER_FRAG, BINDING_SAMPLER_FRAG])
+				.with_layers(&[BINDING_LAYER_FRAG])
 				.create();
 
 			let e = p.effect(s).create();
@@ -58,9 +54,11 @@ impl CanvasApp<()> for App {
 				.layer()
 				.with_effect(e)
 				.with_bindings(map! {
-					0 => tex.binding(),
+					0 => u_size.binding(),
 					1 => sampler.binding(),
-					2 => u_size.binding()
+				})
+				.with_layers(map! {
+					0 => tex.binding()
 				})
 				.create();
 

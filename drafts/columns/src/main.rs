@@ -1,5 +1,4 @@
 use std::f32::consts::{PI, TAU};
-
 use trivalibs::{
 	common_utils::camera_controls::BasicFirstPersonCameraController,
 	map,
@@ -106,17 +105,16 @@ impl CanvasApp<()> for App {
 			..default()
 		});
 
-		let to_uniform = |p: &mut Painter, t: Transform| {
+		let to_binding = |p: &mut Painter, t: Transform| {
 			let m_mat = t.model_mat();
 			let n_mat = t.model_normal_mat();
 			let u_m_mat = p.bind_const_mat4(m_mat);
 			let u_n_mat = p.bind_const_mat3(n_mat);
-			InstanceUniforms {
+			InstanceBinding {
 				bindings: map! {
 					0 => u_m_mat,
 					1 => u_n_mat
 				},
-				..default()
 			}
 		};
 
