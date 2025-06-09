@@ -2,7 +2,7 @@
 
 use noise::{NoiseFn, Simplex};
 use trivalibs::{
-	painter::{texture::Texture, wgpu, Painter},
+	painter::{layer::Layer, wgpu, Painter},
 	prelude::*,
 	rendering::texture::f64_to_u8,
 };
@@ -79,43 +79,46 @@ pub fn tiled_noise_rgba<T: Copy + Clone>(
 	rgba
 }
 
-pub fn textures_u8(
-	p: &mut Painter,
-	width: u32,
-	height: u32,
-	noise_scale: f64,
-) -> (Texture, Texture) {
-	let texture_random = p.texture_2d(width, height).create();
-	texture_random.fill_2d(p, &rand_rgba_u8(width, height));
+pub fn textures_u8(p: &mut Painter, width: u32, height: u32, noise_scale: f64) -> (Layer, Layer) {
+	let texture_random = p
+		.layer()
+		.with_size(width, height)
+		.with_static_texture_data(&rand_rgba_u8(width, height))
+		.create();
 
-	let texture_simplex = p.texture_2d(width, height).create();
-	texture_simplex.fill_2d(
-		p,
-		&tiled_noise_rgba(width, height, noise_scale, 2.0, f64_to_u8),
-	);
+	let texture_simplex = p
+		.layer()
+		.with_size(width, height)
+		.with_static_texture_data(&tiled_noise_rgba(
+			width,
+			height,
+			noise_scale,
+			2.0,
+			f64_to_u8,
+		))
+		.create();
 
 	(texture_random, texture_simplex)
 }
 
-pub fn textures_f32(
-	p: &mut Painter,
-	width: u32,
-	height: u32,
-	noise_scale: f64,
-) -> (Texture, Texture) {
+pub fn textures_f32(p: &mut Painter, width: u32, height: u32, noise_scale: f64) -> (Layer, Layer) {
 	let texture_random_f32 = p
-		.texture_2d(width, height)
+		.layer()
+		.with_size(width, height)
 		.with_format(wgpu::TextureFormat::Rgba32Float)
+		.with_static_texture()
 		.create();
 
-	texture_random_f32.fill_2d(p, bytemuck::cast_slice(&rand_rgba_f32(width, height)));
+	texture_random_f32.update_static_data(p, bytemuck::cast_slice(&rand_rgba_f32(width, height)));
 
 	let texture_simplex_f32 = p
-		.texture_2d(width, height)
+		.layer()
+		.with_size(width, height)
 		.with_format(wgpu::TextureFormat::Rgba32Float)
+		.with_static_texture()
 		.create();
 
-	texture_simplex_f32.fill_2d(
+	texture_simplex_f32.update_static_data(
 		p,
 		bytemuck::cast_slice(&tiled_noise_rgba(width, height, noise_scale, 2.0, |x| {
 			x as f32

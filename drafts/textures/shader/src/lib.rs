@@ -13,9 +13,9 @@ pub mod utils;
 #[spirv(fragment)]
 pub fn simplex_prefilled(
 	uv: Vec2,
-	#[spirv(descriptor_set = 0, binding = 0)] tex: &Image!(2D, type=f32, sampled),
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] size: &UVec2,
 	#[spirv(descriptor_set = 0, binding = 1)] sampler: &Sampler,
-	#[spirv(uniform, descriptor_set = 0, binding = 2)] size: &UVec2,
+	#[spirv(descriptor_set = 1, binding = 0)] tex: &Image!(2D, type=f32, sampled),
 	out: &mut Vec4,
 ) {
 	*out = sketches::noise::simplex_prefilled(uv, tex, sampler, size);

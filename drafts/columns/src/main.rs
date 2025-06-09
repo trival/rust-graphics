@@ -1,5 +1,4 @@
 use std::f32::consts::{PI, TAU};
-
 use trivalibs::{
 	common_utils::camera_controls::BasicFirstPersonCameraController,
 	map,
@@ -80,7 +79,7 @@ pub fn create_column_form(width: f32, height: f32) -> BufferedGeometry {
 
 struct App {
 	cam: PerspectiveCamera,
-	vp_mat: UniformBuffer<Mat4>,
+	vp_mat: BindingBuffer<Mat4>,
 	canvas: Layer,
 
 	input: InputState,
@@ -91,10 +90,10 @@ impl CanvasApp<()> for App {
 	fn init(p: &mut Painter) -> Self {
 		let shade = p
 			.shade(&[Float32x3, Float32x2, Float32x3])
-			.with_uniforms(&[
-				UNIFORM_BUFFER_VERT,
-				UNIFORM_BUFFER_VERT,
-				UNIFORM_BUFFER_VERT,
+			.with_bindings(&[
+				BINDING_BUFFER_VERT,
+				BINDING_BUFFER_VERT,
+				BINDING_BUFFER_VERT,
 			])
 			.create();
 		load_vertex_shader!(shade, p, "../shader/ground_vert.spv");
@@ -106,29 +105,28 @@ impl CanvasApp<()> for App {
 			..default()
 		});
 
-		let to_uniform = |p: &mut Painter, t: Transform| {
+		let to_binding = |p: &mut Painter, t: Transform| {
 			let m_mat = t.model_mat();
 			let n_mat = t.model_normal_mat();
-			let u_m_mat = p.uniform_const_mat4(m_mat);
-			let u_n_mat = p.uniform_const_mat3(n_mat);
-			InstanceUniforms {
-				uniforms: map! {
+			let u_m_mat = p.bind_const_mat4(m_mat);
+			let u_n_mat = p.bind_const_mat3(n_mat);
+			InstanceBinding {
+				bindings: map! {
 					0 => u_m_mat,
 					1 => u_n_mat
 				},
-				..default()
 			}
 		};
 
 		let to_instances = |p: &mut Painter, transforms: Vec<Transform>| {
-			transforms.iter().map(|t| to_uniform(p, *t)).collect()
+			transforms.iter().map(|t| to_binding(p, *t)).collect()
 		};
 
 		let ground_form = p
 			.form(&create_plane(200.0, 200.0, Vec3::Y, Vec3::ZERO))
 			.create();
-		let u = to_uniform(p, Transform::IDENTITY).uniforms;
-		let ground_shape = p.shape(ground_form, shade).with_uniforms(u).create();
+		let u = to_binding(p, Transform::IDENTITY).bindings;
+		let ground_shape = p.shape(ground_form, shade).with_bindings(u).create();
 
 		let col_space = 12.;
 		let col_height = 40.;
@@ -258,7 +256,7 @@ impl CanvasApp<()> for App {
 			.with_instances(wall_instances)
 			.create();
 
-		let vp_mat = p.uniform_mat4();
+		let vp_mat = p.bind_mat4();
 
 		let canvas = p
 			.layer()
@@ -269,8 +267,8 @@ impl CanvasApp<()> for App {
 				b: 0.99,
 				a: 1.0,
 			})
-			.with_uniforms(map! {
-				2 => vp_mat.uniform(),
+			.with_bindings(map! {
+				2 => vp_mat.binding(),
 			})
 			.with_multisampling()
 			.with_depth_test()
