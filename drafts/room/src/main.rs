@@ -7,11 +7,15 @@ use trivalibs::{
 	rendering::camera::{CamProps, PerspectiveCamera},
 };
 
+use crate::geom::{create_grid_columns_form, create_grid_rows_form, GridProps};
+
 mod geom;
 
 struct App {
 	cam: PerspectiveCamera,
 	vp_mat: BindingBuffer<Mat4>,
+	grid_row_tex: Layer,
+	grid_col_tex: Layer,
 	canvas: Layer,
 
 	input: InputState,
@@ -20,12 +24,65 @@ struct App {
 
 impl CanvasApp<()> for App {
 	fn init(p: &mut Painter) -> Self {
-		let shade = p
-			.shade(&[Float32x3, Float32x3, Float32x2])
+		let pre_render_shade = p.shade(&[Float32x3, Float32x2, Float32x3]).create();
+		load_vertex_shader!(pre_render_shade, p, "../shader/wall_pre_render_vert.spv");
+		load_fragment_shader!(pre_render_shade, p, "../shader/wall_pre_render_frag.spv");
+
+		let grid_size = (20., 30.);
+
+		let grid_row = create_grid_rows_form(GridProps {
+			grid_width: grid_size.0,
+			grid_height: grid_size.1,
+			count: (grid_size.0 / grid_size.1 * 30.).floor() as usize,
+			strip_height: 1.5,
+			strip_width: 0.2,
+			center: vec3(0., 15., 0.),
+		});
+
+		let grid_row_form = p.form(&grid_row.form).create();
+
+		let grid_col = create_grid_columns_form(GridProps {
+			grid_width: grid_size.0,
+			grid_height: grid_size.1,
+			count: (grid_size.1 / grid_size.0 * 30.).floor() as usize,
+			strip_height: 1.5,
+			strip_width: 0.2,
+			center: vec3(0., 15., 0.),
+		});
+
+		let grid_col_form = p.form(&grid_col.form).create();
+
+		let grid_row_tex_shape = p.shape(grid_row_form, pre_render_shade).create();
+		let grid_col_tex_shape = p.shape(grid_col_form, pre_render_shade).create();
+
+		let grid_row_tex = p
+			.layer()
+			.with_size(
+				(grid_row.texture_size.0 * 50.).floor() as u32,
+				(grid_row.texture_size.1 * 50.).floor() as u32,
+			)
+			.with_shape(grid_row_tex_shape)
+			.create_and_init();
+
+		let _ = p.paint(grid_row_tex);
+
+		let grid_col_tex = p
+			.layer()
+			.with_size(
+				(grid_col.texture_size.0 * 50.).floor() as u32,
+				(grid_col.texture_size.1 * 50.).floor() as u32,
+			)
+			.with_shape(grid_col_tex_shape)
+			.create_and_init();
+
+		let _ = p.paint(grid_col_tex);
+
+		let wall_render_shade = p
+			.shade(&[Float32x3, Float32x2, Float32x3])
 			.with_bindings(&[BINDING_BUFFER_VERT])
 			.create();
-		load_vertex_shader!(shade, p, "../shader/ground_vert.spv");
-		load_fragment_shader!(shade, p, "../shader/ground_frag.spv");
+		load_vertex_shader!(wall_render_shade, p, "../shader/wall_render_vert.spv");
+		load_fragment_shader!(wall_render_shade, p, "../shader/wall_render_frag.spv");
 
 		let cam = PerspectiveCamera::create(CamProps {
 			fov: Some(0.6),
@@ -38,21 +95,29 @@ impl CanvasApp<()> for App {
 			.form(&create_plane(100.0, 100.0, Vec3::Y, Vec3::ZERO))
 			.create();
 		let roof_form = p
-			.form(&create_plane(100.0, 100.0, -Vec3::Y, vec3(0.0, 10.0, 0.0)))
+			.form(&create_plane(100.0, 100.0, -Vec3::Y, vec3(0.0, 20.0, 0.0)))
 			.create();
 		let wall_form = p
 			.form(&create_plane(20.5, 5.0, Vec3::Z, vec3(15.0, 3.0, 0.0)))
 			.create();
 
-		let ground_shape = p.shape(ground_form, shade).create();
-		let wall_shape = p.shape(wall_form, shade).create();
-		let roof_shape = p.shape(roof_form, shade).create();
+		let ground_shape = p.shape(ground_form, wall_render_shade).create();
+		let wall_shape = p.shape(wall_form, wall_render_shade).create();
+		let roof_shape = p.shape(roof_form, wall_render_shade).create();
+		let grid_row_shape = p.shape(grid_row_form, wall_render_shade).create();
+		let grid_col_shape = p.shape(grid_col_form, wall_render_shade).create();
 
 		let vp_mat = p.bind_mat4();
 
 		let canvas = p
 			.layer()
-			.with_shapes(vec![ground_shape, wall_shape, roof_shape])
+			.with_shapes(vec![
+				ground_shape,
+				wall_shape,
+				roof_shape,
+				grid_row_shape,
+				grid_col_shape,
+			])
 			.with_clear_color(wgpu::Color {
 				r: 0.5,
 				g: 0.6,
@@ -69,6 +134,8 @@ impl CanvasApp<()> for App {
 		Self {
 			cam,
 			canvas,
+			grid_col_tex,
+			grid_row_tex,
 			vp_mat,
 			input: default(),
 			cam_controller: BasicFirstPersonCameraController::new(1.0, 3.0),
@@ -91,7 +158,8 @@ impl CanvasApp<()> for App {
 	}
 
 	fn render(&self, p: &mut Painter) -> std::result::Result<(), wgpu::SurfaceError> {
-		p.paint_and_show(self.canvas)
+		// p.paint_and_show(self.canvas)
+		p.show(self.grid_row_tex)
 	}
 
 	fn event(&mut self, e: Event<()>, _p: &mut Painter) {
