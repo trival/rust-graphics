@@ -52,8 +52,14 @@ impl CanvasApp<()> for App {
 
 		let grid_col_form = p.form(&grid_col.form).create();
 
-		let grid_row_tex_shape = p.shape(grid_row_form, pre_render_shade).create();
-		let grid_col_tex_shape = p.shape(grid_col_form, pre_render_shade).create();
+		let grid_row_tex_shape = p
+			.shape(grid_row_form, pre_render_shade)
+			.with_cull_mode(None)
+			.create();
+		let grid_col_tex_shape = p
+			.shape(grid_col_form, pre_render_shade)
+			.with_cull_mode(None)
+			.create();
 
 		let grid_row_tex = p
 			.layer()
@@ -62,6 +68,7 @@ impl CanvasApp<()> for App {
 				(grid_row.texture_size.1 * 50.).floor() as u32,
 			)
 			.with_shape(grid_row_tex_shape)
+			.with_mips()
 			.create_and_init();
 
 		let _ = p.paint(grid_row_tex);
@@ -73,13 +80,15 @@ impl CanvasApp<()> for App {
 				(grid_col.texture_size.1 * 50.).floor() as u32,
 			)
 			.with_shape(grid_col_tex_shape)
+			.with_mips()
 			.create_and_init();
 
 		let _ = p.paint(grid_col_tex);
 
 		let wall_render_shade = p
 			.shade(&[Float32x3, Float32x2, Float32x3])
-			.with_bindings(&[BINDING_BUFFER_VERT])
+			.with_bindings(&[BINDING_BUFFER_VERT, BINDING_SAMPLER_FRAG])
+			.with_layers(&[BINDING_LAYER_FRAG])
 			.create();
 		load_vertex_shader!(wall_render_shade, p, "../shader/wall_render_vert.spv");
 		load_fragment_shader!(wall_render_shade, p, "../shader/wall_render_frag.spv");
@@ -105,9 +114,17 @@ impl CanvasApp<()> for App {
 		let wall_shape = p.shape(wall_form, wall_render_shade).create();
 		let roof_shape = p.shape(roof_form, wall_render_shade).create();
 		let grid_row_shape = p.shape(grid_row_form, wall_render_shade).create();
-		let grid_col_shape = p.shape(grid_col_form, wall_render_shade).create();
+		let grid_col_shape = p
+			.shape(grid_col_form, wall_render_shade)
+			.with_layers(map! {0 => grid_col_tex.binding()})
+			.create();
 
 		let vp_mat = p.bind_mat4();
+		let sampler = p
+			.sampler()
+			.with_filters(wgpu::FilterMode::Linear)
+			.with_mipmap_filter(wgpu::FilterMode::Linear)
+			.create();
 
 		let canvas = p
 			.layer()
@@ -126,7 +143,9 @@ impl CanvasApp<()> for App {
 			})
 			.with_bindings(map! {
 				0 => vp_mat.binding(),
+				1 => sampler.binding()
 			})
+			.with_layers(map! {0 => grid_row_tex.binding()})
 			.with_multisampling()
 			.with_depth_test()
 			.create();
@@ -158,8 +177,8 @@ impl CanvasApp<()> for App {
 	}
 
 	fn render(&self, p: &mut Painter) -> std::result::Result<(), wgpu::SurfaceError> {
-		// p.paint_and_show(self.canvas)
-		p.show(self.grid_row_tex)
+		p.paint_and_show(self.canvas)
+		// p.show(self.grid_col_tex)
 	}
 
 	fn event(&mut self, e: Event<()>, _p: &mut Painter) {

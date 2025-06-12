@@ -109,7 +109,7 @@ pub fn create_grid_columns_form(props: GridProps) -> GridData {
 
 	for i in 0..count {
 		let bbox = Cuboid::box_at(
-			start_pos + i as f32 * vec3(w_half, 0., 0.),
+			start_pos + i as f32 * vec3(step, 0., 0.),
 			props.strip_width,
 			props.strip_height,
 			props.grid_height,
