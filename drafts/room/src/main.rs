@@ -29,13 +29,16 @@ impl CanvasApp<()> for App {
 		load_fragment_shader!(pre_render_shade, p, "../shader/wall_pre_render_frag.spv");
 
 		let grid_size = (20., 30.);
+		let grid_col_count = 15;
+		let strip_width = 0.15;
+		let strip_height = 0.8;
 
 		let grid_row = create_grid_rows_form(GridProps {
 			grid_width: grid_size.0,
 			grid_height: grid_size.1,
-			count: (grid_size.0 / grid_size.1 * 30.).floor() as usize,
-			strip_height: 1.5,
-			strip_width: 0.2,
+			count: ((grid_size.1 / grid_size.0) * grid_col_count as f32).floor() as usize,
+			strip_height,
+			strip_width,
 			center: vec3(0., 15., 0.),
 		});
 
@@ -44,9 +47,9 @@ impl CanvasApp<()> for App {
 		let grid_col = create_grid_columns_form(GridProps {
 			grid_width: grid_size.0,
 			grid_height: grid_size.1,
-			count: (grid_size.1 / grid_size.0 * 30.).floor() as usize,
-			strip_height: 1.5,
-			strip_width: 0.2,
+			count: grid_col_count,
+			strip_height,
+			strip_width,
 			center: vec3(0., 15., 0.),
 		});
 

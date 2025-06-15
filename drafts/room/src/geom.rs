@@ -48,7 +48,7 @@ pub fn create_grid_rows_form(props: GridProps) -> GridData {
 
 	let h_half = props.grid_height / 2.0 - step;
 
-	let count = props.count - 2;
+	let count = props.count - 1;
 	let v_full = count as f32 * (props.strip_height * 2.0 + props.strip_width);
 	let v_height = props.strip_height / v_full;
 	let v_bottom = props.strip_width / v_full;
@@ -99,7 +99,7 @@ pub fn create_grid_columns_form(props: GridProps) -> GridData {
 
 	let w_half = props.grid_width / 2.0 - step;
 
-	let count = props.count - 2;
+	let count = props.count - 1;
 	let v_full = count as f32 * (props.strip_height * 2.0 + props.strip_width);
 	let v_height = props.strip_height / v_full;
 	let v_bottom = props.strip_width / v_full;
@@ -126,7 +126,7 @@ pub fn create_grid_columns_form(props: GridProps) -> GridData {
 		v_start += v_height;
 
 		let bottom =
-			bbox.bottom_face_f(|pos, uvw| vert_pos_uv(pos, vec2(uvw.x, uvw.y * v_bottom + v_start)));
+			bbox.bottom_face_f(|pos, uvw| vert_pos_uv(pos, vec2(uvw.z, uvw.x * v_bottom + v_start)));
 		geom.add_face4_data(bottom.to_ccw_verts(), face_data(bottom.normal, 2));
 		v_start += v_bottom;
 	}
