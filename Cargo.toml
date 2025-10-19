@@ -4,8 +4,8 @@ resolver = "2"
 members = ["drafts/*", "drafts/**/shader", "run-watch"]
 
 [workspace.package]
-edition = "2021"
-rust-version = "1.82" # Prevent Cargo.lock version 4, cargo gpu does not support it yet
+edition = "2024"
+
 
 [workspace.dependencies]
 
@@ -19,7 +19,7 @@ serde_bytes = "0.11"
 bytemuck = { version = "1.21", features = ["derive"] }
 js-sys = "0.3"
 lerp = "0.5"
-approx = "0.5.1"
+approx = "0.5"
 rand = {version = "0.9", features = ["thread_rng"] }
 getrandom = { version = "0.3", features = ["wasm_js"] }
 glam = { version = "0.30", features = [
@@ -29,16 +29,16 @@ glam = { version = "0.30", features = [
 	"approx",
 ] }
 winit = "0.30"
-wgpu = { version = "24.0", features = ["spirv"] }
-spirv-std = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "1e4e468ccf7965d90a9748c7513f72e852fb5041" }
+wgpu = { version = "26.0", features = ["spirv"] }
+spirv-std = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "2aa4d4f8a8ba73103501562cfca17b8163e5a887" }
 log = "0.4"
 env_logger = "0.11"
-pollster = "0.4.0"
-macro_rules_attribute = "0.2.0"
-png = "0.17"
-flume = "0.11.1"
-notify = "8.0.0"
-noise = "0.9.0"
+pollster = "0.4"
+macro_rules_attribute = "0.2"
+png = "0.18"
+flume = "0.11"
+notify = "8.2"
+noise = "0.9"
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]

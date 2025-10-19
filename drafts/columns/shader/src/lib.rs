@@ -1,7 +1,7 @@
 #![no_std]
 #![allow(unexpected_cfgs)]
 
-use spirv_std::glam::{vec3, Mat3, Mat4, Vec2, Vec3, Vec4};
+use spirv_std::glam::{Mat3A, Mat4, Vec2, Vec3, Vec4, vec3};
 use spirv_std::spirv;
 use trivalibs_shaders::vec_ext::VecExt;
 
@@ -11,7 +11,7 @@ pub fn ground_vert(
 	uv: Vec2,
 	normal: Vec3,
 	#[spirv(uniform, descriptor_set = 0, binding = 0)] m_mat: &Mat4,
-	#[spirv(uniform, descriptor_set = 0, binding = 1)] n_mat: &Mat3,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] n_mat: &Mat3A,
 	#[spirv(uniform, descriptor_set = 0, binding = 2)] vp_mat: &Mat4,
 	#[spirv(position)] out_pos: &mut Vec4,
 	out_norm: &mut Vec3,
