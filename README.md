@@ -11,13 +11,3 @@ To compile a shader crate, run `cargo gpu build` in the crate directory.
 To watch compile, install `watchexec` and run `watchexec -r -e rs cargo gpu build` in the shader crate directory.
 
 These crates can also be used from CPU Rust code, just like any other crate.
-
-## !IMPORTANT!
-
-For the time beeing, because of a libm bug, use following command to build the shader crate:
-
-```bash
-cargo gpu build
-# and
-watchexec -r -e rs cargo gpu build
-```
