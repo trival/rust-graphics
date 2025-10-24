@@ -107,6 +107,7 @@ use trivalibs_shaders::vec_ext::VecExt;
 ```
 
 Component-wise operations for Vec2, Vec3, Vec4:
+
 - `.sin()`, `.cos()`, `.sqrt()`, `.frct()` - Trig and math functions
 - `.fit0111()`, `.fit1101()`, `.clamp01()` - Range mapping
 - `.smoothen()`, `.smoothen_more()`, `.smoothstep()` - Smooth interpolation
