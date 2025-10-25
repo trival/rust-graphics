@@ -4,39 +4,12 @@ use trivalibs::{
 	utils::rand_utils::{Pick, rand_bool, rand_f32, rand_usize},
 };
 
+use trivalibs_shaders::{color::hsv2rgb, float_ext::FloatExt};
+
 #[derive(Clone, Copy)]
 pub struct Color {
 	pub hue: f32,
 	pub lightness: f32,
-}
-
-impl Color {
-	// Convert HSL to RGB (assumes full saturation for vivid colors)
-	pub fn to_rgb(&self) -> Vec3 {
-		let h = self.hue * 6.0;
-		let l = self.lightness;
-
-		// Simplified HSL to RGB with full saturation
-		let c = (1.0 - (2.0 * l - 1.0).abs()) * 1.0; // chroma with S=1
-		let x = c * (1.0 - ((h % 2.0) - 1.0).abs());
-		let m = l - c / 2.0;
-
-		let (r, g, b) = if h < 1.0 {
-			(c, x, 0.0)
-		} else if h < 2.0 {
-			(x, c, 0.0)
-		} else if h < 3.0 {
-			(0.0, c, x)
-		} else if h < 4.0 {
-			(0.0, x, c)
-		} else if h < 5.0 {
-			(x, 0.0, c)
-		} else {
-			(c, 0.0, x)
-		};
-
-		vec3(r + m, g + m, b + m)
-	}
 }
 
 #[derive(Clone, Copy)]
@@ -263,13 +236,24 @@ fn make_curve(width: f32, brush_size: f32, p1: Vec2, p2: Vec2, reverse: bool) ->
 
 pub struct TileStrokes {
 	pub lines: Vec<Line>,
-	pub color: Color,
+	pub color: Vec3,
+}
+
+fn calculate_color(color: Color) -> Vec3 {
+	hsv2rgb(vec3(
+		(color.hue + rand_normal_01() * 0.1).fract(),
+		((rand_f32() + rand_f32()) * 0.5).powf(1.5),
+		(color.lightness + rand_normal_11() * 0.4).clamp01(),
+	))
 }
 
 pub fn generate_tile_strokes(painting: &Painting) -> Vec<TileStrokes> {
 	let mut result = vec![];
 
-	for tile in painting.tiles.iter() {
+	let mut shuffled = painting.tiles.clone();
+	shuffled.shuffle(&mut rand::rng());
+
+	for tile in shuffled.iter() {
 		let brush_size = painting
 			.brush_size
 			.max(tile.height / 10.)
@@ -300,7 +284,7 @@ pub fn generate_tile_strokes(painting: &Painting) -> Vec<TileStrokes> {
 
 		result.push(TileStrokes {
 			lines,
-			color: tile.color,
+			color: calculate_color(tile.color),
 		});
 	}
 
