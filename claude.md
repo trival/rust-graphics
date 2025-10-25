@@ -4,11 +4,11 @@ This document explains how to create, compile, and run sketches in this project.
 
 ## Project Structure
 
-- `drafts/` - Individual sketch projects
+- `sketches/` - Individual sketch projects
 - `trivalibs/` - Core rendering framework and utilities
-- `drafts/template/` - Template for creating new sketches
+- `sketches/template/` - Template for creating new sketches
 
-Each sketch in `drafts/` has:
+Each sketch in `sketches/` has:
 
 - `Cargo.toml` - Main sketch package configuration
 - `shader/` - Rust-GPU shader crate
@@ -22,10 +22,10 @@ Each sketch in `drafts/` has:
 1. **Copy the template**:
 
    ```bash
-   cp -r drafts/template drafts/your-sketch-name
+   cp -r sketches/template sketches/your-sketch-name
    ```
 
-2. **Update `drafts/your-sketch-name/Cargo.toml`**:
+2. **Update `sketches/your-sketch-name/Cargo.toml`**:
 
    ```toml
    [package]
@@ -34,7 +34,7 @@ Each sketch in `drafts/` has:
    version = "0.1.0"
    ```
 
-3. **Update `drafts/your-sketch-name/shader/Cargo.toml`**:
+3. **Update `sketches/your-sketch-name/shader/Cargo.toml`**:
 
    ```toml
    [package]
@@ -52,7 +52,7 @@ Shaders are written in Rust using rust-gpu and compiled to SPIR-V.
 **IMPORTANT**: Shader compilation must be run from the shader crate directory.
 
 ```bash
-cd drafts/your-sketch-name/shader
+cd sketches/your-sketch-name/shader
 cargo gpu build
 ```
 
@@ -258,9 +258,9 @@ fn main() {
 
 ### Development Cycle
 
-1. Edit shader code in `drafts/your-sketch/shader/src/lib.rs`
-2. Compile shaders: `cd drafts/your-sketch/shader && cargo gpu build`
-3. Edit application code in `drafts/your-sketch/src/`
+1. Edit shader code in `sketches/your-sketch/shader/src/lib.rs`
+2. Compile shaders: `cd sketches/your-sketch/shader && cargo gpu build`
+3. Edit application code in `sketches/your-sketch/src/`
 4. Run from project root: `cargo run --bin your-sketch`
 
 ### Troubleshooting

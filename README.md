@@ -19,7 +19,7 @@ For faster iteration during development, use the `run-watch` utility that automa
 
 ```bash
 # From project root
-cargo run -p run-watch -- drafts/your-sketch-name
+cargo run -p run-watch -- sketches/your-sketch-name
 ```
 
 This will:
