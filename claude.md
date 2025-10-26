@@ -256,7 +256,24 @@ fn main() {
 
 ## Common Workflows
 
-### Development Cycle
+### Development Cycle (Recommended)
+
+Use the `dev` command for automatic hot-reload during development:
+
+```bash
+# From project root
+cargo dev your-sketch
+```
+
+This automatically:
+- Watches and rebuilds your Rust application code
+- Watches and recompiles shaders with `cargo gpu build`
+- Restarts the sketch after successful builds
+- Shows all output with `[Main]` and `[Shader]` prefixes
+
+The CanvasApp detects shader updates and hot-reloads them, so you see changes immediately.
+
+### Manual Development Cycle
 
 1. Edit shader code in `sketches/your-sketch/shader/src/lib.rs`
 2. Compile shaders: `cd sketches/your-sketch/shader && cargo gpu build`

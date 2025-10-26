@@ -4,27 +4,37 @@ This repository contains some experiments with WGPU and Rust-GPU. It utilizes th
 
 ## Shader crates
 
-Shaders are compiled from Rust to rspirv shaders using [cargo-gpu](https://github.com/Rust-GPU/cargo-gpu).
+Shaders are compiled from Rust to SPIR-V using [cargo-gpu](https://github.com/Rust-GPU/cargo-gpu).
 
-To compile a shader crate, run `cargo gpu build` in the crate directory.
-
-To watch compile, install `watchexec` and run `watchexec -r -e rs cargo gpu build` in the shader crate directory.
-The CanvasApp trait detects updates in the shader files and reloads them at runtime.
-
-These crates can also be used from CPU Rust code, just like any other crate.
-
-### Hot Reload Development with run-watch
-
-For faster iteration during development, use the `run-watch` utility that automatically rebuilds and restarts your sketch when source files change:
+To manually compile shaders, run `cargo gpu build` in the shader crate directory:
 
 ```bash
-# From project root
-cargo run -p run-watch -- sketches/your-sketch-name
+cd sketches/your-sketch-name/shader
+cargo gpu build
 ```
+
+Shader crates can also be used from CPU Rust code, just like any other crate.
+
+## Development Workflow
+
+### Hot Reload with run-watch
+
+For the best development experience, use the `dev` command that automatically rebuilds both your application code and shaders:
+
+```bash
+# From project root - just provide the sketch name
+cargo dev your-sketch-name # sketch directory relative path within /sketches
+```
+
+The `dev` command is configured in .cargo/config.toml and uses the run-watch script.
 
 This will:
 
-- Watch the `src/` directory of your sketch for changes
-- Automatically rebuild when files are modified
-- Restart the sketch process after successful builds
+- Watch `sketches/your-sketch-name/src/` for Rust code changes
+- Watch `sketches/your-sketch-name/shader/src/` for shader code changes
+- Automatically rebuild and restart the sketch when code changes
+- Automatically recompile shaders with `cargo gpu build` when shader files change
 - Continue running even if builds fail (keeps last working version running)
+- Show all output in a single terminal with `[Main]` and `[Shader]` prefixes
+
+The CanvasApp trait detects shader updates and reloads them at runtime, so you get immediate visual feedback.

@@ -33,7 +33,6 @@ pub fn main() {
 	App::create()
 		.config(AppConfig {
 			show_fps: true,
-			use_vsync: false,
 			remember_window_dimensions: true,
 			..default()
 		})
