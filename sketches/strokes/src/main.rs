@@ -41,6 +41,19 @@ impl CanvasApp<()> for App {
 				let shape = p
 					.shape(form, line_shade)
 					.with_bindings(map! {0 => u_size, 1 => color})
+					.with_blend_state(wgpu::BlendState {
+						color: wgpu::BlendComponent {
+							src_factor: wgpu::BlendFactor::SrcAlpha,
+							dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+							operation: wgpu::BlendOperation::Add,
+						},
+						alpha: wgpu::BlendComponent {
+							src_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+							dst_factor: wgpu::BlendFactor::OneMinusDstAlpha,
+							operation: wgpu::BlendOperation::Max,
+						},
+					})
+					.with_cull_mode(Some(wgpu::Face::Back))
 					.create();
 				shapes.push(shape);
 			}
