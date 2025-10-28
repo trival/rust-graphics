@@ -87,8 +87,8 @@ fn subdivide_tile<F: Fn() -> Color>(
 
 #[derive(Clone)]
 pub struct Painting {
-	pub width: usize,
-	pub height: usize,
+	pub width: u32,
+	pub height: u32,
 	pub tiles: Vec<Tile>,
 	pub brush_size: f32,
 }
@@ -110,7 +110,7 @@ fn random_split(v: Vec<f32>) -> Vec<f32> {
 	res
 }
 
-pub fn create_painting(width: usize, height: usize, color_count: u8) -> Painting {
+pub fn create_painting(width: u32, height: u32, color_count: u8) -> Painting {
 	let mut hues: Vec<f32> = vec![0., 1.];
 	for _ in 0..color_count - 1 {
 		hues = random_split(hues);

@@ -1,4 +1,4 @@
-use spirv_std::glam::{vec2, vec3, Mat2, UVec2, Vec2, Vec3, Vec4};
+use spirv_std::glam::{Mat2, UVec2, Vec2, Vec3, Vec4, vec2, vec3};
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
 use trivalibs_shaders::{

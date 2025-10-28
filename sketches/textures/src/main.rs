@@ -176,9 +176,6 @@ impl CanvasApp<()> for App {
 
 	fn event(&mut self, e: Event<()>, p: &mut Painter) {
 		match e {
-			Event::ShaderReloadEvent => {
-				p.request_next_frame();
-			}
 			Event::WindowEvent(WindowEvent::MouseInput { state, button, .. }) => {
 				if state == ElementState::Released {
 					p.request_next_frame();

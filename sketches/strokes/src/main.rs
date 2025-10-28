@@ -1,8 +1,6 @@
 use trivalibs::{
-	map,
-	painter::prelude::*,
-	prelude::*,
-	rendering::{BufferedGeometry, line_2d::buffered_geometry::LineBufferedGeometryVec},
+	map, painter::prelude::*, prelude::*,
+	rendering::line_2d::buffered_geometry::LineBufferedGeometryVec,
 };
 
 mod painting;
@@ -14,8 +12,9 @@ struct App {
 
 impl CanvasApp<()> for App {
 	fn init(p: &mut Painter) -> Self {
+		let size = p.canvas_size();
 		// Generate painting data
-		let painting = create_painting(1200, 1200, 5);
+		let painting = create_painting(size.width, size.height, 5);
 		let strokes = generate_tile_strokes(&painting);
 
 		// TODO: Use tile colors for the strokes in the future
@@ -74,23 +73,19 @@ impl CanvasApp<()> for App {
 			.with_size(painting.width as u32, painting.height as u32)
 			.with_shapes(shapes)
 			.with_clear_color(wgpu::Color::TRANSPARENT)
-			.create_and_init();
-
-		// Render the painting once during init
-		let _ = p.paint(painting_layer);
+			.create();
 
 		Self { painting_layer }
 	}
 
-	fn resize(&mut self, _p: &mut Painter, _width: u32, _height: u32) {}
-
-	fn update(&mut self, p: &mut Painter, _tpf: f32) {
+	fn resize(&mut self, p: &mut Painter, _width: u32, _height: u32) {
 		p.request_next_frame();
 	}
 
+	fn update(&mut self, _p: &mut Painter, _tpf: f32) {}
+
 	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
-		// Show the painting
-		p.show(self.painting_layer)
+		p.paint_and_show(self.painting_layer)
 	}
 
 	fn event(&mut self, _e: Event<()>, _p: &mut Painter) {}

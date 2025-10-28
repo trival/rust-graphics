@@ -16,10 +16,12 @@ impl CanvasApp<()> for App {
 		Self { canvas }
 	}
 
-	fn resize(&mut self, _p: &mut Painter, _width: u32, _height: u32) {}
-
-	fn update(&mut self, p: &mut Painter, _tpf: f32) {
+	fn resize(&mut self, p: &mut Painter, _width: u32, _height: u32) {
 		p.request_next_frame();
+	}
+
+	fn update(&mut self, _p: &mut Painter, _tpf: f32) {
+		// p.request_next_frame(); // request frame here instead of resize for constant animation loop
 	}
 
 	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
