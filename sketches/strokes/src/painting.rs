@@ -143,7 +143,7 @@ pub fn create_painting(width: u32, height: u32, color_count: u8) -> Painting {
 
 	let mut tiles = vec![first_tile];
 
-	let subdivide_count = rand_usize(5) + 1;
+	let subdivide_count = rand_usize(4) + 1;
 
 	for _ in 0..subdivide_count {
 		let mut new_tiles = vec![];
@@ -191,7 +191,7 @@ fn get_line_edges(tile: &Tile, brush_size: f32) -> (Vec<Vec2>, bool) {
 	));
 	is_left = !is_left;
 
-	for i in 1..(steps * 2. - 2.) as usize {
+	for i in 1..(steps * 2. - 1.) as usize {
 		points.push(vec2(
 			if is_left {
 				tile.left - point_w_offset

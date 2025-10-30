@@ -22,7 +22,11 @@ impl CanvasApp<()> for App {
 		// Create line shader for rendering strokes
 		let line_shade = p
 			.shade(&[Float32x2, Float32, Float32, Float32x2, Float32x2])
-			.with_bindings(&[BINDING_BUFFER_VERT, BINDING_BUFFER_FRAG])
+			.with_bindings(&[
+				BINDING_BUFFER_VERT,
+				BINDING_BUFFER_FRAG,
+				BINDING_BUFFER_FRAG,
+			])
 			.create();
 		load_vertex_shader!(line_shade, p, "../shader/line_vert.spv");
 		load_fragment_shader!(line_shade, p, "../shader/line_frag.spv");
@@ -32,6 +36,7 @@ impl CanvasApp<()> for App {
 		let mut shapes = Vec::new();
 		for tile in &strokes {
 			let geoms = tile.lines.to_buffered_geometry();
+			let rand_offset = p.bind_const_vec2(vec2(rand_f32(), rand_f32()));
 			for geom in &geoms {
 				let form = p
 					.form(geom)
@@ -40,7 +45,7 @@ impl CanvasApp<()> for App {
 				let color = p.bind_const_vec3(tile.color);
 				let shape = p
 					.shape(form, line_shade)
-					.with_bindings(map! {0 => u_size, 1 => color})
+					.with_bindings(map! {0 => u_size, 1 => color, 2 => rand_offset})
 					.with_blend_state(wgpu::BlendState {
 						color: wgpu::BlendComponent {
 							src_factor: wgpu::BlendFactor::SrcAlpha,

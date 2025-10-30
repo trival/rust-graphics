@@ -36,9 +36,10 @@ pub fn line_frag(
 	uv: Vec2,
 	local_uv: Vec2,
 	#[spirv(uniform, descriptor_set = 0, binding = 1)] color: &Vec3,
+	#[spirv(uniform, descriptor_set = 0, binding = 2)] rand_offset: &Vec2,
 	out: &mut Vec4,
 ) {
-	let mut alpha = fbm_simplex_2d(uv, 4, 2.0, 1.0) * 0.5;
+	let mut alpha = fbm_simplex_2d(uv * 2.0 + rand_offset, 4, 2.0, 0.7) / 4.0;
 
 	// Fade out edges along the stroke width (localUv.y)
 	alpha -= local_uv.x.fit0111().abs().powf(10.0);
@@ -46,13 +47,13 @@ pub fn line_frag(
 	// Fade out edges along stroke length (uv.y)
 	alpha -= uv.y.fit0111().abs().powf(10.0);
 
+	// adjust overall alpha
+	alpha = (alpha * 0.4 + 0.3).clamp01();
+
 	// Fade out at the end of stroke
-	alpha *= 1.0.min((1.85 - uv.x).powf(3.0));
+	alpha *= uv.x.smoothstep(1.0, 0.90);
 
-	// Clamp alpha
-	let clamped_alpha = (alpha * 0.6).clamp01();
-
-	*out = color.extend(clamped_alpha);
+	*out = color.extend(alpha);
 }
 
 // Background shader - simple solid color
