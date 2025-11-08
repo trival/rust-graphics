@@ -5,9 +5,8 @@ use spirv_std::glam::{Mat4, Vec2, Vec3, Vec4, swizzles::*, vec3};
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
 use spirv_std::{Image, Sampler, spirv};
-use trivalibs_nostd::float_ext::FloatExt;
+use trivalibs_nostd::prelude::*;
 use trivalibs_nostd::random::simplex::rot_noise_3d;
-use trivalibs_nostd::vec_ext::VecExt;
 
 #[spirv(vertex)]
 pub fn wall_pre_render_vert(

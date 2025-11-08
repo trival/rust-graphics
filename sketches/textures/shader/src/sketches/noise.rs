@@ -6,13 +6,11 @@ use spirv_std::{
 	glam::{UVec2, Vec2, Vec3, Vec4, mat2, vec2, vec3},
 };
 use trivalibs_nostd::{
-	bits::FloatBits,
-	float_ext::FloatExt,
+	prelude::*,
 	random::{
 		hash::hash2d,
 		simplex::{rot_noise_2d, simplex_noise_2d, simplex_noise_3d},
 	},
-	vec_ext::VecExt,
 };
 
 pub fn simplex_prefilled(

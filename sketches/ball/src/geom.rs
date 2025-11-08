@@ -1,13 +1,11 @@
-use grid::{make_grid_with_coord_ops, CIRCLE_COLS_COORD_OPS};
+use grid::{CIRCLE_COLS_COORD_OPS, make_grid_with_coord_ops};
 use std::f32::consts::PI;
 use trivalibs::{
 	data::Overridable,
-	gpu_data,
-	macros::apply,
 	prelude::*,
 	rendering::{
-		mesh_geometry::{face_data, MeshBufferType, MeshGeometry},
 		BufferedGeometry,
+		mesh_geometry::{MeshBufferType, MeshGeometry, face_data},
 	},
 };
 

@@ -6,9 +6,8 @@ use crate::utils::flip_y;
 use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4, vec2, vec3};
 use spirv_std::num_traits::Float;
 use trivalibs_nostd::coords::PolarCoord;
-use trivalibs_nostd::float_ext::{FloatExt, step};
+use trivalibs_nostd::prelude::*;
 use trivalibs_nostd::random::hash::hash;
-use trivalibs_nostd::vec_ext::VecExt;
 
 pub fn rect(size: Vec2, center: Vec2, st: Vec2) -> f32 {
 	let half_size = size * 0.5;

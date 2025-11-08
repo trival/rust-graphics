@@ -2,10 +2,9 @@ use spirv_std::glam::{Mat2, UVec2, Vec2, Vec3, Vec4, vec2, vec3};
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
 use trivalibs_nostd::{
-	bits::FloatBits,
 	color::hsv2rgb,
 	coords::PolarCoord,
-	float_ext::FloatExt,
+	prelude::*,
 	random::{
 		hash::{hash, hash21},
 		simplex::simplex_noise_2d,

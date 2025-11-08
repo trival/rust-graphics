@@ -6,14 +6,12 @@ use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4, vec2, vec3};
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
 use trivalibs_nostd::{
-	bits::FloatBits,
 	color::hsv2rgb_smooth,
-	float_ext::FloatExt,
+	prelude::*,
 	random::{
 		hash::{hash2d, hash3d},
 		simplex::simplex_noise_2d,
 	},
-	vec_ext::VecExt,
 };
 
 const NUM_TILES: f32 = 15.;

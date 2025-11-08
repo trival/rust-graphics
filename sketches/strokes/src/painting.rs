@@ -1,10 +1,4 @@
-use trivalibs::{
-	prelude::*,
-	rendering::line_2d::Line,
-	utils::rand_utils::{Pick, rand_bool, rand_f32, rand_usize},
-};
-
-use trivalibs_nostd::{color::hsv2rgb, float_ext::FloatExt};
+use trivalibs::{nostd::color::hsv2rgb, prelude::*, rendering::line_2d::Line};
 
 #[derive(Clone, Copy)]
 pub struct Color {

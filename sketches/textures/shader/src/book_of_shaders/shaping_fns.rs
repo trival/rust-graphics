@@ -7,7 +7,7 @@ use spirv_std::{
 	glam::{Vec2, Vec3, Vec4, vec3},
 	num_traits::Pow,
 };
-use trivalibs_nostd::float_ext::{FloatExt, step};
+use trivalibs_nostd::prelude::*;
 
 // fn plot_line_1(st: Vec2) -> f32 {
 // 	smoothstep(0.02, 0.0, (st.y - st.x).abs())
