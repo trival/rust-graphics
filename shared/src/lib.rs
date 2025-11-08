@@ -1,6 +1,8 @@
 use noise::{NoiseFn, Simplex};
 use trivalibs::{
-	painter::{Painter, layer::Layer, wgpu},
+	painter::{
+		Painter, binding::ValueBinding, layer::Layer, prelude::BINDING_BUFFER_FRAG, shade::Shade, wgpu,
+	},
 	prelude::*,
 	rendering::texture::f64_to_u8,
 };
@@ -76,15 +78,8 @@ pub fn tiled_noise_rgba<T: Copy + Clone>(
 	rgba
 }
 
-pub fn textures_u8(p: &mut Painter, width: u32, height: u32, noise_scale: f64) -> (Layer, Layer) {
-	let texture_random = p
-		.layer()
-		.with_size(width, height)
-		.with_static_texture_data(&rand_rgba_u8(width, height))
-		.create();
-
-	let texture_simplex = p
-		.layer()
+pub fn noise_texture_u8(p: &mut Painter, width: u32, height: u32, noise_scale: f64) -> Layer {
+	p.layer()
 		.with_size(width, height)
 		.with_static_texture_data(&tiled_noise_rgba(
 			width,
@@ -93,34 +88,96 @@ pub fn textures_u8(p: &mut Painter, width: u32, height: u32, noise_scale: f64) -
 			2.0,
 			f64_to_u8,
 		))
-		.create();
-
-	(texture_random, texture_simplex)
+		.create()
 }
 
-pub fn textures_f32(p: &mut Painter, width: u32, height: u32, noise_scale: f64) -> (Layer, Layer) {
-	let texture_random_f32 = p
-		.layer()
+pub fn random_texture_u8(p: &mut Painter, width: u32, height: u32) -> Layer {
+	p.layer()
+		.with_size(width, height)
+		.with_static_texture_data(&rand_rgba_u8(width, height))
+		.create()
+}
+
+pub fn random_texture_f32(p: &mut Painter, width: u32, height: u32) -> Layer {
+	p.layer()
 		.with_size(width, height)
 		.with_format(wgpu::TextureFormat::Rgba32Float)
-		.with_static_texture()
-		.create();
+		.with_static_texture_data(bytemuck::cast_slice(&rand_rgba_f32(width, height)))
+		.create()
+}
 
-	texture_random_f32.update_static_data(p, bytemuck::cast_slice(&rand_rgba_f32(width, height)));
-
-	let texture_simplex_f32 = p
-		.layer()
+pub fn noise_texture_f32(p: &mut Painter, width: u32, height: u32, noise_scale: f64) -> Layer {
+	p.layer()
 		.with_size(width, height)
 		.with_format(wgpu::TextureFormat::Rgba32Float)
-		.with_static_texture()
+		.with_static_texture_data(bytemuck::cast_slice(&tiled_noise_rgba(
+			width,
+			height,
+			noise_scale,
+			2.0,
+			|x| x as f32,
+		)))
+		.create()
+}
+
+pub fn static_effect_layer(
+	p: &mut Painter,
+	width: u32,
+	height: u32,
+	format: wgpu::TextureFormat,
+	bindings: Vec<(u32, ValueBinding)>,
+) -> (Layer, Shade) {
+	let bindings_len = bindings.len() + 1;
+	let mut shade_bindings = Vec::with_capacity(bindings.len() + 1);
+	for _ in 0..bindings_len {
+		shade_bindings.push(BINDING_BUFFER_FRAG);
+	}
+
+	let shade = p
+		.shade_effect()
+		.with_bindings(shade_bindings.as_slice())
 		.create();
 
-	texture_simplex_f32.update_static_data(
+	let size = p.bind_const_uvec2(uvec2(width, height));
+
+	let mut new_bindings = Vec::with_capacity(bindings_len);
+	new_bindings.push((0, size));
+	for b in bindings.into_iter() {
+		new_bindings.push(b);
+	}
+
+	let e = p.effect(shade).with_bindings(new_bindings).create();
+
+	let layer = p
+		.layer()
+		.with_size(width, height)
+		.with_effect(e)
+		.with_format(format)
+		.create();
+
+	(layer, shade)
+}
+
+pub fn static_effect_layer_u8(
+	p: &mut Painter,
+	width: u32,
+	height: u32,
+	bindings: Vec<(u32, ValueBinding)>,
+) -> (Layer, Shade) {
+	static_effect_layer(
 		p,
-		bytemuck::cast_slice(&tiled_noise_rgba(width, height, noise_scale, 2.0, |x| {
-			x as f32
-		})),
-	);
+		width,
+		height,
+		wgpu::TextureFormat::Rgba8UnormSrgb,
+		bindings,
+	)
+}
 
-	(texture_random_f32, texture_simplex_f32)
+pub fn static_effect_layer_f32(
+	p: &mut Painter,
+	width: u32,
+	height: u32,
+	bindings: Vec<(u32, ValueBinding)>,
+) -> (Layer, Shade) {
+	static_effect_layer(p, width, height, wgpu::TextureFormat::Rgba32Float, bindings)
 }

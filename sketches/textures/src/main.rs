@@ -1,4 +1,4 @@
-use shared::textures_f32;
+use shared::noise_texture_f32;
 use trivalibs::{
 	map,
 	painter::{
@@ -28,7 +28,7 @@ const NOISE_TEXTURE_HEIGHT: u32 = 256;
 
 impl CanvasApp<()> for App {
 	fn init(p: &mut Painter) -> Self {
-		let (_tex_rand, tex_simplex) = textures_f32(p, NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT, 0.6);
+		let noise_tex = noise_texture_f32(p, NOISE_TEXTURE_WIDTH, NOISE_TEXTURE_HEIGHT, 0.6);
 
 		let sampler = p
 			.sampler()
@@ -85,7 +85,7 @@ impl CanvasApp<()> for App {
 		let (s, canvas_fbm_shader) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/out/fbm_shader.spv");
 
-		let (s, canvas_simplex_prefilled) = texture_shade_canvas(p, tex_simplex, false);
+		let (s, canvas_simplex_prefilled) = texture_shade_canvas(p, noise_tex, false);
 		load_fragment_shader!(s, p, "../shader/out/simplex_prefilled.spv");
 
 		let (s, canvas_bos_shaping_fns) = shade_canvas(p, false);
