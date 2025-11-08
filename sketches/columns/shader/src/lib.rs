@@ -3,7 +3,7 @@
 
 use spirv_std::glam::{Mat3A, Mat4, Vec2, Vec3, Vec4, vec3};
 use spirv_std::spirv;
-use trivalibs_shaders::vec_ext::VecExt;
+use trivalibs_nostd::vec_ext::VecExt;
 
 #[spirv(vertex)]
 pub fn ground_vert(

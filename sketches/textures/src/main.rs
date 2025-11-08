@@ -1,3 +1,4 @@
+use shared::textures_f32;
 use trivalibs::{
 	map,
 	painter::{
@@ -6,9 +7,6 @@ use trivalibs::{
 	},
 	prelude::*,
 };
-use utils::textures_f32;
-
-mod utils;
 
 #[derive(Copy, Clone)]
 struct Canvas {

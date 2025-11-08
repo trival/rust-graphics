@@ -4,7 +4,7 @@ use trivalibs::{
 	utils::rand_utils::{Pick, rand_bool, rand_f32, rand_usize},
 };
 
-use trivalibs_shaders::{color::hsv2rgb, float_ext::FloatExt};
+use trivalibs_nostd::{color::hsv2rgb, float_ext::FloatExt};
 
 #[derive(Clone, Copy)]
 pub struct Color {

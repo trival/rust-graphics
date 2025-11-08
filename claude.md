@@ -88,12 +88,12 @@ cargo run -p your-sketch-name
 
 ### Available Shader Helpers
 
-The `trivalibs_shaders` crate provides utilities for shader code:
+The `trivalibs_nostd` crate provides utilities for shader code:
 
 #### float_ext
 
 ```rust
-use trivalibs_shaders::float_ext::{fit0111, fit1101, FloatExt};
+use trivalibs_nostd::float_ext::{fit0111, fit1101, FloatExt};
 ```
 
 - `fit0111(x)` - Maps [0,1] to [-1,1]: `x * 2.0 - 1.0`
@@ -103,7 +103,7 @@ use trivalibs_shaders::float_ext::{fit0111, fit1101, FloatExt};
 #### vec_ext
 
 ```rust
-use trivalibs_shaders::vec_ext::VecExt;
+use trivalibs_nostd::vec_ext::VecExt;
 ```
 
 Component-wise operations for Vec2, Vec3, Vec4:
@@ -117,7 +117,7 @@ Component-wise operations for Vec2, Vec3, Vec4:
 #### color
 
 ```rust
-use trivalibs_shaders::color::{rgb2hsl, hsv2rgb, hsv2rgb_smooth, hsv2rgb_smoother, hsv2rgb_smoothest};
+use trivalibs_nostd::color::{rgb2hsl, hsv2rgb, hsv2rgb_smooth, hsv2rgb_smoother, hsv2rgb_smoothest};
 ```
 
 - `rgb2hsl(c: Vec3) -> Vec3` - Convert RGB to HSL
@@ -129,7 +129,7 @@ use trivalibs_shaders::color::{rgb2hsl, hsv2rgb, hsv2rgb_smooth, hsv2rgb_smoothe
 #### blur
 
 ```rust
-use trivalibs_shaders::blur::{gaussian_blur, gaussian_blur_5, gaussian_blur_9, gaussian_blur_13, box_blur};
+use trivalibs_nostd::blur::{gaussian_blur, gaussian_blur_5, gaussian_blur_9, gaussian_blur_13, box_blur};
 ```
 
 - `gaussian_blur(image, sampler, diameter, uv, res, dir)` - Separable Gaussian blur
@@ -143,7 +143,7 @@ For directional blur, use `dir: vec2(1.0, 0.0)` for horizontal, `vec2(0.0, 1.0)`
 #### coords
 
 ```rust
-use trivalibs_shaders::coords::PolarCoord;
+use trivalibs_nostd::coords::PolarCoord;
 ```
 
 - `PolarCoord::from_2d(v: Vec2)` - Convert cartesian to polar coordinates
@@ -154,7 +154,7 @@ use trivalibs_shaders::coords::PolarCoord;
 #### bits
 
 ```rust
-use trivalibs_shaders::bits::FloatBits;
+use trivalibs_nostd::bits::FloatBits;
 ```
 
 - `Vec2::to_bits() -> UVec2` / `Vec2::from_bits(UVec2)` - Float/bit conversion

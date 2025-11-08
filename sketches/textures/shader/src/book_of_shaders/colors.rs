@@ -2,12 +2,12 @@
 
 use core::f32::consts::TAU;
 
-use spirv_std::glam::{vec2, vec3, Vec2, Vec4};
+use spirv_std::glam::{Vec2, Vec4, vec2, vec3};
 use spirv_std::num_traits::Float;
-use trivalibs_shaders::color::{
+use trivalibs_nostd::color::{
 	hsv2rgb, hsv2rgb_smooth, hsv2rgb_smoother, hsv2rgb_smoothest, rgb2hsl,
 };
-use trivalibs_shaders::coords::PolarCoord;
+use trivalibs_nostd::coords::PolarCoord;
 
 use super::shapes::circle_smooth;
 // use crate::fbm;

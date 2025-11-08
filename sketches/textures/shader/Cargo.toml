@@ -9,7 +9,7 @@ crate-type = ["rlib", "cdylib"]
 # Dependencies for CPU and GPU code
 [dependencies]
 spirv-std.workspace = true
-trivalibs_shaders.workspace = true
+trivalibs_nostd.workspace = true
 
 [package.metadata.rust-gpu.build]
 output-dir = "./out/"

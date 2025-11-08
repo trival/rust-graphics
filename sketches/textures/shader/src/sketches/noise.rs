@@ -2,10 +2,10 @@ use crate::{book_of_shaders::shapes::rounded_rect_smooth, utils::aspect_preservi
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
 use spirv_std::{
-	glam::{mat2, vec2, vec3, UVec2, Vec2, Vec3, Vec4},
 	Image, Sampler,
+	glam::{UVec2, Vec2, Vec3, Vec4, mat2, vec2, vec3},
 };
-use trivalibs_shaders::{
+use trivalibs_nostd::{
 	bits::FloatBits,
 	float_ext::FloatExt,
 	random::{

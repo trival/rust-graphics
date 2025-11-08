@@ -1,8 +1,6 @@
-#![allow(dead_code)]
-
 use noise::{NoiseFn, Simplex};
 use trivalibs::{
-	painter::{layer::Layer, wgpu, Painter},
+	painter::{Painter, layer::Layer, wgpu},
 	prelude::*,
 	rendering::texture::f64_to_u8,
 };
@@ -38,8 +36,7 @@ pub fn tiled_noise(u: f64, v: f64, scale: f64, seed: u32) -> f64 {
 	// Get 4D noise value
 	let value = simplex.get([nx, ny, nz, nw]);
 
-	// Map from [-1, 1] to [0, 1]
-	value * 0.5 + 0.5
+	value.fit1101()
 }
 
 pub fn tiled_noise_rgba<T: Copy + Clone>(

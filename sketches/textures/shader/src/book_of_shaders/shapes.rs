@@ -3,12 +3,12 @@
 use core::f32::consts::{PI, TAU};
 
 use crate::utils::flip_y;
-use spirv_std::glam::{vec2, vec3, UVec2, Vec2, Vec3, Vec4};
+use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4, vec2, vec3};
 use spirv_std::num_traits::Float;
-use trivalibs_shaders::coords::PolarCoord;
-use trivalibs_shaders::float_ext::{step, FloatExt};
-use trivalibs_shaders::random::hash::hash;
-use trivalibs_shaders::vec_ext::VecExt;
+use trivalibs_nostd::coords::PolarCoord;
+use trivalibs_nostd::float_ext::{FloatExt, step};
+use trivalibs_nostd::random::hash::hash;
+use trivalibs_nostd::vec_ext::VecExt;
 
 pub fn rect(size: Vec2, center: Vec2, st: Vec2) -> f32 {
 	let half_size = size * 0.5;

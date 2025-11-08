@@ -4,10 +4,10 @@ use crate::utils::flip_y;
 use core::f32::consts::PI;
 use spirv_std::num_traits::Float;
 use spirv_std::{
-	glam::{vec3, Vec2, Vec3, Vec4},
+	glam::{Vec2, Vec3, Vec4, vec3},
 	num_traits::Pow,
 };
-use trivalibs_shaders::float_ext::{step, FloatExt};
+use trivalibs_nostd::float_ext::{FloatExt, step};
 
 // fn plot_line_1(st: Vec2) -> f32 {
 // 	smoothstep(0.02, 0.0, (st.y - st.x).abs())

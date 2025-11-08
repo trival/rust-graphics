@@ -5,7 +5,7 @@ use spirv_std::glam::{Vec2, Vec3, Vec4, vec4};
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
 use spirv_std::spirv;
-use trivalibs_shaders::{float_ext::FloatExt, random::simplex::fbm_simplex_2d, vec_ext::VecExt};
+use trivalibs_nostd::{float_ext::FloatExt, random::simplex::fbm_simplex_2d, vec_ext::VecExt};
 
 // Line vertex shader
 #[spirv(vertex)]

@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["sketches/*", "sketches/**/shader", "run-watch"]
+members = ["sketches/*", "sketches/**/shader", "run-watch", "shared", "shared-nostd"]
 
 [workspace.package]
 edition = "2024"
@@ -16,9 +16,11 @@ spirv_builder_version = "2aa4d4f8a8ba73103501562cfca17b8163e5a887"
 [workspace.dependencies]
 
 trivalibs = { path = "trivalibs/crates/trivalibs" }
-trivalibs_shaders = { path = "trivalibs/crates/trivalibs_shaders" }
+trivalibs_nostd = { path = "trivalibs/crates/trivalibs_nostd" }
 trivalibs_core = { path = "trivalibs/crates/trivalibs_core" }
 trivalibs_painter = { path = "trivalibs/crates/trivalibs_painter" }
+shared = { path = "shared" }
+shared-nostd = { path = "shared-nostd" }
 serde = { version = "1.0", features = ["derive"] }
 serde_repr = "0.1"
 serde_bytes = "0.11"
