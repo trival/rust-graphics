@@ -2187,6 +2187,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "test_tex_layer"
+version = "0.1.0"
+dependencies = [
+ "trivalibs",
+]
+
+[[package]]
+name = "test_tex_layer_shader"
+version = "0.1.0"
+dependencies = [
+ "spirv-std",
+]
+
+[[package]]
 name = "tex_shader"
 version = "0.1.0"
 dependencies = [

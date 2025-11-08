@@ -1,7 +1,17 @@
 [workspace]
 resolver = "2"
 
-members = ["sketches/*", "sketches/**/shader", "run-watch", "shared", "shared-nostd"]
+members = [
+    "sketches/template",
+    "sketches/textures/*",
+    "sketches/rooms/*",
+    "sketches/tests/*",
+    "sketches/strokes/*",
+    "sketches/**/shader",
+    "run-watch",
+    "shared",
+    "shared-nostd"
+]
 
 [workspace.package]
 edition = "2024"
