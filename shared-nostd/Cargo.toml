@@ -4,7 +4,7 @@ version = "0.1.0"
 edition.workspace = true
 
 [dependencies]
-trivalibs_nostd.workspace = true
+trivalibs-nostd.workspace = true
 
 [target.'cfg(target_arch = "spirv")'.dependencies]
 spirv-std.workspace = true

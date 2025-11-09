@@ -122,14 +122,12 @@ fn handle_file_change(
 fn main() -> std::io::Result<()> {
 	let args: Vec<String> = env::args().collect();
 	if args.len() != 2 {
-		eprintln!("Usage: {} <sketch-name>", args[0]);
-		eprintln!("Example: {} my-sketch", args[0]);
+		eprintln!("Usage: {} <sketch-path>", args[0]);
+		eprintln!("Example: {} sketches/my-sketch", args[0]);
 		return Ok(());
 	}
 
-	// Automatically prepend 'sketches/' to the provided path
-	let sketch_name = &args[1];
-	let crate_path = PathBuf::from("sketches").join(sketch_name);
+	let crate_path = PathBuf::from(&args[1]);
 	let cargo_toml_path = crate_path.join("Cargo.toml");
 	let src_path = crate_path.join("src");
 

@@ -26,9 +26,9 @@ spirv_builder_version = "2aa4d4f8a8ba73103501562cfca17b8163e5a887"
 [workspace.dependencies]
 
 trivalibs = { path = "trivalibs/crates/trivalibs" }
-trivalibs_nostd = { path = "trivalibs/crates/trivalibs_nostd" }
-trivalibs_core = { path = "trivalibs/crates/trivalibs_core" }
-trivalibs_painter = { path = "trivalibs/crates/trivalibs_painter" }
+trivalibs-nostd = { path = "trivalibs/crates/trivalibs_nostd" }
+trivalibs-core = { path = "trivalibs/crates/trivalibs_core" }
+trivalibs-painter = { path = "trivalibs/crates/trivalibs_painter" }
 shared = { path = "shared" }
 shared-nostd = { path = "shared-nostd" }
 serde = { version = "1.0", features = ["derive"] }

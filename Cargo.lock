@@ -359,7 +359,7 @@ name = "columns_shader"
 version = "0.1.0"
 dependencies = [
  "spirv-std",
- "trivalibs_nostd",
+ "trivalibs-nostd",
 ]
 
 [[package]]
@@ -1837,7 +1837,7 @@ name = "room_shader"
 version = "0.1.0"
 dependencies = [
  "spirv-std",
- "trivalibs_nostd",
+ "trivalibs-nostd",
 ]
 
 [[package]]
@@ -2007,7 +2007,7 @@ dependencies = [
  "bytemuck",
  "noise",
  "trivalibs",
- "trivalibs_nostd",
+ "trivalibs-nostd",
 ]
 
 [[package]]
@@ -2016,7 +2016,7 @@ version = "0.1.0"
 dependencies = [
  "glam",
  "spirv-std",
- "trivalibs_nostd",
+ "trivalibs-nostd",
 ]
 
 [[package]]
@@ -2141,7 +2141,7 @@ name = "strokes"
 version = "0.1.0"
 dependencies = [
  "trivalibs",
- "trivalibs_nostd",
+ "trivalibs-nostd",
 ]
 
 [[package]]
@@ -2149,7 +2149,7 @@ name = "strokes_shader"
 version = "0.1.0"
 dependencies = [
  "spirv-std",
- "trivalibs_nostd",
+ "trivalibs-nostd",
 ]
 
 [[package]]
@@ -2167,6 +2167,7 @@ dependencies = [
 name = "template"
 version = "0.1.0"
 dependencies = [
+ "shared",
  "trivalibs",
 ]
 
@@ -2174,7 +2175,9 @@ dependencies = [
 name = "template_shader"
 version = "0.1.0"
 dependencies = [
+ "shared-nostd",
  "spirv-std",
+ "trivalibs-nostd",
 ]
 
 [[package]]
@@ -2190,6 +2193,7 @@ dependencies = [
 name = "test_tex_layer"
 version = "0.1.0"
 dependencies = [
+ "shared",
  "trivalibs",
 ]
 
@@ -2197,7 +2201,9 @@ dependencies = [
 name = "test_tex_layer_shader"
 version = "0.1.0"
 dependencies = [
+ "shared-nostd",
  "spirv-std",
+ "trivalibs-nostd",
 ]
 
 [[package]]
@@ -2205,7 +2211,7 @@ name = "tex_shader"
 version = "0.1.0"
 dependencies = [
  "spirv-std",
- "trivalibs_nostd",
+ "trivalibs-nostd",
 ]
 
 [[package]]
@@ -2372,13 +2378,13 @@ checksum = "b9d12581f227e93f094d3af2ae690a574abb8a2b9b7a96e7cfe9647b2b617678"
 name = "trivalibs"
 version = "0.1.0"
 dependencies = [
- "trivalibs_core",
- "trivalibs_nostd",
- "trivalibs_painter",
+ "trivalibs-core",
+ "trivalibs-nostd",
+ "trivalibs-painter",
 ]
 
 [[package]]
-name = "trivalibs_core"
+name = "trivalibs-core"
 version = "0.1.0"
 dependencies = [
  "approx",
@@ -2394,12 +2400,12 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_repr",
- "trivalibs_macros",
- "trivalibs_nostd",
+ "trivalibs-macros",
+ "trivalibs-nostd",
 ]
 
 [[package]]
-name = "trivalibs_macros"
+name = "trivalibs-macros"
 version = "0.1.0"
 dependencies = [
  "quote",
@@ -2407,7 +2413,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trivalibs_nostd"
+name = "trivalibs-nostd"
 version = "0.1.0"
 dependencies = [
  "glam",
@@ -2415,7 +2421,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trivalibs_painter"
+name = "trivalibs-painter"
 version = "0.1.0"
 dependencies = [
  "bytemuck",
@@ -2428,7 +2434,7 @@ dependencies = [
  "pollster",
  "serde",
  "serde_json",
- "trivalibs_core",
+ "trivalibs-core",
  "wasm-bindgen-futures",
  "web-sys",
  "web-time",

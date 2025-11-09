@@ -5,4 +5,4 @@ version = "0.1.0"
 
 [dependencies]
 trivalibs.workspace = true
-trivalibs_nostd.workspace = true
+trivalibs-nostd.workspace = true
