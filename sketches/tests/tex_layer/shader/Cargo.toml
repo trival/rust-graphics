@@ -8,3 +8,5 @@ crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 spirv-std.workspace = true
+trivalibs-nostd.workspace = true
+shared-nostd.workspace = true

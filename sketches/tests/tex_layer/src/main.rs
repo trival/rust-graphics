@@ -1,27 +1,34 @@
+use shared::static_effect_layer_u8;
 use trivalibs::{painter::prelude::*, prelude::*};
 
 struct App {
 	canvas: Layer,
+	time: f32,
+	color: BindingBuffer<Vec3U>,
 }
 
 impl CanvasApp<()> for App {
 	fn init(p: &mut Painter) -> Self {
-		let shade = p.shade_effect().create();
+		let color = p.bind_vec3();
+
+		let (canvas, shade) = static_effect_layer_u8(p, 10, 10, map! { 1 => color.binding() });
 		load_fragment_shader!(shade, p, "../shader/main.spv");
 
-		let effect = p.effect(shade).create();
-
-		let canvas = p.layer().with_effect(effect).create();
-
-		Self { canvas }
+		Self {
+			canvas,
+			time: 0.0,
+			color,
+		}
 	}
 
-	fn resize(&mut self, p: &mut Painter, _width: u32, _height: u32) {
+	fn resize(&mut self, _p: &mut Painter, _width: u32, _height: u32) {}
+
+	fn update(&mut self, p: &mut Painter, tpf: f32) {
 		p.request_next_frame();
-	}
-
-	fn update(&mut self, _p: &mut Painter, _tpf: f32) {
-		// p.request_next_frame(); // request frame here instead of resize for constant animation loop
+		if self.time % 1.0 < 0.05 {
+			self.color.update_vec3(p, rand_vec3());
+		}
+		self.time += tpf;
 	}
 
 	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
