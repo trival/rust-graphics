@@ -1,10 +1,13 @@
 #![no_std]
 #![allow(unexpected_cfgs)]
 
-use spirv_std::glam::{Vec2, Vec3, Vec4, vec4};
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
 use spirv_std::spirv;
+use spirv_std::{
+	Image, Sampler,
+	glam::{Vec2, Vec3, Vec4, vec4},
+};
 use trivalibs_nostd::{prelude::*, random::simplex::fbm_simplex_2d};
 
 // Line vertex shader
@@ -60,8 +63,18 @@ pub fn line_frag(
 #[spirv(fragment)]
 pub fn bg_frag(
 	_uv: Vec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 0)] color: &Vec3,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] color: &Vec3,
 	out: &mut Vec4,
 ) {
 	*out = color.extend(1.0);
+}
+
+#[spirv(fragment)]
+pub fn canvas_frag(
+	uv: Vec2,
+	#[spirv(descriptor_set = 0, binding = 0)] sampler: &Sampler,
+	#[spirv(descriptor_set = 1, binding = 0)] tex: &Image!(2D, type=f32, sampled),
+	out: &mut Vec4,
+) {
+	*out = tex.sample(*sampler, uv)
 }

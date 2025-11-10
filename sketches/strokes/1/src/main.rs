@@ -1,3 +1,4 @@
+use shared::static_effect_layer_u8;
 use trivalibs::{
 	map, painter::prelude::*, prelude::*,
 	rendering::line_2d::buffered_geometry::LineBufferedGeometryVec,
@@ -5,6 +6,8 @@ use trivalibs::{
 
 mod painting;
 use painting::{create_painting, generate_tile_strokes};
+
+use crate::painting::calculate_color;
 
 struct App {
 	painting_layer: Layer,
@@ -17,7 +20,18 @@ impl CanvasApp<()> for App {
 		let painting = create_painting(size.width, size.height, 5);
 		let strokes = generate_tile_strokes(&painting);
 
-		// TODO: Use tile colors for the strokes in the future
+		let color = calculate_color(painting.tiles.pick().color);
+		let col_binding = p.bind_const_vec3(color);
+
+		let (bg_layer, bg_shade) = static_effect_layer_u8(p, 2, 2, map! { 1 => col_binding });
+		load_fragment_shader!(bg_shade, p, "../shader/bg_frag.spv");
+
+		let canvas_shade = p
+			.shade_effect()
+			.with_bindings(&[BINDING_SAMPLER_FRAG])
+			.with_layer()
+			.create();
+		load_fragment_shader!(canvas_shade, p, "../shader/canvas_frag.spv");
 
 		// Create line shader for rendering strokes
 		let line_shade = p
@@ -63,27 +77,6 @@ impl CanvasApp<()> for App {
 				shapes.push(shape);
 			}
 		}
-
-		// Create background shader
-		let bg_shade = p
-			.shade_effect()
-			.with_bindings(&[BINDING_BUFFER_FRAG])
-			.create();
-		load_fragment_shader!(bg_shade, p, "../shader/bg_frag.spv");
-
-		let bg_effect = p.effect(bg_shade).create();
-
-		let color = p.bind_const_vec3(vec3(0.1, 0.9, 0.9));
-
-		// Create background layer
-		let background_layer = p
-			.layer()
-			.with_size(2, 2)
-			.with_effect(bg_effect)
-			.with_bindings(map! {0 => color})
-			.create_and_init();
-
-		let _ = p.paint(background_layer);
 
 		// Create painting layer with all strokes
 		let painting_layer = p

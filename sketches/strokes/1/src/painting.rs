@@ -233,7 +233,7 @@ pub struct TileStrokes {
 	pub color: Vec3,
 }
 
-fn calculate_color(color: Color) -> Vec3 {
+pub fn calculate_color(color: Color) -> Vec3 {
 	hsv2rgb(vec3(
 		(color.hue + rand_normal_01() * 0.1).fract(),
 		((rand_f32() + rand_f32()) * 0.5).powf(1.5),

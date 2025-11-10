@@ -5,6 +5,11 @@
     "wgsl_entry_point": "bg_frag"
   },
   {
+    "source_path": "canvas_frag.spv",
+    "entry_point": "canvas_frag",
+    "wgsl_entry_point": "canvas_frag"
+  },
+  {
     "source_path": "line_frag.spv",
     "entry_point": "line_frag",
     "wgsl_entry_point": "line_frag"
