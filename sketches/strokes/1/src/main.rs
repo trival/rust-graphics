@@ -10,7 +10,7 @@ use painting::{create_painting, generate_tile_strokes};
 use crate::painting::calculate_color;
 
 struct App {
-	painting_layer: Layer,
+	canvas_layer: Layer,
 }
 
 impl CanvasApp<()> for App {
@@ -25,13 +25,7 @@ impl CanvasApp<()> for App {
 
 		let (bg_layer, bg_shade) = static_effect_layer_u8(p, 2, 2, map! { 1 => col_binding });
 		load_fragment_shader!(bg_shade, p, "../shader/bg_frag.spv");
-
-		let canvas_shade = p
-			.shade_effect()
-			.with_bindings(&[BINDING_SAMPLER_FRAG])
-			.with_layer()
-			.create();
-		load_fragment_shader!(canvas_shade, p, "../shader/canvas_frag.spv");
+		let _ = p.init_and_paint(bg_layer);
 
 		// Create line shader for rendering strokes
 		let line_shade = p
@@ -86,7 +80,31 @@ impl CanvasApp<()> for App {
 			.with_clear_color(wgpu::Color::TRANSPARENT)
 			.create();
 
-		Self { painting_layer }
+		let _ = p.init_and_paint(painting_layer);
+
+		let canvas_shade = p
+			.shade_effect()
+			.with_bindings(&[BINDING_SAMPLER_FRAG])
+			.with_layer()
+			.create();
+		load_fragment_shader!(canvas_shade, p, "../shader/canvas_frag.spv");
+
+		let sampler = p.sampler_linear();
+
+		let canvas_layer = p
+			.single_effect_layer(canvas_shade)
+			.with_bindings(map! { 0 => sampler.binding() })
+			.with_layers(map! {0 => bg_layer.binding()})
+			.with_blend_state(wgpu::BlendState::ALPHA_BLENDING)
+			.create();
+
+		let _ = p.init_and_paint(canvas_layer);
+
+		canvas_layer.set_layer_binding(p, 0, painting_layer.binding());
+
+		let _ = p.paint(canvas_layer);
+
+		Self { canvas_layer }
 	}
 
 	fn resize(&mut self, p: &mut Painter, _width: u32, _height: u32) {
@@ -96,7 +114,7 @@ impl CanvasApp<()> for App {
 	fn update(&mut self, _p: &mut Painter, _tpf: f32) {}
 
 	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
-		p.paint_and_show(self.painting_layer)
+		p.show(self.canvas_layer)
 	}
 
 	fn event(&mut self, _e: Event<()>, _p: &mut Painter) {}

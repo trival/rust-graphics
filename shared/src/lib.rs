@@ -146,12 +146,10 @@ pub fn static_effect_layer(
 		new_bindings.push(b);
 	}
 
-	let e = p.effect(shade).with_bindings(new_bindings).create();
-
 	let layer = p
-		.layer()
+		.single_effect_layer(shade)
 		.with_size(width, height)
-		.with_effect(e)
+		.with_bindings(new_bindings)
 		.with_format(format)
 		.create();
 
