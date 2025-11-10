@@ -39,6 +39,19 @@ impl CanvasApp<()> for App {
 		load_vertex_shader!(line_shade, p, "../shader/line_vert.spv");
 		load_fragment_shader!(line_shade, p, "../shader/line_frag.spv");
 
+		let blend_state = wgpu::BlendState {
+			color: wgpu::BlendComponent {
+				src_factor: wgpu::BlendFactor::SrcAlpha,
+				dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+				operation: wgpu::BlendOperation::Add,
+			},
+			alpha: wgpu::BlendComponent {
+				src_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+				dst_factor: wgpu::BlendFactor::OneMinusDstAlpha,
+				operation: wgpu::BlendOperation::Max,
+			},
+		};
+
 		let u_size = p.bind_const_vec2(vec2(painting.width as f32, painting.height as f32));
 		// Create all stroke shapes
 		let mut shapes = Vec::new();
@@ -54,18 +67,7 @@ impl CanvasApp<()> for App {
 				let shape = p
 					.shape(form, line_shade)
 					.with_bindings(map! {0 => u_size, 1 => color, 2 => rand_offset})
-					.with_blend_state(wgpu::BlendState {
-						color: wgpu::BlendComponent {
-							src_factor: wgpu::BlendFactor::SrcAlpha,
-							dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-							operation: wgpu::BlendOperation::Add,
-						},
-						alpha: wgpu::BlendComponent {
-							src_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-							dst_factor: wgpu::BlendFactor::OneMinusDstAlpha,
-							operation: wgpu::BlendOperation::Max,
-						},
-					})
+					.with_blend_state(blend_state)
 					.with_cull_mode(Some(wgpu::Face::Back))
 					.create();
 				shapes.push(shape);
@@ -95,7 +97,7 @@ impl CanvasApp<()> for App {
 			.single_effect_layer(canvas_shade)
 			.with_bindings(map! { 0 => sampler.binding() })
 			.with_layers(map! {0 => bg_layer.binding()})
-			.with_blend_state(wgpu::BlendState::ALPHA_BLENDING)
+			.with_blend_state(blend_state)
 			.create();
 
 		let _ = p.init_and_paint(canvas_layer);
