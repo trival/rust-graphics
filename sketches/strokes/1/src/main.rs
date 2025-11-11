@@ -11,6 +11,8 @@ use crate::painting::calculate_color;
 
 struct App {
 	canvas_layer: Layer,
+	painting_layer: Layer,
+	bg_layer: Layer,
 }
 
 impl CanvasApp<()> for App {
@@ -21,6 +23,7 @@ impl CanvasApp<()> for App {
 		let strokes = generate_tile_strokes(&painting);
 
 		let color = calculate_color(painting.tiles.pick().color);
+		// let color = Vec3::ONE;
 		let col_binding = p.bind_const_vec3(color);
 
 		let (bg_layer, bg_shade) = static_effect_layer_u8(p, 2, 2, map! { 1 => col_binding });
@@ -46,8 +49,8 @@ impl CanvasApp<()> for App {
 				operation: wgpu::BlendOperation::Add,
 			},
 			alpha: wgpu::BlendComponent {
-				src_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-				dst_factor: wgpu::BlendFactor::OneMinusDstAlpha,
+				src_factor: wgpu::BlendFactor::One,
+				dst_factor: wgpu::BlendFactor::One,
 				operation: wgpu::BlendOperation::Max,
 			},
 		};
@@ -79,7 +82,12 @@ impl CanvasApp<()> for App {
 			.layer()
 			.with_size(painting.width as u32, painting.height as u32)
 			.with_shapes(shapes)
-			.with_clear_color(wgpu::Color::TRANSPARENT)
+			.with_clear_color(wgpu::Color {
+				r: 0.5,
+				g: 0.5,
+				b: 0.5,
+				a: 0.0,
+			})
 			.create();
 
 		let _ = p.init_and_paint(painting_layer);
@@ -93,6 +101,22 @@ impl CanvasApp<()> for App {
 
 		let sampler = p.sampler_linear();
 
+		let blend_state = wgpu::BlendState {
+			color: wgpu::BlendComponent {
+				src_factor: wgpu::BlendFactor::SrcAlpha,
+				dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+				operation: wgpu::BlendOperation::Add,
+			},
+			alpha: wgpu::BlendComponent {
+				// src_factor: wgpu::BlendFactor::SrcAlpha,
+				// dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+				// operation: wgpu::BlendOperation::Add,
+				src_factor: wgpu::BlendFactor::One,
+				dst_factor: wgpu::BlendFactor::One,
+				operation: wgpu::BlendOperation::Max,
+			},
+		};
+
 		let canvas_layer = p
 			.single_effect_layer(canvas_shade)
 			.with_bindings(map! { 0 => sampler.binding() })
@@ -100,13 +124,11 @@ impl CanvasApp<()> for App {
 			.with_blend_state(blend_state)
 			.create();
 
-		let _ = p.init_and_paint(canvas_layer);
-
-		canvas_layer.set_layer_binding(p, 0, painting_layer.binding());
-
-		let _ = p.paint(canvas_layer);
-
-		Self { canvas_layer }
+		Self {
+			canvas_layer,
+			painting_layer,
+			bg_layer,
+		}
 	}
 
 	fn resize(&mut self, p: &mut Painter, _width: u32, _height: u32) {
@@ -116,7 +138,17 @@ impl CanvasApp<()> for App {
 	fn update(&mut self, _p: &mut Painter, _tpf: f32) {}
 
 	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
-		p.show(self.canvas_layer)
+		self
+			.canvas_layer
+			.set_layer_binding(p, 0, self.bg_layer.binding());
+
+		p.paint(self.canvas_layer)?;
+
+		self
+			.canvas_layer
+			.set_layer_binding(p, 0, self.painting_layer.binding());
+
+		p.paint_and_show(self.canvas_layer)
 	}
 
 	fn event(&mut self, _e: Event<()>, _p: &mut Painter) {}

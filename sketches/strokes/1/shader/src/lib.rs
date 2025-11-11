@@ -1,6 +1,7 @@
 #![no_std]
 #![allow(unexpected_cfgs)]
 
+use spirv_std::glam::Vec4Swizzles;
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
 use spirv_std::spirv;
@@ -51,12 +52,13 @@ pub fn line_frag(
 	alpha -= uv.y.fit0111().abs().powf(10.0);
 
 	// adjust overall alpha
-	alpha = (alpha * 0.4 + 0.3).clamp01();
+	alpha = (alpha + 0.3).clamp01();
 
 	// Fade out at the end of stroke
 	alpha *= uv.x.smoothstep(1.0, 0.90);
 
-	*out = color.extend(alpha);
+	*out = color.powf(2.2).extend(alpha);
+	// *out = color.extend(0.5);
 }
 
 // Background shader - simple solid color
@@ -76,5 +78,5 @@ pub fn canvas_frag(
 	#[spirv(descriptor_set = 1, binding = 0)] tex: &Image!(2D, type=f32, sampled),
 	out: &mut Vec4,
 ) {
-	*out = tex.sample(*sampler, uv)
+	*out = tex.sample(*sampler, uv);
 }
