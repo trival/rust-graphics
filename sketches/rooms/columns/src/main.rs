@@ -6,15 +6,14 @@ use trivalibs::{
 	painter::{prelude::*, utils::input_state::InputState},
 	prelude::*,
 	rendering::{
+		BufferedGeometry,
 		camera::{CamProps, PerspectiveCamera},
 		mesh_geometry::{
-			face_normal,
-			utils::{vert_pos_uv, Vert3dUv},
-			FaceDataProps, MeshBufferType, MeshGeometry,
+			FaceDataProps, MeshBufferType, MeshGeometry, face_normal,
+			utils::{Vert3dUv, vert_pos_uv},
 		},
 		scene::SceneObject,
 		shapes::{cuboid::Cuboid, quad::Quad3D},
-		BufferedGeometry,
 	},
 };
 
@@ -115,6 +114,7 @@ impl CanvasApp<()> for App {
 					0 => u_m_mat,
 					1 => u_n_mat
 				},
+				..default()
 			}
 		};
 
