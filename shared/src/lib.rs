@@ -1,11 +1,13 @@
 use noise::{NoiseFn, Simplex};
 use trivalibs::{
 	painter::{
-		Painter, binding::ValueBinding, layer::Layer, prelude::BINDING_BUFFER_FRAG, shade::Shade, wgpu,
+		binding::ValueBinding, layer::Layer, prelude::BINDING_BUFFER_FRAG, shade::Shade, wgpu, Painter,
 	},
 	prelude::*,
 	rendering::texture::f64_to_u8,
 };
+
+mod plate_geometry;
 
 pub fn rand_rgba_f32(width: u32, height: u32) -> Vec<f32> {
 	let mut rgba = vec![0.0; (width * height * 4) as usize];
