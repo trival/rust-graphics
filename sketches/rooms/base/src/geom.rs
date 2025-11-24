@@ -1,13 +1,12 @@
 use trivalibs::{
 	prelude::*,
 	rendering::{
+		BufferedGeometry,
 		mesh_geometry::{
-			face_normal,
-			utils::{vert_pos_uv, Vert3dUv},
-			FaceDataProps, MeshBufferType, MeshGeometry,
+			MeshBufferType, MeshGeometry, face_normal, face_props,
+			utils::{Vert3dUv, vert_pos_uv},
 		},
 		shapes::{cuboid::Cuboid, quad::Quad3D},
-		BufferedGeometry,
 	},
 };
 
@@ -16,9 +15,9 @@ pub fn create_plane(width: f32, height: f32, normal: Vec3, center: Vec3) -> Buff
 		Quad3D::from_dimensions_center_f(width, height, normal, center, vert_pos_uv).into();
 
 	let mut geom = MeshGeometry::new();
-	geom.add_face4_data(plane.to_ccw_verts(), face_normal(plane.normal));
+	geom.add_face_data(&plane.to_ccw_verts(), face_normal(plane.normal));
 
-	geom.to_buffered_geometry_by_type(MeshBufferType::FaceNormals)
+	geom.to_buffered_geometry_by_type(MeshBufferType::FaceVerticesWithFaceNormals)
 }
 
 pub struct GridProps {
@@ -36,12 +35,6 @@ pub struct GridData {
 }
 
 pub fn create_grid_rows_form(props: GridProps) -> GridData {
-	let face_data = |normal: Vec3, section: usize| FaceDataProps {
-		normal: Some(normal),
-		section: Some(section),
-		data: None,
-	};
-
 	let mut geom = MeshGeometry::new();
 
 	let step = props.grid_height / props.count as f32;
@@ -66,33 +59,27 @@ pub fn create_grid_rows_form(props: GridProps) -> GridData {
 
 		let front =
 			bbox.front_face_f(|pos, uvw| vert_pos_uv(pos, vec2(uvw.x, uvw.y * v_height + v_start)));
-		geom.add_face4_data(front.to_ccw_verts(), face_data(front.normal, 0));
+		geom.add_face_data(&front.to_ccw_verts(), face_props(front.normal, 0));
 		v_start += v_height;
 
 		let back =
 			bbox.back_face_f(|pos, uvw| vert_pos_uv(pos, vec2(1.0 - uvw.x, uvw.y * v_height + v_start)));
-		geom.add_face4_data(back.to_ccw_verts(), face_data(back.normal, 1));
+		geom.add_face_data(&back.to_ccw_verts(), face_props(back.normal, 1));
 		v_start += v_height;
 
 		let bottom =
 			bbox.bottom_face_f(|pos, uvw| vert_pos_uv(pos, vec2(uvw.x, uvw.z * v_bottom + v_start)));
-		geom.add_face4_data(bottom.to_ccw_verts(), face_data(bottom.normal, 2));
+		geom.add_face_data(&bottom.to_ccw_verts(), face_props(bottom.normal, 2));
 		v_start += v_bottom;
 	}
 
 	GridData {
-		form: geom.to_buffered_geometry_by_type(MeshBufferType::FaceNormals),
+		form: geom.to_buffered_geometry_by_type(MeshBufferType::FaceVerticesWithFaceNormals),
 		texture_size: (props.grid_width, v_full),
 	}
 }
 
 pub fn create_grid_columns_form(props: GridProps) -> GridData {
-	let face_data = |normal: Vec3, section: usize| FaceDataProps {
-		normal: Some(normal),
-		section: Some(section),
-		data: None,
-	};
-
 	let mut geom = MeshGeometry::new();
 
 	let step = props.grid_width / props.count as f32;
@@ -117,22 +104,22 @@ pub fn create_grid_columns_form(props: GridProps) -> GridData {
 
 		let left =
 			bbox.left_face_f(|pos, uvw| vert_pos_uv(pos, vec2(1.0 - uvw.z, uvw.y * v_height + v_start)));
-		geom.add_face4_data(left.to_ccw_verts(), face_data(left.normal, 0));
+		geom.add_face_data(&left.to_ccw_verts(), face_props(left.normal, 0));
 		v_start += v_height;
 
 		let right =
 			bbox.right_face_f(|pos, uvw| vert_pos_uv(pos, vec2(uvw.z, uvw.y * v_height + v_start)));
-		geom.add_face4_data(right.to_ccw_verts(), face_data(right.normal, 1));
+		geom.add_face_data(&right.to_ccw_verts(), face_props(right.normal, 1));
 		v_start += v_height;
 
 		let bottom =
 			bbox.bottom_face_f(|pos, uvw| vert_pos_uv(pos, vec2(uvw.z, uvw.x * v_bottom + v_start)));
-		geom.add_face4_data(bottom.to_ccw_verts(), face_data(bottom.normal, 2));
+		geom.add_face_data(&bottom.to_ccw_verts(), face_props(bottom.normal, 2));
 		v_start += v_bottom;
 	}
 
 	GridData {
-		form: geom.to_buffered_geometry_by_type(MeshBufferType::FaceNormals),
+		form: geom.to_buffered_geometry_by_type(MeshBufferType::FaceVerticesWithFaceNormals),
 		texture_size: (props.grid_height, v_full),
 	}
 }

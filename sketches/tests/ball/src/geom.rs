@@ -1,11 +1,10 @@
 use grid::{CIRCLE_COLS_COORD_OPS, make_grid_with_coord_ops};
 use std::f32::consts::PI;
 use trivalibs::{
-	data::Overridable,
 	prelude::*,
 	rendering::{
 		BufferedGeometry,
-		mesh_geometry::{MeshBufferType, MeshGeometry, face_data},
+		mesh_geometry::{MeshBufferType, MeshGeometry},
 	},
 };
 
@@ -14,14 +13,6 @@ struct Vertex {
 	pos: Vec3,
 	uv: Vec2,
 	color: Vec3,
-}
-impl Overridable for Vertex {
-	fn override_with(&self, attribs: &Self) -> Self {
-		Vertex {
-			color: attribs.color,
-			..*self
-		}
-	}
 }
 impl Position3D for Vertex {
 	fn position(&self) -> Vec3 {
@@ -73,16 +64,16 @@ pub fn create_ball_geom() -> BufferedGeometry {
 
 		if v0.pos.y == -5.0 {
 			// v0 == v1
-			geom.add_face3_data([v0, v2, v3], face_data(v0));
+			geom.add_face(&[v0, v2, v3]);
 		} else if v2.pos.y == 5.0 {
 			// v2 == v3
-			geom.add_face3_data([v0, v1, v2], face_data(v0));
+			geom.add_face(&[v0, v1, v2]);
 		} else {
-			geom.add_face4_data([v0, v1, v2, v3], face_data(v0));
+			geom.add_face(&[v0, v1, v2, v3]);
 		}
 	}
 
-	geom.to_buffered_geometry_by_type(MeshBufferType::VertexNormalFaceData)
+	geom.to_buffered_geometry_by_type(MeshBufferType::FaceVerticesWithVertexNormals)
 }
 
 #[test]
