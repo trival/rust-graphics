@@ -16,18 +16,18 @@ struct App {
 impl CanvasApp<()> for App {
 	fn init(p: &mut Painter) -> Self {
 		let size = p.canvas_size();
-		// Generate painting data
+
 		let painting = create_painting(size.width, size.height, 5);
 
-		let color = calculate_color(painting.tiles.pick().color);
-		// let color = Vec3::ONE;
-		let col_binding = p.bind_const_vec3(color);
+		let bg_color = calculate_color(painting.tiles.pick().color);
 
-		let (bg_layer, bg_shade) = static_effect_layer_u8(p, 2, 2, map! { 1 => col_binding });
+		let u_color = p.bind_vec3();
+		u_color.update_vec3(p, bg_color);
+
+		let (bg_layer, bg_shade) = static_effect_layer_u8(p, 2, 2, map! { 1 => u_color.binding() });
 		load_fragment_shader!(bg_shade, p, "../shader/bg_frag.spv");
 		let _ = p.init_and_paint(bg_layer);
 
-		// Create line shader for rendering strokes
 		let line_shade = p
 			.shade(&[Float32x2, Float32, Float32, Float32x2, Float32x2])
 			.with_bindings(&[
@@ -44,10 +44,6 @@ impl CanvasApp<()> for App {
 			.with_topology(wgpu::PrimitiveTopology::TriangleStrip)
 			.create();
 
-		let u_size = p.bind_const_vec2(vec2(painting.width as f32, painting.height as f32));
-		let u_color = p.bind_vec3();
-		let u_rand_offset = p.bind_vec2();
-
 		let blend_state = wgpu::BlendState {
 			color: wgpu::BlendComponent {
 				src_factor: wgpu::BlendFactor::One,
@@ -61,6 +57,9 @@ impl CanvasApp<()> for App {
 			},
 		};
 
+		let u_size = p.bind_const_vec2(vec2(painting.width as f32, painting.height as f32));
+		let u_rand_offset = p.bind_vec2();
+
 		let line_shape = p
 			.shape(line_form, line_shade)
 			.with_blend_state(blend_state)
@@ -71,7 +70,6 @@ impl CanvasApp<()> for App {
 			})
 			.create();
 
-		// Create painting layer with all strokes
 		let painting_layer = p
 			.layer()
 			.with_size(painting.width as u32, painting.height as u32)
@@ -107,7 +105,6 @@ impl CanvasApp<()> for App {
 		let paint_strokes = |p: &mut Painter| {
 			let strokes = generate_tile_strokes(&painting);
 
-			// Create all stroke shapes
 			for tile in &strokes {
 				line_form.update_all(p, &tile.lines.to_buffered_geometry());
 
@@ -130,12 +127,11 @@ impl CanvasApp<()> for App {
 	}
 
 	fn update(&mut self, _p: &mut Painter, _tpf: f32) {}
+	fn event(&mut self, _e: Event<()>, _p: &mut Painter) {}
 
 	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
 		p.show(self.canvas_layer)
 	}
-
-	fn event(&mut self, _e: Event<()>, _p: &mut Painter) {}
 }
 
 pub fn main() {
