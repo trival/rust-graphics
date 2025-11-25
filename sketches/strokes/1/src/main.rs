@@ -11,8 +11,6 @@ use crate::painting::calculate_color;
 
 struct App {
 	canvas_layer: Layer,
-	painting_layer: Layer,
-	bg_layer: Layer,
 }
 
 impl CanvasApp<()> for App {
@@ -20,7 +18,6 @@ impl CanvasApp<()> for App {
 		let size = p.canvas_size();
 		// Generate painting data
 		let painting = create_painting(size.width, size.height, 5);
-		let strokes = generate_tile_strokes(&painting);
 
 		let color = calculate_color(painting.tiles.pick().color);
 		// let color = Vec3::ONE;
@@ -42,10 +39,19 @@ impl CanvasApp<()> for App {
 		load_vertex_shader!(line_shade, p, "../shader/line_vert.spv");
 		load_fragment_shader!(line_shade, p, "../shader/line_frag.spv");
 
+		let line_form = p
+			.form_builder()
+			.with_topology(wgpu::PrimitiveTopology::TriangleStrip)
+			.create();
+
+		let u_size = p.bind_const_vec2(vec2(painting.width as f32, painting.height as f32));
+		let u_color = p.bind_vec3();
+		let u_rand_offset = p.bind_vec2();
+
 		let blend_state = wgpu::BlendState {
 			color: wgpu::BlendComponent {
-				src_factor: wgpu::BlendFactor::SrcAlpha,
-				dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+				src_factor: wgpu::BlendFactor::One,
+				dst_factor: wgpu::BlendFactor::Zero,
 				operation: wgpu::BlendOperation::Add,
 			},
 			alpha: wgpu::BlendComponent {
@@ -55,42 +61,23 @@ impl CanvasApp<()> for App {
 			},
 		};
 
-		let u_size = p.bind_const_vec2(vec2(painting.width as f32, painting.height as f32));
-		// Create all stroke shapes
-		let mut shapes = Vec::new();
-		for tile in &strokes {
-			let geoms = tile.lines.to_buffered_geometry();
-			let rand_offset = p.bind_const_vec2(vec2(rand_f32(), rand_f32()));
-			for geom in &geoms {
-				let form = p
-					.form(geom)
-					.with_topology(wgpu::PrimitiveTopology::TriangleStrip)
-					.create();
-				let color = p.bind_const_vec3(tile.color);
-				let shape = p
-					.shape(form, line_shade)
-					.with_bindings(map! {0 => u_size, 1 => color, 2 => rand_offset})
-					.with_blend_state(blend_state)
-					.with_cull_mode(Some(wgpu::Face::Back))
-					.create();
-				shapes.push(shape);
-			}
-		}
+		let line_shape = p
+			.shape(line_form, line_shade)
+			.with_blend_state(blend_state)
+			.with_bindings(map! {
+				0 => u_size,
+				1 => u_color.binding(),
+				2 => u_rand_offset.binding()
+			})
+			.create();
 
 		// Create painting layer with all strokes
 		let painting_layer = p
 			.layer()
 			.with_size(painting.width as u32, painting.height as u32)
-			.with_shapes(shapes)
-			.with_clear_color(wgpu::Color {
-				r: 0.5,
-				g: 0.5,
-				b: 0.5,
-				a: 0.0,
-			})
-			.create();
-
-		let _ = p.init_and_paint(painting_layer);
+			.with_shape(line_shape)
+			.with_clear_color(wgpu::Color::TRANSPARENT)
+			.create_and_init();
 
 		let canvas_shade = p
 			.shade_effect()
@@ -101,34 +88,41 @@ impl CanvasApp<()> for App {
 
 		let sampler = p.sampler_linear();
 
-		let blend_state = wgpu::BlendState {
-			color: wgpu::BlendComponent {
-				src_factor: wgpu::BlendFactor::SrcAlpha,
-				dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-				operation: wgpu::BlendOperation::Add,
-			},
-			alpha: wgpu::BlendComponent {
-				// src_factor: wgpu::BlendFactor::SrcAlpha,
-				// dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-				// operation: wgpu::BlendOperation::Add,
-				src_factor: wgpu::BlendFactor::One,
-				dst_factor: wgpu::BlendFactor::One,
-				operation: wgpu::BlendOperation::Max,
-			},
-		};
-
 		let canvas_layer = p
 			.single_effect_layer(canvas_shade)
+			.with_size(painting.width, painting.height)
 			.with_bindings(map! { 0 => sampler.binding() })
 			.with_layers(map! {0 => bg_layer.binding()})
-			.with_blend_state(blend_state)
-			.create();
+			.with_blend_state(wgpu::BlendState::ALPHA_BLENDING)
+			.create_and_init();
 
-		Self {
-			canvas_layer,
-			painting_layer,
-			bg_layer,
-		}
+		canvas_layer.set_layer_binding(p, 0, bg_layer.binding());
+
+		let _ = p.paint(canvas_layer);
+
+		canvas_layer.set_layer_binding(p, 0, painting_layer.binding());
+
+		// === painting process ===
+
+		let paint_strokes = |p: &mut Painter| {
+			let strokes = generate_tile_strokes(&painting);
+
+			// Create all stroke shapes
+			for tile in &strokes {
+				line_form.update_all(p, &tile.lines.to_buffered_geometry());
+
+				u_rand_offset.update(p, vec2(rand_f32(), rand_f32()));
+				u_color.update_vec3(p, tile.color);
+
+				let _ = p.compose(&[painting_layer, canvas_layer]);
+			}
+		};
+
+		paint_strokes(p);
+		paint_strokes(p);
+		paint_strokes(p);
+
+		Self { canvas_layer }
 	}
 
 	fn resize(&mut self, p: &mut Painter, _width: u32, _height: u32) {
@@ -138,17 +132,7 @@ impl CanvasApp<()> for App {
 	fn update(&mut self, _p: &mut Painter, _tpf: f32) {}
 
 	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
-		self
-			.canvas_layer
-			.set_layer_binding(p, 0, self.bg_layer.binding());
-
-		p.paint(self.canvas_layer)?;
-
-		self
-			.canvas_layer
-			.set_layer_binding(p, 0, self.painting_layer.binding());
-
-		p.paint_and_show(self.canvas_layer)
+		p.show(self.canvas_layer)
 	}
 
 	fn event(&mut self, _e: Event<()>, _p: &mut Painter) {}

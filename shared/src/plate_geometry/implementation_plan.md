@@ -1,9 +1,11 @@
 # Plate Geometry Helper
 
 ## Overview
+
 The helper constructs a plate-shaped mesh by extruding a user-provided 3D polyline (often on the XZ plane for walls) along an arbitrary direction/length vector while thickening it by a configurable width. Each input point spawns a front and back vertex offset along a normal computed from its neighboring directions and the extrusion vector, so plates remain well-behaved even when the extrusion is tilted away from the ground plane. Stacking multiple translated copies of those loops along the extrusion vector produces the body of the wall. The structure mirrors the existing cuboid helper by exposing methods that return quads for each plate face (front, back, left, right, top, bottom) plus `_f` variants that accept a mapper closure which receives `(position, uvw)` with `(0,0,0)` at the front-top-left corner and `(1,1,1)` at the back-bottom-right corner for precise UV control.
 
 ## Implementation Plan
+
 1. **API Surface**
    - Add `PlateGeometry` to `shared/src/plate_geometry/lib.rs` with constructor `new(points: &[Vec3], extrusion: Vec3, width: f32, subdivisions: usize)`.
    - Store precomputed slices (front/back loops at each subdivision level) and expose iterators/helpers returning `Quad3D<P>` similar to `Cuboid`.
