@@ -126,12 +126,11 @@ impl CanvasApp<()> for App {
 		p.request_next_frame();
 	}
 
-	fn update(&mut self, _p: &mut Painter, _tpf: f32) {}
-	fn event(&mut self, _e: Event<()>, _p: &mut Painter) {}
-
-	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
-		p.show(self.canvas_layer)
+	fn frame(&mut self, p: &mut Painter, _tpf: f32) {
+		p.show(self.canvas_layer);
 	}
+
+	fn event(&mut self, _e: Event<()>, _p: &mut Painter) {}
 }
 
 pub fn main() {

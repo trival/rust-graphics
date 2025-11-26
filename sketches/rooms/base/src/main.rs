@@ -7,7 +7,7 @@ use trivalibs::{
 	rendering::camera::{CamProps, PerspectiveCamera},
 };
 
-use crate::geom::{create_grid_columns_form, create_grid_rows_form, GridProps};
+use crate::geom::{GridProps, create_grid_columns_form, create_grid_rows_form};
 
 mod geom;
 
@@ -169,19 +169,17 @@ impl CanvasApp<()> for App {
 		self.cam_controller.set_screen_size(width, height);
 	}
 
-	fn update(&mut self, p: &mut Painter, tpf: f32) {
+	fn frame(&mut self, p: &mut Painter, tpf: f32) {
 		self
 			.cam_controller
 			.update_camera(&mut self.cam, &self.input, tpf);
 
 		self.vp_mat.update(p, self.cam.view_proj_mat());
 
-		p.request_next_frame();
-	}
+		p.paint_and_show(self.canvas);
+		// p.show(self.grid_col_tex);
 
-	fn render(&self, p: &mut Painter) -> std::result::Result<(), wgpu::SurfaceError> {
-		p.paint_and_show(self.canvas)
-		// p.show(self.grid_col_tex)
+		p.request_next_frame();
 	}
 
 	fn event(&mut self, e: Event<()>, _p: &mut Painter) {

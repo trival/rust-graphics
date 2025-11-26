@@ -1,7 +1,6 @@
 #![no_std]
 #![allow(unexpected_cfgs)]
 
-use spirv_std::glam::Vec4Swizzles;
 #[allow(unused_imports)]
 use spirv_std::num_traits::Float;
 use spirv_std::spirv;

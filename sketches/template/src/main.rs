@@ -20,12 +20,10 @@ impl CanvasApp<()> for App {
 		p.request_next_frame();
 	}
 
-	fn update(&mut self, _p: &mut Painter, _tpf: f32) {
-		// p.request_next_frame(); // request frame here instead of resize for constant animation loop
-	}
+	fn frame(&mut self, p: &mut Painter, _tpf: f32) {
+		p.paint_and_show(self.canvas);
 
-	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
-		p.paint_and_show(self.canvas)
+		// p.request_next_frame(); // request frame here instead of resize for constant animation loop
 	}
 
 	fn event(&mut self, _e: Event<()>, _p: &mut Painter) {}

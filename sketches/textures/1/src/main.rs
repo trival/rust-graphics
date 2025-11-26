@@ -1,12 +1,5 @@
 use shared::noise_texture_f32;
-use trivalibs::{
-	map,
-	painter::{
-		prelude::*,
-		winit::event::{ElementState, MouseButton, WindowEvent},
-	},
-	prelude::*,
-};
+use trivalibs::{map, painter::prelude::*, prelude::*};
 
 #[derive(Copy, Clone)]
 struct Canvas {
@@ -159,7 +152,9 @@ impl CanvasApp<()> for App {
 		self.u_size.update(p, uvec2(width, height));
 	}
 
-	fn render(&self, p: &mut Painter) -> Result<(), SurfaceError> {
+	fn frame(&mut self, p: &mut Painter, tpf: f32) {
+		self.time += tpf;
+		self.u_time.update(p, self.time);
 		let c = &self.canvases[self.current_canvas];
 		if c.animated {
 			p.request_next_frame();
@@ -167,24 +162,17 @@ impl CanvasApp<()> for App {
 		p.paint_and_show(c.layer)
 	}
 
-	fn update(&mut self, p: &mut Painter, tpf: f32) {
-		self.time += tpf;
-		self.u_time.update(p, self.time);
-	}
-
 	fn event(&mut self, e: Event<()>, p: &mut Painter) {
 		match e {
-			Event::WindowEvent(WindowEvent::MouseInput { state, button, .. }) => {
-				if state == ElementState::Released {
-					p.request_next_frame();
-					match button {
-						MouseButton::Left => {
-							self.current_canvas = (self.current_canvas + 1) % self.canvases.len();
-						}
-						_ => {
-							self.current_canvas =
-								(self.current_canvas + self.canvases.len() - 1) % self.canvases.len();
-						}
+			Event::PointerUp { button, .. } => {
+				p.request_next_frame();
+				match button {
+					PointerButton::Primary => {
+						self.current_canvas = (self.current_canvas + 1) % self.canvases.len();
+					}
+					_ => {
+						self.current_canvas =
+							(self.current_canvas + self.canvases.len() - 1) % self.canvases.len();
 					}
 				}
 			}
