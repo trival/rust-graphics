@@ -26,7 +26,7 @@ impl CanvasApp<()> for App {
 
 		let (bg_layer, bg_shade) = static_effect_layer_u8(p, 2, 2, map! { 1 => u_color.binding() });
 		load_fragment_shader!(bg_shade, p, "../shader/bg_frag.spv");
-		let _ = p.init_and_paint(bg_layer);
+		p.init_and_paint(bg_layer);
 
 		let line_shade = p
 			.shade(&[Float32x2, Float32, Float32, Float32x2, Float32x2])
@@ -96,7 +96,7 @@ impl CanvasApp<()> for App {
 
 		canvas_layer.set_layer_binding(p, 0, bg_layer.binding());
 
-		let _ = p.paint(canvas_layer);
+		p.paint(canvas_layer);
 
 		canvas_layer.set_layer_binding(p, 0, painting_layer.binding());
 
@@ -111,7 +111,7 @@ impl CanvasApp<()> for App {
 				u_rand_offset.update(p, vec2(rand_f32(), rand_f32()));
 				u_color.update_vec3(p, tile.color);
 
-				let _ = p.compose(&[painting_layer, canvas_layer]);
+				p.compose(&[painting_layer, canvas_layer]);
 			}
 		};
 

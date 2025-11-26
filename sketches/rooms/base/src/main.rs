@@ -74,7 +74,7 @@ impl CanvasApp<()> for App {
 			.with_mips()
 			.create_and_init();
 
-		let _ = p.paint(grid_row_tex);
+		p.paint(grid_row_tex);
 
 		let grid_col_tex = p
 			.layer()
@@ -86,7 +86,7 @@ impl CanvasApp<()> for App {
 			.with_mips()
 			.create_and_init();
 
-		let _ = p.paint(grid_col_tex);
+		p.paint(grid_col_tex);
 
 		let wall_render_shade = p
 			.shade(&[Float32x3, Float32x2, Float32x3])
