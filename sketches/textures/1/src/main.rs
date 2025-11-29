@@ -40,10 +40,8 @@ impl CanvasApp<()> for App {
 				.with_layers(&[BINDING_LAYER_FRAG])
 				.create();
 
-			let e = p.effect(s).create();
 			let layer = p
-				.layer()
-				.with_effect(e)
+				.single_effect_layer(s)
 				.with_bindings(map! {
 					0 => u_size.binding(),
 					1 => sampler.binding(),
@@ -62,10 +60,8 @@ impl CanvasApp<()> for App {
 				.with_bindings(&[BINDING_BUFFER_FRAG, BINDING_BUFFER_FRAG])
 				.create();
 
-			let e = p.effect(s).create();
 			let layer = p
-				.layer()
-				.with_effect(e)
+				.single_effect_layer(s)
 				.with_bindings(map! {
 					0 => u_size.binding(),
 					1 => u_time.binding()
