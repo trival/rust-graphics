@@ -1,0 +1,12 @@
+[
+  {
+    "source_path": "out/pool_tiles.spv",
+    "entry_point": "pool_tiles",
+    "wgsl_entry_point": "pool_tiles"
+  },
+  {
+    "source_path": "out/tiled_plates.spv",
+    "entry_point": "tiled_plates",
+    "wgsl_entry_point": "tiled_plates"
+  }
+]

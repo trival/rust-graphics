@@ -1,0 +1,67 @@
+[
+  {
+    "source_path": "out/bos_colors.spv",
+    "entry_point": "bos_colors",
+    "wgsl_entry_point": "bos_colors"
+  },
+  {
+    "source_path": "out/bos_shapes_circle.spv",
+    "entry_point": "bos_shapes_circle",
+    "wgsl_entry_point": "bos_shapes_circle"
+  },
+  {
+    "source_path": "out/bos_shapes_circles.spv",
+    "entry_point": "bos_shapes_circles",
+    "wgsl_entry_point": "bos_shapes_circles"
+  },
+  {
+    "source_path": "out/bos_shapes_rect.spv",
+    "entry_point": "bos_shapes_rect",
+    "wgsl_entry_point": "bos_shapes_rect"
+  },
+  {
+    "source_path": "out/bos_shapes_rounded_rect.spv",
+    "entry_point": "bos_shapes_rounded_rect",
+    "wgsl_entry_point": "bos_shapes_rounded_rect"
+  },
+  {
+    "source_path": "out/bos_shaping_fns.spv",
+    "entry_point": "bos_shaping_fns",
+    "wgsl_entry_point": "bos_shaping_fns"
+  },
+  {
+    "source_path": "out/fbm_shader.spv",
+    "entry_point": "fbm_shader",
+    "wgsl_entry_point": "fbm_shader"
+  },
+  {
+    "source_path": "out/net.spv",
+    "entry_point": "net",
+    "wgsl_entry_point": "net"
+  },
+  {
+    "source_path": "out/noisy_lines_1.spv",
+    "entry_point": "noisy_lines_1",
+    "wgsl_entry_point": "noisy_lines_1"
+  },
+  {
+    "source_path": "out/noisy_lines_2.spv",
+    "entry_point": "noisy_lines_2",
+    "wgsl_entry_point": "noisy_lines_2"
+  },
+  {
+    "source_path": "out/noisy_quads.spv",
+    "entry_point": "noisy_quads",
+    "wgsl_entry_point": "noisy_quads"
+  },
+  {
+    "source_path": "out/simplex_prefilled.spv",
+    "entry_point": "simplex_prefilled",
+    "wgsl_entry_point": "simplex_prefilled"
+  },
+  {
+    "source_path": "out/tiled_lines.spv",
+    "entry_point": "tiled_lines",
+    "wgsl_entry_point": "tiled_lines"
+  }
+]

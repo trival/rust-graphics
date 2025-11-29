@@ -1,0 +1,17 @@
+[package]
+name = "tex_tests_shader"
+version = "0.1.0"
+edition.workspace = true
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+# Dependencies for CPU and GPU code
+[dependencies]
+spirv-std.workspace = true
+trivalibs-nostd.workspace = true
+shared-nostd.workspace = true
+
+[package.metadata.rust-gpu.build]
+output-dir = "./out/"
+multimodule = true
