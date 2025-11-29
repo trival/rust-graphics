@@ -1,3 +1,4 @@
+pub mod circular_line;
 pub mod fbm;
 pub mod net;
 pub mod noisy_line;

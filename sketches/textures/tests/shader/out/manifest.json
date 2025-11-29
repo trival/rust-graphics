@@ -30,6 +30,11 @@
     "wgsl_entry_point": "bos_shaping_fns"
   },
   {
+    "source_path": "out/circular_line.spv",
+    "entry_point": "circular_line",
+    "wgsl_entry_point": "circular_line"
+  },
+  {
     "source_path": "out/fbm_shader.spv",
     "entry_point": "fbm_shader",
     "wgsl_entry_point": "fbm_shader"

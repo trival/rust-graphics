@@ -52,6 +52,16 @@ pub fn noisy_lines_2(
 }
 
 #[spirv(fragment)]
+pub fn circular_line(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
+	out: &mut Vec4,
+) {
+	*out = shaders::circular_line::shader(uv, *size, *time);
+}
+
+#[spirv(fragment)]
 pub fn tiled_lines(
 	uv: Vec2,
 	#[spirv(uniform, descriptor_set = 0, binding = 0)] size: &UVec2,

@@ -74,6 +74,9 @@ impl CanvasApp<()> for App {
 		let (s, canvas_fbm_shader) = shade_canvas(p, true);
 		load_fragment_shader!(s, p, "../shader/out/fbm_shader.spv");
 
+		let (s, canvas_circular_line) = shade_canvas(p, true);
+		load_fragment_shader!(s, p, "../shader/out/circular_line.spv");
+
 		let (s, canvas_simplex_prefilled) = texture_shade_canvas(p, noise_tex, false);
 		load_fragment_shader!(s, p, "../shader/out/simplex_prefilled.spv");
 
@@ -118,6 +121,7 @@ impl CanvasApp<()> for App {
 			u_time,
 
 			canvases: vec![
+				canvas_circular_line,
 				canvas_noisy_lines_2,
 				canvas_net,
 				canvas_tiled_lines,
