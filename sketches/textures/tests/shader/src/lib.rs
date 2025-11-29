@@ -7,7 +7,8 @@ use spirv_std::num_traits::Float;
 use spirv_std::{Image, Sampler, spirv};
 
 mod book_of_shaders;
-pub mod sketches;
+mod shaders;
+mod utils;
 
 #[spirv(fragment)]
 pub fn simplex_prefilled(
@@ -17,7 +18,7 @@ pub fn simplex_prefilled(
 	#[spirv(descriptor_set = 1, binding = 0)] tex: &Image!(2D, type=f32, sampled),
 	out: &mut Vec4,
 ) {
-	*out = sketches::noise::simplex_prefilled(uv, tex, sampler, size);
+	*out = shaders::simplex_prefilled::shader(uv, tex, sampler, size);
 }
 
 #[spirv(fragment)]
@@ -27,57 +28,7 @@ pub fn fbm_shader(
 	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
 	out: &mut Vec4,
 ) {
-	*out = sketches::noise::fbm_shader(uv, *size, *time);
-}
-
-#[spirv(fragment)]
-pub fn bos_shaping_fns(
-	uv: Vec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
-	out: &mut Vec4,
-) {
-	*out = book_of_shaders::shaping_fns::shaping_fns(uv);
-}
-
-#[spirv(fragment)]
-pub fn bos_shapes_rect(
-	uv: Vec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
-	out: &mut Vec4,
-) {
-	*out = book_of_shaders::shapes::rect_shader(uv);
-}
-
-#[spirv(fragment)]
-pub fn bos_shapes_circle(
-	uv: Vec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
-	out: &mut Vec4,
-) {
-	*out = book_of_shaders::shapes::circle_shader(uv, *time);
-}
-
-#[spirv(fragment)]
-pub fn bos_colors(
-	uv: Vec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
-	out: &mut Vec4,
-) {
-	*out = book_of_shaders::colors::color_test(uv, *time);
-}
-
-#[spirv(fragment)]
-pub fn bos_shapes_circles(
-	uv: Vec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
-	out: &mut Vec4,
-) {
-	*out = book_of_shaders::shapes::shader_circles(uv, *time);
+	*out = shaders::fbm::shader(uv, *size, *time);
 }
 
 #[spirv(fragment)]
@@ -87,7 +38,7 @@ pub fn noisy_lines_1(
 	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
 	out: &mut Vec4,
 ) {
-	*out = sketches::noise::noisy_lines_1(uv, *size, *time);
+	*out = shaders::noisy_lines_1::shader(uv, *size, *time);
 }
 
 #[spirv(fragment)]
@@ -97,7 +48,7 @@ pub fn noisy_lines_2(
 	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
 	out: &mut Vec4,
 ) {
-	*out = sketches::lines::noisy_lines_2(uv, *size, *time);
+	*out = shaders::noisy_line::shader(uv, *size, *time);
 }
 
 #[spirv(fragment)]
@@ -107,17 +58,7 @@ pub fn tiled_lines(
 	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
 	out: &mut Vec4,
 ) {
-	*out = sketches::tiles::tiled_lines(uv, *size, *time);
-}
-
-#[spirv(fragment)]
-pub fn bos_shapes_rounded_rect(
-	uv: Vec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
-	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
-	out: &mut Vec4,
-) {
-	*out = book_of_shaders::shapes::rounded_rect_shader(uv);
+	*out = shaders::tiled_lines::shader(uv, *size, *time);
 }
 
 #[spirv(fragment)]
@@ -127,7 +68,7 @@ pub fn net(
 	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
 	out: &mut Vec4,
 ) {
-	*out = sketches::misc::net(uv, *size);
+	*out = shaders::net::shader(uv, *size);
 }
 
 #[spirv(fragment)]
@@ -137,5 +78,65 @@ pub fn noisy_quads(
 	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
 	out: &mut Vec4,
 ) {
-	*out = sketches::noise::noisy_squares(uv, size.as_vec2(), *time);
+	*out = shaders::noisy_squares::shader(uv, size.as_vec2(), *time);
+}
+
+#[spirv(fragment)]
+pub fn bos_shapes_rounded_rect(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
+	out: &mut Vec4,
+) {
+	*out = book_of_shaders::rounded_rect::shader(uv);
+}
+
+#[spirv(fragment)]
+pub fn bos_shaping_fns(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
+	out: &mut Vec4,
+) {
+	*out = book_of_shaders::shaping_fns::shader(uv);
+}
+
+#[spirv(fragment)]
+pub fn bos_shapes_rect(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] _time: &f32,
+	out: &mut Vec4,
+) {
+	*out = book_of_shaders::rect::shader(uv);
+}
+
+#[spirv(fragment)]
+pub fn bos_shapes_circle(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
+	out: &mut Vec4,
+) {
+	*out = book_of_shaders::circle::shader(uv, *time);
+}
+
+#[spirv(fragment)]
+pub fn bos_colors(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
+	out: &mut Vec4,
+) {
+	*out = book_of_shaders::colors::shader(uv, *time);
+}
+
+#[spirv(fragment)]
+pub fn bos_shapes_circles(
+	uv: Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] _size: &UVec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
+	out: &mut Vec4,
+) {
+	*out = book_of_shaders::circles::shader(uv, *time);
 }

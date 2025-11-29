@@ -1,10 +1,8 @@
 use shared_nostd::aspect_preserving_uv;
 use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4, vec2, vec3};
-#[allow(unused_imports)]
-use spirv_std::num_traits::Float;
 use trivalibs_nostd::{prelude::*, random::simplex::simplex_noise_2d};
 
-pub fn noisy_lines_2(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
+pub fn shader(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 	let uv_current = aspect_preserving_uv(uv, size);
 
 	let uv = uv_current * 2.0 - 1.0;

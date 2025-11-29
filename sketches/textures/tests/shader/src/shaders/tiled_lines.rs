@@ -9,7 +9,7 @@ use trivalibs_nostd::{
 
 const NUM_LINES: u32 = 15;
 
-pub fn tiled_lines(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
+pub fn shader(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 	let uv = aspect_preserving_uv(uv, size);
 
 	let uv_scaled = uv * 10.;
@@ -46,21 +46,8 @@ pub fn tiled_lines(uv: Vec2, size: UVec2, time: f32) -> Vec4 {
 					* uv.y.smoothstep(y - 0.025, y - 0.02)
 					* uv.y.smoothstep(y + 0.025, y + 0.02);
 
-				// if uv_tile.x > 0.99 || uv_tile.y > 0.99 {
-				// 	color = vec3(0.4, 0.4, 0.4);
-				// 	// Vec3::ONE
-				// } else {
-				let line_color = if w < -0.1 {
-					// vec3(1.0, 0., 0.)
-					Vec3::ZERO
-				} else if w > 0.1 {
-					// vec3(0., 0., 1.0)
-					Vec3::ZERO
-				} else {
-					Vec3::ZERO
-				};
+				let line_color = Vec3::ZERO;
 				color = color.lerp(line_color, line);
-				// }
 			}
 		}
 	}

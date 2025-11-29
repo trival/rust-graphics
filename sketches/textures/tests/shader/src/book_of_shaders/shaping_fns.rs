@@ -20,7 +20,7 @@ fn plot(st: Vec2, val: f32) -> f32 {
 
 const PLOT_COLOR: Vec3 = vec3(0.0, 1.0, 0.0);
 
-pub fn shaping_fns(st: Vec2) -> Vec4 {
+pub fn shader(st: Vec2) -> Vec4 {
 	let st = flip_y(st);
 
 	let x = st.x;
