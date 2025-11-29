@@ -1,7 +1,5 @@
 use shared_nostd::aspect_preserving_uv;
 use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4, vec2, vec3};
-#[allow(unused_imports)]
-use spirv_std::num_traits::Float;
 use trivalibs_nostd::{
 	prelude::*,
 	random::{
@@ -12,7 +10,7 @@ use trivalibs_nostd::{
 
 const LINE_COUNT: f32 = 20.0;
 
-pub fn noisy_lines_2(uv: Vec2, _size: UVec2, time: f32) -> Vec4 {
+pub fn shader(uv: Vec2, _size: UVec2, time: f32) -> Vec4 {
 	let line_segment = (uv.x * LINE_COUNT).floor();
 	let line_x = (uv.x * LINE_COUNT).frct().fit0111();
 

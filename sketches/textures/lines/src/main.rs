@@ -32,7 +32,7 @@ impl CanvasApp<()> for App {
 		};
 
 		let (s, canvas_noisy_lines_2) = shade_canvas(p);
-		load_fragment_shader!(s, p, "../shader/out/noisy_lines_2.spv");
+		load_fragment_shader!(s, p, "../shader/out/lines_1.spv");
 
 		// return App
 

@@ -2,9 +2,7 @@ use shared_nostd::{
 	aspect_preserving_uv,
 	shapes::{rounded_rect, rounded_rect_smooth},
 };
-use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4, vec2, vec3};
-#[allow(unused_imports)]
-use spirv_std::num_traits::Float;
+use spirv_std::glam::*;
 use trivalibs_nostd::{color::hsv2rgb_smooth, prelude::*, random::hash::hash2d};
 
 const NUM_TILES: f32 = 15.;
@@ -31,7 +29,7 @@ fn tile(idx: Vec2, time: f32) -> Tile {
 	}
 }
 
-pub fn tiled_plates(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
+pub fn shader(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
 	let uv = aspect_preserving_uv(uv, size);
 
 	let uv_scaled = uv * NUM_TILES;

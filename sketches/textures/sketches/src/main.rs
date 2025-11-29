@@ -33,7 +33,7 @@ impl CanvasApp<()> for App {
 		};
 
 		let (s, canvas_tiles) = shade_canvas(p);
-		load_fragment_shader!(s, p, "../shader/out/tiled_plates.spv");
+		load_fragment_shader!(s, p, "../shader/out/moving_plates.spv");
 
 		let (s, canvas_pool_tiles) = shade_canvas(p);
 		load_fragment_shader!(s, p, "../shader/out/pool_tiles.spv");

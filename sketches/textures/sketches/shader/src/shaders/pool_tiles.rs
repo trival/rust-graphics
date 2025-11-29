@@ -1,7 +1,5 @@
 use shared_nostd::aspect_preserving_uv;
 use spirv_std::glam::{Mat2, UVec2, Vec2, Vec4, vec2, vec3};
-#[allow(unused_imports)]
-use spirv_std::num_traits::Float;
 use trivalibs_nostd::{
 	color::hsv2rgb,
 	coords::PolarCoord,
@@ -12,7 +10,7 @@ use trivalibs_nostd::{
 	},
 };
 
-pub fn pool_tiles(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
+pub fn shader(uv: Vec2, size: UVec2, t: f32) -> Vec4 {
 	let uv = aspect_preserving_uv(uv, size);
 
 	let drop_center = vec2(-1.2, -1.3);

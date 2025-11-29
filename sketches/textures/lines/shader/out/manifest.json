@@ -1,7 +1,7 @@
 [
   {
-    "source_path": "out/noisy_lines_2.spv",
-    "entry_point": "noisy_lines_2",
-    "wgsl_entry_point": "noisy_lines_2"
+    "source_path": "out/lines_1.spv",
+    "entry_point": "lines_1",
+    "wgsl_entry_point": "lines_1"
   }
 ]
