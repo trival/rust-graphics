@@ -203,7 +203,7 @@ impl PlateGeometry {
 	pub fn front_face_f<P: Position3D, F: Fn(Vec3, Vec3) -> P>(&self, f: F) -> Vec<Quad3D<P>> {
 		let slice_idx = 0;
 		let (front_loop, back_loop) = &self.slices[slice_idx];
-		let normal = -self.extrusion.normalize();
+		let normal = -self.extrusion.normalize_or_zero();
 		
 		let mut quads = Vec::new();
 		
@@ -239,7 +239,7 @@ impl PlateGeometry {
 	pub fn back_face_f<P: Position3D, F: Fn(Vec3, Vec3) -> P>(&self, f: F) -> Vec<Quad3D<P>> {
 		let slice_idx = self.subdivisions;
 		let (front_loop, back_loop) = &self.slices[slice_idx];
-		let normal = self.extrusion.normalize();
+		let normal = self.extrusion.normalize_or_zero();
 		
 		let mut quads = Vec::new();
 		
@@ -282,7 +282,7 @@ impl PlateGeometry {
 			for i in 0usize..front_loop_curr.len() - 1 {
 				// Compute normal for this edge segment
 				let edge_dir = (front_loop_curr[i + 1] - front_loop_curr[i]).normalize_or_zero();
-				let normal = edge_dir.cross(self.extrusion.normalize()).normalize();
+				let normal = edge_dir.cross(self.extrusion.normalize_or_zero()).normalize_or_zero();
 				
 				let tl = front_loop_curr[i];
 				let tr = front_loop_curr[i + 1];
@@ -323,7 +323,7 @@ impl PlateGeometry {
 			for i in 0usize..back_loop_curr.len() - 1 {
 				// Compute normal for this edge segment (opposite to left face)
 				let edge_dir = (back_loop_curr[i + 1] - back_loop_curr[i]).normalize_or_zero();
-				let normal = -edge_dir.cross(self.extrusion.normalize()).normalize();
+				let normal = -edge_dir.cross(self.extrusion.normalize_or_zero()).normalize_or_zero();
 				
 				let tl = back_loop_curr[i + 1];
 				let tr = back_loop_curr[i];
@@ -359,8 +359,8 @@ impl PlateGeometry {
 		let point_idx = 0;
 		
 		// Compute normal (perpendicular to extrusion and edge)
-		let edge_dir = (self.slices[0].1[point_idx] - self.slices[0].0[point_idx]).normalize();
-		let normal = -self.extrusion.normalize().cross(edge_dir).normalize();
+		let edge_dir = (self.slices[0].1[point_idx] - self.slices[0].0[point_idx]).normalize_or_zero();
+		let normal = -self.extrusion.normalize_or_zero().cross(edge_dir).normalize_or_zero();
 		
 		for slice_idx in 0..self.subdivisions {
 			let (front_curr, back_curr) = &self.slices[slice_idx];
@@ -399,8 +399,8 @@ impl PlateGeometry {
 		let point_idx = self.points.len() - 1;
 		
 		// Compute normal (perpendicular to extrusion and edge)
-		let edge_dir = (self.slices[0].1[point_idx] - self.slices[0].0[point_idx]).normalize();
-		let normal = self.extrusion.normalize().cross(edge_dir).normalize();
+		let edge_dir = (self.slices[0].1[point_idx] - self.slices[0].0[point_idx]).normalize_or_zero();
+		let normal = self.extrusion.normalize_or_zero().cross(edge_dir).normalize_or_zero();
 		
 		for slice_idx in 0..self.subdivisions {
 			let (front_curr, back_curr) = &self.slices[slice_idx];
