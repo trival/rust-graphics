@@ -16,7 +16,7 @@ pub struct PlateGeometry {
 	points: Vec<Vec3>,
 	/// Extrusion direction and length
 	extrusion: Vec3,
-	/// Plate width (thickness)
+	/// Plate width (thickness), stored for completeness
 	#[allow(dead_code)]
 	width: f32,
 	/// Number of subdivisions along extrusion
@@ -98,10 +98,7 @@ impl PlateGeometry {
 		
 		for i in 0..points.len() {
 			// Compute tangent based on neighbors
-			let tangent = if points.len() == 1 {
-				// Single point: use extrusion direction
-				Vec3::Z
-			} else if i == 0 {
+			let tangent = if i == 0 {
 				// First point: use direction to next point
 				(points[1] - points[0]).normalize_or_zero()
 			} else if i == points.len() - 1 {
@@ -125,7 +122,7 @@ impl PlateGeometry {
 				} else {
 					Vec3::Y
 				};
-				extrusion_norm.cross(perp).normalize()
+				extrusion_norm.cross(perp).normalize_or_zero()
 			} else {
 				normal
 			};
