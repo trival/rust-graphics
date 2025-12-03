@@ -11,6 +11,37 @@ use trivalibs::data::Position3D;
 /// - U: progress along the polyline curve (0 to 1)
 /// - V: progress along the extrusion direction (0 to 1)
 /// - W: offset across the width (0 = front, 1 = back)
+///
+/// # Example
+/// ```ignore
+/// use trivalibs::prelude::*;
+/// use shared::plate_geometry::PlateGeometry;
+///
+/// // Create a simple wall along the X axis, extruded upward
+/// let points = vec![
+///     vec3(0.0, 0.0, 0.0),
+///     vec3(5.0, 0.0, 0.0),
+/// ];
+/// let extrusion = vec3(0.0, 2.0, 0.0); // Extrude upward by 2 units
+/// let width = 0.3; // Wall thickness
+/// let subdivisions = 1; // Single segment
+///
+/// let plate = PlateGeometry::new(&points, extrusion, width, subdivisions);
+///
+/// // Get all faces
+/// let front_faces = plate.front_face();
+/// let back_faces = plate.back_face();
+/// let left_faces = plate.left_face();
+/// let right_faces = plate.right_face();
+/// let top_faces = plate.top_face();
+/// let bottom_faces = plate.bottom_face();
+///
+/// // Or use mapper functions for custom UVs
+/// let front_with_uvs = plate.front_face_f(|pos, uvw| {
+///     // Custom UV mapping based on UVW coordinates
+///     MyVertex { position: pos, uv: vec2(uvw.x, uvw.y) }
+/// });
+/// ```
 pub struct PlateGeometry {
 	/// Original polyline points
 	points: Vec<Vec3>,
