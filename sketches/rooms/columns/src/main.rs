@@ -24,7 +24,7 @@ pub fn create_plane(width: f32, height: f32, normal: Vec3, center: Vec3) -> Buff
 	let mut geom = MeshGeometry::new();
 	geom.add_face_data(&plane.to_ccw_verts(), face_normal(plane.normal));
 
-	geom.to_buffered_geometry_by_type(MeshBufferType::FaceVerticesWithFaceNormals)
+	geom.to_buffered_geometry_by_type(MeshBufferType::FaceVerticesWithFaceNormal)
 }
 
 pub fn create_balk_form(width: f32, height: f32, length: f32) -> BufferedGeometry {
@@ -41,7 +41,7 @@ pub fn create_balk_form(width: f32, height: f32, length: f32) -> BufferedGeometr
 	let bottom = bbox.bottom_face_f(|pos, uvw| vert_pos_uv(pos, vec2(uvw.x, uvw.z)));
 	geom.add_face_data(&bottom.to_ccw_verts(), face_props(bottom.normal, 5));
 
-	geom.to_buffered_geometry_by_type(MeshBufferType::FaceVerticesWithFaceNormals)
+	geom.to_buffered_geometry_by_type(MeshBufferType::FaceVerticesWithFaceNormal)
 }
 
 pub fn create_column_form(width: f32, height: f32) -> BufferedGeometry {
@@ -61,7 +61,7 @@ pub fn create_column_form(width: f32, height: f32) -> BufferedGeometry {
 	let right = bbox.right_face_f(|pos, uvw| vert_pos_uv(pos, vec2(uvw.z, uvw.y)));
 	geom.add_face_data(&right.to_ccw_verts(), face_props(right.normal, 3));
 
-	geom.to_buffered_geometry_by_type(MeshBufferType::FaceVerticesWithFaceNormals)
+	geom.to_buffered_geometry_by_type(MeshBufferType::FaceVerticesWithFaceNormal)
 }
 
 struct App {

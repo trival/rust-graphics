@@ -790,6 +790,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "grid_ceiling"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "trivalibs",
+]
+
+[[package]]
+name = "grid_ceiling_shader"
+version = "0.1.0"
+dependencies = [
+ "spirv-std",
+ "trivalibs-nostd",
+]
+
+[[package]]
 name = "half"
 version = "2.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

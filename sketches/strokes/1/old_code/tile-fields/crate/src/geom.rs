@@ -70,12 +70,48 @@ pub fn create_canvas(width: usize, height: usize) -> BufferedGeometry {
 	let bottom_grid = make_grid_from_cols(vec![grid_front.first_row(), grid_back.first_row()]);
 
 	let mut geom = MeshGeometry::new();
-	geom.add_grid_cw_quads_data(&grid_front, face_normal(Vec3::Z));
-	geom.add_grid_ccw_quads_data(&grid_back, face_normal(-Vec3::Z));
-	geom.add_grid_ccw_quads_data(&grid_top, face_normal(Vec3::Y));
-	geom.add_grid_cw_quads_data(&bottom_grid, face_normal(-Vec3::Y));
-	geom.add_grid_ccw_quads_data(&left_grid, face_normal(-Vec3::X));
-	geom.add_grid_cw_quads_data(&right_grid, face_normal(Vec3::X));
+	let front_props = face_normal(Vec3::Z);
+	geom.add_faces_data(
+		grid_front
+			.to_cw_quads()
+			.into_iter()
+			.map(move |quad| (quad, front_props)),
+	);
+	let back_props = face_normal(-Vec3::Z);
+	geom.add_faces_data(
+		grid_back
+			.to_ccw_quads()
+			.into_iter()
+			.map(move |quad| (quad, back_props)),
+	);
+	let top_props = face_normal(Vec3::Y);
+	geom.add_faces_data(
+		grid_top
+			.to_ccw_quads()
+			.into_iter()
+			.map(move |quad| (quad, top_props)),
+	);
+	let bottom_props = face_normal(-Vec3::Y);
+	geom.add_faces_data(
+		bottom_grid
+			.to_cw_quads()
+			.into_iter()
+			.map(move |quad| (quad, bottom_props)),
+	);
+	let left_props = face_normal(-Vec3::X);
+	geom.add_faces_data(
+		left_grid
+			.to_ccw_quads()
+			.into_iter()
+			.map(move |quad| (quad, left_props)),
+	);
+	let right_props = face_normal(Vec3::X);
+	geom.add_faces_data(
+		right_grid
+			.to_cw_quads()
+			.into_iter()
+			.map(move |quad| (quad, right_props)),
+	);
 
 	geom.to_buffered_geometry_by_type(MeshBufferedGeometryType::FaceNormals)
 }
@@ -91,7 +127,13 @@ pub fn create_wall() -> BufferedGeometry {
 	let grid = make_grid_from_cols(vec![vec![tl, bl], vec![tr, br]]).subdivide(10, 10);
 
 	let mut geom = MeshGeometry::new();
-	geom.add_grid_cw_quads_data(&grid, face_normal(vec3(0.0, 0.0, 1.0)));
+	let wall_props = face_normal(vec3(0.0, 0.0, 1.0));
+	geom.add_faces_data(
+		grid
+			.to_cw_quads()
+			.into_iter()
+			.map(move |quad| (quad, wall_props)),
+	);
 
 	geom.to_buffered_geometry_by_type(MeshBufferedGeometryType::FaceNormals)
 }
@@ -111,7 +153,13 @@ pub fn create_ground() -> BufferedGeometry {
 	let grid = grid.subdivide(10, 10);
 
 	let mut geom = MeshGeometry::new();
-	geom.add_grid_ccw_quads_data(&grid, face_normal(vec3(0.0, 1.0, 0.0)));
+	let ground_props = face_normal(vec3(0.0, 1.0, 0.0));
+	geom.add_faces_data(
+		grid
+			.to_ccw_quads()
+			.into_iter()
+			.map(move |quad| (quad, ground_props)),
+	);
 
 	geom.to_buffered_geometry_by_type(MeshBufferedGeometryType::FaceNormals)
 }

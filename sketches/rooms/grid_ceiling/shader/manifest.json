@@ -1,0 +1,22 @@
+[
+  {
+    "source_path": "wall_pre_render_frag.spv",
+    "entry_point": "wall_pre_render_frag",
+    "wgsl_entry_point": "wall_pre_render_frag"
+  },
+  {
+    "source_path": "wall_pre_render_vert.spv",
+    "entry_point": "wall_pre_render_vert",
+    "wgsl_entry_point": "wall_pre_render_vert"
+  },
+  {
+    "source_path": "wall_render_frag.spv",
+    "entry_point": "wall_render_frag",
+    "wgsl_entry_point": "wall_render_frag"
+  },
+  {
+    "source_path": "wall_render_vert.spv",
+    "entry_point": "wall_render_vert",
+    "wgsl_entry_point": "wall_render_vert"
+  }
+]
