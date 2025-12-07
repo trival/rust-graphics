@@ -15,8 +15,8 @@ pub fn wall_pre_render_vert(
 	normal: Vec3,
 	#[spirv(position)] out_vert: &mut Vec4,
 	out_pos: &mut Vec3,
-	out_norm: &mut Vec3,
 	out_uv: &mut Vec2,
+	out_norm: &mut Vec3,
 ) {
 	*out_vert = uv.fit0111().extend(0.).extend(1.0);
 	*out_pos = position;
@@ -25,15 +25,15 @@ pub fn wall_pre_render_vert(
 }
 
 #[spirv(fragment)]
-pub fn wall_pre_render_frag(in_pos: Vec3, in_norm: Vec3, in_uv: Vec2, out: &mut Vec4) {
+pub fn wall_pre_render_frag(in_pos: Vec3, in_uv: Vec2, in_norm: Vec3, out: &mut Vec4) {
 	let noise1 = rot_noise_3d(in_pos, in_uv.x);
 
-	// let noise2 = rot_noise_3d(in_pos.cross(in_norm), in_uv.y);
+	let noise2 = rot_noise_3d(in_pos.cross(in_norm), in_uv.y);
 
-	// let val = (noise1.0 + noise2.0).fit1101() / 2.0;
-	let val = noise1.0.fit1101() / 2.0;
+	let val = (noise1.0 + noise2.0).fit1101() / 2.0;
+	// let val = noise1.0.fit1101() / 2.0;
 
-	*out = Vec3::splat(val.powf(2.2)).extend(1.0);
+	*out = Vec3::splat(val.clamp01().powf(2.2)).extend(1.0);
 }
 
 #[spirv(vertex)]
@@ -43,8 +43,8 @@ pub fn wall_render_vert(
 	normal: Vec3,
 	#[spirv(uniform, descriptor_set = 0, binding = 0)] mvp_mat: &Mat4,
 	#[spirv(position)] out_pos: &mut Vec4,
-	out_norm: &mut Vec3,
 	out_uv: &mut Vec2,
+	out_norm: &mut Vec3,
 ) {
 	*out_pos = *mvp_mat * position.extend(1.0);
 	*out_norm = normal;
@@ -53,8 +53,8 @@ pub fn wall_render_vert(
 
 #[spirv(fragment)]
 pub fn wall_render_frag(
-	_in_norm: Vec3,
 	in_uv: Vec2,
+	_in_norm: Vec3,
 	#[spirv(descriptor_set = 0, binding = 1)] sampler: &Sampler,
 	#[spirv(descriptor_set = 1, binding = 0)] tex: &Image!(2D, type=f32, sampled),
 	out: &mut Vec4,

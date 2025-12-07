@@ -25,7 +25,7 @@ pub fn wall_pre_render_vert(
 }
 
 #[spirv(fragment)]
-pub fn wall_pre_render_frag(in_pos: Vec3, in_norm: Vec3, in_uv: Vec2, out: &mut Vec4) {
+pub fn wall_pre_render_frag(in_pos: Vec3, _in_norm: Vec3, in_uv: Vec2, out: &mut Vec4) {
 	let noise1 = rot_noise_3d(in_pos, in_uv.x);
 
 	// let noise2 = rot_noise_3d(in_pos.cross(in_norm), in_uv.y);

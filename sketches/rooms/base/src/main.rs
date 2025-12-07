@@ -1,5 +1,5 @@
 use trivalibs::rendering::{
-	mesh_geometry::{MeshBufferType, MeshGeometry},
+	mesh_geometry::{MeshBufferType, MeshGeometry, utils::vert_pos_uv},
 	shapes::cuboid::Cuboid,
 };
 use trivalibs::{
@@ -13,6 +13,9 @@ use trivalibs::{
 const ROOM_HEIGHT: f32 = 5.5;
 const ROOM_DEPTH: f32 = 10.0;
 const ROOM_WIDTH: f32 = 6.5;
+const WALL_LENGTH: f32 = ROOM_DEPTH * 2.0 + ROOM_WIDTH * 2.0;
+
+const TEX_SCALE: f32 = 20.0;
 
 struct App {
 	cam: PerspectiveCamera,
@@ -32,15 +35,46 @@ impl CanvasApp<()> for App {
 			ROOM_DEPTH,
 		);
 
-		let ceil = MeshGeometry::from_face(room_cube.top_face().to_cw_verts())
-			.to_buffered_geometry_by_type(MeshBufferType::FaceVerticesWithFaceNormal);
-		let floor = MeshGeometry::from_face(room_cube.bottom_face().to_cw_verts())
-			.to_buffered_geometry_by_type(MeshBufferType::FaceVerticesWithFaceNormal);
+		let ceil = MeshGeometry::from_face(
+			room_cube
+				.top_face_f(|pos, uvw| vert_pos_uv(pos, uvw.xz()))
+				.to_cw_verts(),
+		)
+		.to_buffered_geometry_by_type(MeshBufferType::FaceVerticesWithFaceNormal);
+		let floor = MeshGeometry::from_face(
+			room_cube
+				.bottom_face_f(|pos, uvw| vert_pos_uv(pos, uvw.xz()))
+				.to_cw_verts(),
+		)
+		.to_buffered_geometry_by_type(MeshBufferType::FaceVerticesWithFaceNormal);
+
 		let walls = [
-			room_cube.front_face(),
-			room_cube.right_face(),
-			room_cube.back_face(),
-			room_cube.left_face(),
+			room_cube
+				.front_face_f(|pos, uvw| vert_pos_uv(pos, vec2(uvw.x * ROOM_WIDTH / WALL_LENGTH, uvw.y))),
+			room_cube.right_face_f(|pos, uvw| {
+				vert_pos_uv(
+					pos,
+					vec2((ROOM_WIDTH + uvw.z * ROOM_DEPTH) / WALL_LENGTH, uvw.y),
+				)
+			}),
+			room_cube.back_face_f(|pos, uvw| {
+				vert_pos_uv(
+					pos,
+					vec2(
+						(ROOM_WIDTH + ROOM_DEPTH + (1.0 - uvw.x) * ROOM_WIDTH) / WALL_LENGTH,
+						uvw.y,
+					),
+				)
+			}),
+			room_cube.left_face_f(|pos, uvw| {
+				vert_pos_uv(
+					pos,
+					vec2(
+						(ROOM_WIDTH + ROOM_DEPTH + ROOM_WIDTH + (1.0 - uvw.z) * ROOM_DEPTH) / WALL_LENGTH,
+						uvw.y,
+					),
+				)
+			}),
 		]
 		.iter()
 		.map(|face| {
@@ -67,14 +101,57 @@ impl CanvasApp<()> for App {
 
 		let cam = PerspectiveCamera::create(CamProps {
 			fov: Some(0.6),
-			translation: Some(vec3(0.0, 3.0, 15.0)),
+			translation: Some(vec3(0.0, 1.7, 0.0)),
 			// rot_horizontal: Some(PI),
 			..default()
 		});
 
-		let floor_shape = p.shape(floor_form, wall_render_shade).create();
-		let wall_shape = p.shape(walls_form, wall_render_shade).create();
-		let ceil_shape = p.shape(ceil_form, wall_render_shade).create();
+		let floor_tex_shape = p.shape(floor_form, pre_render_shade).create();
+		let wall_tex_shape = p.shape(walls_form, pre_render_shade).create();
+		let ceil_tex_shape = p.shape(ceil_form, pre_render_shade).create();
+
+		let floor_tex = p
+			.layer()
+			.with_shape(floor_tex_shape)
+			.with_size(
+				(ROOM_WIDTH * TEX_SCALE).floor() as u32,
+				(ROOM_DEPTH * TEX_SCALE).floor() as u32,
+			)
+			.with_mips()
+			.create_and_paint();
+
+		let wall_tex = p
+			.layer()
+			.with_shape(wall_tex_shape)
+			.with_size(
+				(WALL_LENGTH * TEX_SCALE).floor() as u32,
+				(ROOM_HEIGHT * TEX_SCALE).floor() as u32,
+			)
+			.with_mips()
+			.create_and_paint();
+
+		let ceil_tex = p
+			.layer()
+			.with_shape(ceil_tex_shape)
+			.with_size(
+				(ROOM_WIDTH * TEX_SCALE).floor() as u32,
+				(ROOM_DEPTH * TEX_SCALE).floor() as u32,
+			)
+			.with_mips()
+			.create_and_paint();
+
+		let floor_shape = p
+			.shape(floor_form, wall_render_shade)
+			.with_layers(vec![(0, floor_tex.binding())])
+			.create();
+		let wall_shape = p
+			.shape(walls_form, wall_render_shade)
+			.with_layers(vec![(0, wall_tex.binding())])
+			.create();
+		let ceil_shape = p
+			.shape(ceil_form, wall_render_shade)
+			.with_layers(vec![(0, ceil_tex.binding())])
+			.create();
 
 		let vp_mat = p.bind_mat4();
 		let sampler = p

@@ -14,8 +14,8 @@ mod geom;
 struct App {
 	cam: PerspectiveCamera,
 	vp_mat: BindingBuffer<Mat4>,
-	grid_row_tex: Layer,
-	grid_col_tex: Layer,
+	// grid_row_tex: Layer,
+	// grid_col_tex: Layer,
 	canvas: Layer,
 
 	input: InputState,
@@ -156,8 +156,8 @@ impl CanvasApp<()> for App {
 		Self {
 			cam,
 			canvas,
-			grid_col_tex,
-			grid_row_tex,
+			// grid_col_tex,
+			// grid_row_tex,
 			vp_mat,
 			input: default(),
 			cam_controller: BasicFirstPersonCameraController::new(1.0, 3.0),
