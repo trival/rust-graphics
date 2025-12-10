@@ -22,6 +22,10 @@ struct App {
 	vp_mat: BindingBuffer<Mat4>,
 	canvas: Layer,
 
+	ceil_tex: Layer,
+	wall_tex: Layer,
+	floor_tex: Layer,
+
 	input: InputState,
 	cam_controller: BasicFirstPersonCameraController,
 }
@@ -41,6 +45,7 @@ impl CanvasApp<()> for App {
 				.to_cw_verts(),
 		)
 		.to_buffered_geometry_by_type(MeshBufferType::FaceVerticesWithFaceNormal);
+
 		let floor = MeshGeometry::from_face(
 			room_cube
 				.bottom_face_f(|pos, uvw| vert_pos_uv(pos, uvw.xz()))
@@ -181,6 +186,11 @@ impl CanvasApp<()> for App {
 			cam,
 			canvas,
 			vp_mat,
+
+			ceil_tex,
+			wall_tex,
+			floor_tex,
+
 			input: default(),
 			cam_controller: BasicFirstPersonCameraController::new(1.0, 3.0),
 		}
@@ -204,7 +214,11 @@ impl CanvasApp<()> for App {
 		p.request_next_frame();
 	}
 
-	fn event(&mut self, e: Event<()>, _p: &mut Painter) {
+	fn event(&mut self, e: Event<()>, p: &mut Painter) {
+		if let Event::ShaderReloadEvent = e {
+			p.compose(&[self.ceil_tex, self.wall_tex, self.floor_tex]);
+		}
+
 		self.input.process_event(e);
 	}
 }

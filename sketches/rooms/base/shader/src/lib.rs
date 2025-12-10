@@ -6,7 +6,7 @@ use spirv_std::glam::{Mat4, Vec2, Vec3, Vec4, swizzles::*, vec3};
 use spirv_std::num_traits::Float;
 use spirv_std::{Image, Sampler, spirv};
 use trivalibs_nostd::prelude::*;
-use trivalibs_nostd::random::simplex::rot_noise_3d;
+use trivalibs_nostd::random::simplex::{rot_noise_3d, simplex_noise_3d};
 
 #[spirv(vertex)]
 pub fn wall_pre_render_vert(
@@ -20,18 +20,19 @@ pub fn wall_pre_render_vert(
 ) {
 	*out_vert = uv.fit0111().extend(0.).extend(1.0);
 	*out_pos = position;
-	*out_norm = normal;
 	*out_uv = uv;
+	*out_norm = normal;
 }
 
 #[spirv(fragment)]
-pub fn wall_pre_render_frag(in_pos: Vec3, in_uv: Vec2, in_norm: Vec3, out: &mut Vec4) {
-	let noise1 = rot_noise_3d(in_pos, in_uv.x);
+pub fn wall_pre_render_frag(in_pos: Vec3, in_uv: Vec2, _in_norm: Vec3, out: &mut Vec4) {
+	let noise1 = simplex_noise_3d(in_pos / 1. + Vec3::splat(140.0));
+	// let noise1 = rot_noise_3d(in_pos / 3. + Vec3::splat(140.0), in_uv.x);
 
-	let noise2 = rot_noise_3d(in_pos.cross(in_norm), in_uv.y);
+	// let noise2 = rot_noise_3d(in_pos.cross(in_norm), in_uv.y);
 
-	let val = (noise1.0 + noise2.0).fit1101() / 2.0;
-	// let val = noise1.0.fit1101() / 2.0;
+	// let val = (noise1.0 + noise2.0).fit1101() / 2.0;
+	let val = noise1.fit1101() / 1.0;
 
 	*out = Vec3::splat(val.clamp01().powf(2.2)).extend(1.0);
 }
@@ -47,8 +48,8 @@ pub fn wall_render_vert(
 	out_norm: &mut Vec3,
 ) {
 	*out_pos = *mvp_mat * position.extend(1.0);
-	*out_norm = normal;
 	*out_uv = uv;
+	*out_norm = normal;
 }
 
 #[spirv(fragment)]
@@ -62,10 +63,10 @@ pub fn wall_render_frag(
 	let uv = in_uv * 40.0;
 	let uv = uv.fract();
 
-	let col = if uv.x < 0.25 || uv.y < 0.25 {
+	let col = if uv.x < 0.75 || uv.y < 0.75 {
 		tex.sample(*sampler, in_uv).xyz()
 	} else {
-		vec3(in_uv.x, in_uv.y, 0.5)
+		vec3(in_uv.x, in_uv.y, 0.0)
 	};
 
 	*out = col.xyz().powf(2.2).extend(1.0);
