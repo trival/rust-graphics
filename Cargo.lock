@@ -1852,6 +1852,7 @@ dependencies = [
 name = "room_shader"
 version = "0.1.0"
 dependencies = [
+ "shared-nostd",
  "spirv-std",
  "trivalibs-nostd",
 ]

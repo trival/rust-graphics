@@ -113,7 +113,10 @@ impl CanvasApp<()> for App {
 
 		let floor_tex_shape = p.shape(floor_form, pre_render_shade).create();
 		let wall_tex_shape = p.shape(walls_form, pre_render_shade).create();
-		let ceil_tex_shape = p.shape(ceil_form, pre_render_shade).create();
+		let ceil_tex_shape = p
+			.shape(ceil_form, pre_render_shade)
+			.with_cull_mode(Some(wgpu::Face::Front))
+			.create();
 
 		let floor_tex = p
 			.layer()
