@@ -92,14 +92,14 @@ impl CanvasApp<()> for App {
 		let ceil_form = p.form(&ceil).create();
 		let walls_form = p.form_builder().with_buffers(&walls).create();
 
-		let pre_render_shade = p.shade(&[Float32x3, Float32x2, Float32x3]).create();
+		let pre_render_shade = p.shade([Float32x3, Float32x2, Float32x3]).create();
 		load_vertex_shader!(pre_render_shade, p, "../shader/wall_pre_render_vert.spv");
 		load_fragment_shader!(pre_render_shade, p, "../shader/wall_pre_render_frag.spv");
 
 		let wall_render_shade = p
-			.shade(&[Float32x3, Float32x2, Float32x3])
-			.with_bindings(&[BINDING_BUFFER_VERT, BINDING_SAMPLER_FRAG])
-			.with_layers(&[BINDING_LAYER_FRAG])
+			.shade([Float32x3, Float32x2, Float32x3])
+			.with_bindings([BINDING_BUFFER_VERT, BINDING_SAMPLER_FRAG])
+			.with_layers([BINDING_LAYER_FRAG])
 			.create();
 		load_vertex_shader!(wall_render_shade, p, "../shader/wall_render_vert.spv");
 		load_fragment_shader!(wall_render_shade, p, "../shader/wall_render_frag.spv");
@@ -150,15 +150,15 @@ impl CanvasApp<()> for App {
 
 		let floor_shape = p
 			.shape(floor_form, wall_render_shade)
-			.with_layers(vec![(0, floor_tex.binding())])
+			.with_layers([(0, floor_tex.binding())])
 			.create();
 		let wall_shape = p
 			.shape(walls_form, wall_render_shade)
-			.with_layers(vec![(0, wall_tex.binding())])
+			.with_layers([(0, wall_tex.binding())])
 			.create();
 		let ceil_shape = p
 			.shape(ceil_form, wall_render_shade)
-			.with_layers(vec![(0, ceil_tex.binding())])
+			.with_layers([(0, ceil_tex.binding())])
 			.create();
 
 		let vp_mat = p.bind_mat4();
@@ -170,7 +170,7 @@ impl CanvasApp<()> for App {
 
 		let canvas = p
 			.layer()
-			.with_shapes(vec![floor_shape, wall_shape, ceil_shape])
+			.with_shapes([floor_shape, wall_shape, ceil_shape])
 			.with_clear_color(wgpu::Color {
 				r: 0.5,
 				g: 0.6,
@@ -219,7 +219,7 @@ impl CanvasApp<()> for App {
 
 	fn event(&mut self, e: Event<()>, p: &mut Painter) {
 		if let Event::ShaderReloadEvent = e {
-			p.compose(&[self.ceil_tex, self.wall_tex, self.floor_tex]);
+			p.compose([self.ceil_tex, self.wall_tex, self.floor_tex]);
 		}
 
 		self.input.process_event(e);

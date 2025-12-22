@@ -24,7 +24,7 @@ struct App {
 
 impl CanvasApp<()> for App {
 	fn init(p: &mut Painter) -> Self {
-		let pre_render_shade = p.shade(&[Float32x3, Float32x2, Float32x3]).create();
+		let pre_render_shade = p.shade([Float32x3, Float32x2, Float32x3]).create();
 		load_vertex_shader!(pre_render_shade, p, "../shader/wall_pre_render_vert.spv");
 		load_fragment_shader!(pre_render_shade, p, "../shader/wall_pre_render_frag.spv");
 
@@ -89,9 +89,9 @@ impl CanvasApp<()> for App {
 		p.paint(grid_col_tex);
 
 		let wall_render_shade = p
-			.shade(&[Float32x3, Float32x2, Float32x3])
-			.with_bindings(&[BINDING_BUFFER_VERT, BINDING_SAMPLER_FRAG])
-			.with_layers(&[BINDING_LAYER_FRAG])
+			.shade([Float32x3, Float32x2, Float32x3])
+			.with_bindings([BINDING_BUFFER_VERT, BINDING_SAMPLER_FRAG])
+			.with_layers([BINDING_LAYER_FRAG])
 			.create();
 		load_vertex_shader!(wall_render_shade, p, "../shader/wall_render_vert.spv");
 		load_fragment_shader!(wall_render_shade, p, "../shader/wall_render_frag.spv");
@@ -131,7 +131,7 @@ impl CanvasApp<()> for App {
 
 		let canvas = p
 			.layer()
-			.with_shapes(vec![
+			.with_shapes([
 				ground_shape,
 				wall_shape,
 				roof_shape,

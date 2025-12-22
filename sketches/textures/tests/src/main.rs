@@ -36,8 +36,8 @@ impl CanvasApp<()> for App {
 		let texture_shade_canvas = |p: &mut Painter, tex: Layer, animated: bool| {
 			let s = p
 				.shade_effect()
-				.with_bindings(&[BINDING_BUFFER_FRAG, BINDING_SAMPLER_FRAG])
-				.with_layers(&[BINDING_LAYER_FRAG])
+				.with_bindings([BINDING_BUFFER_FRAG, BINDING_SAMPLER_FRAG])
+				.with_layers([BINDING_LAYER_FRAG])
 				.create();
 
 			let layer = p
@@ -57,7 +57,7 @@ impl CanvasApp<()> for App {
 		let shade_canvas = |p: &mut Painter, animated: bool| {
 			let s = p
 				.shade_effect()
-				.with_bindings(&[BINDING_BUFFER_FRAG, BINDING_BUFFER_FRAG])
+				.with_bindings([BINDING_BUFFER_FRAG, BINDING_BUFFER_FRAG])
 				.create();
 
 			let layer = p

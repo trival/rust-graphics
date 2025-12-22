@@ -41,13 +41,13 @@ impl CanvasApp<()> for App {
 			.create();
 
 		let shade = p
-			.shade(&[Float32x3, Float32x2, Float32x3, Float32x3])
-			.with_bindings(&[
+			.shade([Float32x3, Float32x2, Float32x3, Float32x3])
+			.with_bindings([
 				BINDING_BUFFER_VERT,
 				BINDING_BUFFER_VERT,
 				BINDING_SAMPLER_FRAG,
 			])
-			.with_layers(&[BINDING_LAYER_FRAG])
+			.with_layers([BINDING_LAYER_FRAG])
 			.create();
 		load_vertex_shader!(shade, p, "../shader/vertex.spv");
 		load_fragment_shader!(shade, p, "../shader/fragment.spv");
@@ -73,7 +73,7 @@ impl CanvasApp<()> for App {
 
 		let canvas = p
 			.layer()
-			.with_shapes(vec![shape])
+			.with_shape(shape)
 			.with_clear_color(wgpu::Color {
 				r: 0.5,
 				g: 0.6,

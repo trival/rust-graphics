@@ -1,7 +1,7 @@
 use noise::{NoiseFn, Simplex};
 use trivalibs::{
 	painter::{
-		binding::ValueBinding, layer::Layer, prelude::BINDING_BUFFER_FRAG, shade::Shade, wgpu, Painter,
+		Painter, binding::ValueBinding, layer::Layer, prelude::BINDING_BUFFER_FRAG, shade::Shade, wgpu,
 	},
 	prelude::*,
 	rendering::texture::f64_to_u8,
@@ -135,10 +135,7 @@ pub fn static_effect_layer(
 		shade_bindings.push(BINDING_BUFFER_FRAG);
 	}
 
-	let shade = p
-		.shade_effect()
-		.with_bindings(shade_bindings.as_slice())
-		.create();
+	let shade = p.shade_effect().with_bindings(shade_bindings).create();
 
 	let size = p.bind_const_uvec2(uvec2(width, height));
 

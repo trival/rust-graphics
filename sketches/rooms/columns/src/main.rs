@@ -76,8 +76,8 @@ struct App {
 impl CanvasApp<()> for App {
 	fn init(p: &mut Painter) -> Self {
 		let shade = p
-			.shade(&[Float32x3, Float32x2, Float32x3])
-			.with_bindings(&[
+			.shade([Float32x3, Float32x2, Float32x3])
+			.with_bindings([
 				BINDING_BUFFER_VERT,
 				BINDING_BUFFER_VERT,
 				BINDING_BUFFER_VERT,
@@ -248,7 +248,7 @@ impl CanvasApp<()> for App {
 
 		let canvas = p
 			.layer()
-			.with_shapes(vec![ground_shape, column_shape, balk_shape, wall_shape])
+			.with_shapes([ground_shape, column_shape, balk_shape, wall_shape])
 			.with_clear_color(wgpu::Color {
 				r: 0.9,
 				g: 0.95,
