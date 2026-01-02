@@ -212,7 +212,6 @@ impl CanvasApp<()> for App {
 		self.vp_mat.update(p, self.cam.view_proj_mat());
 
 		p.paint_and_show(self.canvas);
-		// p.show(self.grid_col_tex);
 
 		p.request_next_frame();
 	}
