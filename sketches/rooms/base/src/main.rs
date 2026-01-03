@@ -1,13 +1,14 @@
-use trivalibs::rendering::{
-	mesh_geometry::{MeshBufferType, MeshGeometry, utils::vert_pos_uv},
-	shapes::cuboid::Cuboid,
-};
+use serde::{Deserialize, Serialize};
 use trivalibs::{
 	common_utils::camera_controls::BasicFirstPersonCameraController,
 	map,
 	painter::{prelude::*, utils::input_state::InputState},
 	prelude::*,
-	rendering::camera::{CamProps, PerspectiveCamera},
+	rendering::{
+		camera::{CamProps, CameraDevState, PerspectiveCamera},
+		mesh_geometry::{MeshBufferType, MeshGeometry, utils::vert_pos_uv},
+		shapes::cuboid::Cuboid,
+	},
 };
 
 const ROOM_HEIGHT: f32 = 5.5;
@@ -30,7 +31,12 @@ struct App {
 	cam_controller: BasicFirstPersonCameraController,
 }
 
-impl CanvasApp<()> for App {
+#[derive(Serialize, Deserialize, Default)]
+struct DevState {
+	cam: CameraDevState,
+}
+
+impl CanvasApp<(), DevState> for App {
 	fn init(p: &mut Painter) -> Self {
 		let room_cube = Cuboid::box_at(
 			vec3(0., ROOM_HEIGHT / 2., 0.),
@@ -223,6 +229,15 @@ impl CanvasApp<()> for App {
 
 		self.input.process_event(e);
 	}
+
+	fn load_dev_state(&mut self, state: DevState) {
+		self.cam.from_dev_state(&state.cam);
+	}
+	fn save_dev_state(&self) -> DevState {
+		DevState {
+			cam: self.cam.to_dev_state(),
+		}
+	}
 }
 
 pub fn main() {
@@ -231,6 +246,8 @@ pub fn main() {
 			show_fps: true,
 			use_vsync: true,
 			remember_window_dimensions: true,
+			dev_state_key: "room_base",
+			reload_dev_state: true,
 			..default()
 		})
 		.start();

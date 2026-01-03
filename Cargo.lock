@@ -1845,6 +1845,7 @@ name = "room"
 version = "0.1.0"
 dependencies = [
  "bytemuck",
+ "serde",
  "trivalibs",
 ]
 
