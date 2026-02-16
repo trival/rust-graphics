@@ -1,0 +1,27 @@
+[
+  {
+    "source_path": "composite_fs.spv",
+    "entry_point": "composite_fs",
+    "wgsl_entry_point": "composite_fs"
+  },
+  {
+    "source_path": "downsample_blur_fs.spv",
+    "entry_point": "downsample_blur_fs",
+    "wgsl_entry_point": "downsample_blur_fs"
+  },
+  {
+    "source_path": "test_scene_fs.spv",
+    "entry_point": "test_scene_fs",
+    "wgsl_entry_point": "test_scene_fs"
+  },
+  {
+    "source_path": "threshold_fs.spv",
+    "entry_point": "threshold_fs",
+    "wgsl_entry_point": "threshold_fs"
+  },
+  {
+    "source_path": "upsample_blur_fs.spv",
+    "entry_point": "upsample_blur_fs",
+    "wgsl_entry_point": "upsample_blur_fs"
+  }
+]

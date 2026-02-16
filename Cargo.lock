@@ -242,6 +242,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "bloom"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "trivalibs",
+]
+
+[[package]]
+name = "bloom-shader"
+version = "0.1.0"
+dependencies = [
+ "spirv-std",
+ "trivalibs-nostd",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
