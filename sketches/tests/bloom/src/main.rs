@@ -6,7 +6,7 @@ struct App {
 	// Bindings
 	u_time: BindingBuffer<f32>,
 	u_blur_radius: BindingBuffer<f32>,
-	u_resolution_mip0: BindingBuffer<Vec2>,
+	u_resolution: BindingBuffer<Vec2>,
 	u_resolution_mip1: BindingBuffer<Vec2>,
 	u_resolution_mip2: BindingBuffer<Vec2>,
 	u_resolution_mip3: BindingBuffer<Vec2>,
@@ -76,7 +76,7 @@ impl CanvasApp for App {
 		let u_threshold = p.bind_f32();
 		let u_bloom_intensity = p.bind_f32();
 		let u_blur_radius = p.bind_f32();
-		let u_resolution_mip0 = p.bind_vec2();
+		let u_resolution = p.bind_vec2();
 		let u_resolution_mip1 = p.bind_vec2();
 		let u_resolution_mip2 = p.bind_vec2();
 		let u_resolution_mip3 = p.bind_vec2();
@@ -93,10 +93,10 @@ impl CanvasApp for App {
 		// Create scene layer using single_effect_layer
 		let scene_layer = p
 			.single_effect_layer(test_scene_shade)
-			.with_bindings(vec![
-				(0, u_resolution_mip0.binding()),
-				(1, u_time.binding()),
-			])
+			.with_bindings(map! {
+				0 => u_resolution.binding(),
+				1 => u_time.binding(),
+			})
 			.with_float16_format()
 			.create();
 
@@ -104,25 +104,15 @@ impl CanvasApp for App {
 		let threshold_effect = p
 			.effect(threshold_shade)
 			.with_bindings(map! {
-					0 => u_resolution_mip0.binding(),
-					1 => u_threshold.binding(),
-					2 => sampler.binding(),
+				0 => u_resolution.binding(),
+				1 => u_threshold.binding(),
+				2 => sampler.binding(),
 			})
 			.with_layers(map! {
-					0 => scene_layer.binding()
+				0 => scene_layer.binding()
 			})
 			.with_mip_target(0)
 			.create();
-
-		// Create additive blend state for upsampling
-		let additive_blend = wgpu::BlendState {
-			color: wgpu::BlendComponent {
-				src_factor: wgpu::BlendFactor::One,
-				dst_factor: wgpu::BlendFactor::One,
-				operation: wgpu::BlendOperation::Add,
-			},
-			alpha: wgpu::BlendComponent::REPLACE,
-		};
 
 		let mut effects = vec![threshold_effect];
 
@@ -139,9 +129,9 @@ impl CanvasApp for App {
 			effects.push(
 				p.effect(downsample_shade)
 					.with_bindings(map! {
-							0 => res_binding,
-							1 => u_blur_radius.binding(),
-							2 => sampler.binding(),
+						0 => res_binding,
+						1 => u_blur_radius.binding(),
+						2 => sampler.binding(),
 					})
 					.with_mip_source(i)
 					.with_mip_target(i + 1)
@@ -149,10 +139,20 @@ impl CanvasApp for App {
 			);
 		}
 
+		// Create additive blend state for upsampling
+		let additive_blend = wgpu::BlendState {
+			color: wgpu::BlendComponent {
+				src_factor: wgpu::BlendFactor::One,
+				dst_factor: wgpu::BlendFactor::One,
+				operation: wgpu::BlendOperation::Add,
+			},
+			alpha: wgpu::BlendComponent::REPLACE,
+		};
+
 		// Upsample chain: mip 4→3→2→1→0 (single pass per level with additive blending)
 		for i in (0..4).rev() {
 			let res_binding = match i {
-				0 => u_resolution_mip0.binding(),
+				0 => u_resolution.binding(),
 				1 => u_resolution_mip1.binding(),
 				2 => u_resolution_mip2.binding(),
 				3 => u_resolution_mip3.binding(),
@@ -162,9 +162,9 @@ impl CanvasApp for App {
 			effects.push(
 				p.effect(upsample_shade)
 					.with_bindings(map! {
-							0 => res_binding,
-							1 => u_blur_radius.binding(),
-							2 => sampler.binding(),
+						0 => res_binding,
+						1 => u_blur_radius.binding(),
+						2 => sampler.binding(),
 					})
 					.with_mip_source(i + 1)
 					.with_mip_target(i)
@@ -184,20 +184,23 @@ impl CanvasApp for App {
 		// Create final composite layer
 		let canvas = p
 			.single_effect_layer(composite_shade)
-			.with_bindings(vec![
-				(0, u_resolution_mip0.binding()),
-				(1, u_bloom_intensity.binding()),
-				(2, sampler.binding()),
-			])
 			.with_float16_format()
-			.with_layers(vec![(0, scene_layer.binding()), (1, bloom_layer.binding())])
+			.with_bindings(map! {
+				0 => u_resolution.binding(),
+				1 => u_bloom_intensity.binding(),
+				2 => sampler.binding(),
+			})
+			.with_layers(map! {
+				0 => scene_layer.binding(),
+				1 => bloom_layer.binding()
+			})
 			.create();
 
 		Self {
 			time: 0.0,
 			u_time,
 			u_blur_radius,
-			u_resolution_mip0,
+			u_resolution,
 			u_resolution_mip1,
 			u_resolution_mip2,
 			u_resolution_mip3,
@@ -211,7 +214,7 @@ impl CanvasApp for App {
 
 	fn resize(&mut self, p: &mut Painter, width: u32, height: u32) {
 		self
-			.u_resolution_mip0
+			.u_resolution
 			.update(p, vec2(width as f32, height as f32));
 		self
 			.u_resolution_mip1
