@@ -1,23 +1,23 @@
 #![no_std]
 #![allow(unexpected_cfgs)]
 
-use nostd::blur::gaussian_blur_9;
-use nostd::prelude::*;
 use spirv_std::glam::{Vec2, Vec3, Vec4, Vec4Swizzles, vec2, vec3, vec4};
 use spirv_std::spirv;
 use spirv_std::{Image, Sampler};
-use trivalibs_nostd as nostd;
+#[allow(unused_imports)]
+use trivalibs_nostd::prelude::*;
 
 /// Test scene with multiple circles at varying brightness levels
 #[spirv(fragment)]
 pub fn test_scene_fs(
 	#[spirv(frag_coord)] frag_coord: Vec4,
-	#[spirv(uniform, descriptor_set = 0, binding = 0)] time: &f32,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] resolution: &Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] time: &f32,
 	out: &mut Vec4,
 ) {
-	// Use normalized coordinates (assuming 1920x1080 for now)
-	let uv = vec2(frag_coord.x / 1920.0, frag_coord.y / 1080.0);
-	let aspect = 1920.0 / 1080.0;
+	// Use normalized coordinates
+	let uv = frag_coord.xy() / *resolution;
+	let aspect = resolution.x / resolution.y;
 
 	// Adjust UV for aspect ratio
 	let uv_corrected = vec2(uv.x * aspect, uv.y);
@@ -28,7 +28,7 @@ pub fn test_scene_fs(
 	// Helper function to create a circle with smooth edges
 	let circle = |center: Vec2, radius: f32, brightness: Vec3| {
 		let dist = (uv_corrected - center).length();
-		let alpha = 1.0 - ((dist - radius) / (radius * 0.3)).clamp(0.0, 1.0);
+		let alpha = 1.0 - ((dist - radius) / (radius * 0.05)).clamp(0.0, 1.0);
 		brightness * alpha
 	};
 
@@ -44,19 +44,20 @@ pub fn test_scene_fs(
 	color += circle(vec2(0.75, 0.75), 0.08, vec3(0.8, 0.6, 0.6)); // Dim red
 	color += circle(vec2(0.5, 0.7), 0.06, vec3(0.7, 0.7, 0.5)); // Dim yellow
 
-	*out = vec4(color.x, color.y, color.z, 1.0);
+	*out = vec4(color.x, color.y, color.z, 1.0).powf(2.3);
 }
 
 /// Extract bright pixels above threshold
 #[spirv(fragment)]
 pub fn threshold_fs(
 	#[spirv(frag_coord)] frag_coord: Vec4,
-	#[spirv(uniform, descriptor_set = 0, binding = 0)] threshold: &f32,
-	#[spirv(descriptor_set = 0, binding = 1)] sampler: &Sampler,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] resolution: &Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] threshold: &f32,
+	#[spirv(descriptor_set = 0, binding = 2)] sampler: &Sampler,
 	#[spirv(descriptor_set = 1, binding = 0)] tex: &Image!(2D, type=f32, sampled),
 	out: &mut Vec4,
 ) {
-	let uv = vec2(frag_coord.x / 1920.0, frag_coord.y / 1080.0);
+	let uv = frag_coord.xy() / *resolution;
 	let color = tex.sample(*sampler, uv);
 
 	// Calculate luminance
@@ -74,13 +75,14 @@ pub fn threshold_fs(
 pub fn downsample_blur_fs(
 	#[spirv(frag_coord)] frag_coord: Vec4,
 	#[spirv(uniform, descriptor_set = 0, binding = 0)] resolution: &Vec2,
-	#[spirv(descriptor_set = 0, binding = 1)] sampler: &Sampler,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] blur_radius: &f32,
+	#[spirv(descriptor_set = 0, binding = 2)] sampler: &Sampler,
 	#[spirv(descriptor_set = 1, binding = 0)] tex: &Image!(2D, type=f32, sampled),
 	out: &mut Vec4,
 ) {
 	let uv = frag_coord.xy() / *resolution;
 	// Simple box blur for downsampling (4 samples)
-	let offset = vec2(0.5, 0.5) / *resolution;
+	let offset = vec2(0.5, 0.5) * *blur_radius / *resolution;
 	let s0 = tex.sample(*sampler, uv + vec2(-offset.x, -offset.y));
 	let s1 = tex.sample(*sampler, uv + vec2(offset.x, -offset.y));
 	let s2 = tex.sample(*sampler, uv + vec2(-offset.x, offset.y));
@@ -93,13 +95,14 @@ pub fn downsample_blur_fs(
 pub fn upsample_blur_fs(
 	#[spirv(frag_coord)] frag_coord: Vec4,
 	#[spirv(uniform, descriptor_set = 0, binding = 0)] resolution: &Vec2,
-	#[spirv(descriptor_set = 0, binding = 1)] sampler: &Sampler,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] blur_radius: &f32,
+	#[spirv(descriptor_set = 0, binding = 2)] sampler: &Sampler,
 	#[spirv(descriptor_set = 1, binding = 0)] tex: &Image!(2D, type=f32, sampled),
 	out: &mut Vec4,
 ) {
 	let uv = frag_coord.xy() / *resolution;
 	// Tent filter (9 samples) for upsampling
-	let offset = vec2(1.0, 1.0) / *resolution;
+	let offset = vec2(1.0, 1.0) * *blur_radius / *resolution;
 
 	let s = tex.sample(*sampler, uv);
 	let n = tex.sample(*sampler, uv + vec2(0.0, offset.y));
@@ -119,13 +122,14 @@ pub fn upsample_blur_fs(
 #[spirv(fragment)]
 pub fn composite_fs(
 	#[spirv(frag_coord)] frag_coord: Vec4,
-	#[spirv(uniform, descriptor_set = 0, binding = 0)] bloom_intensity: &f32,
-	#[spirv(descriptor_set = 0, binding = 1)] sampler: &Sampler,
+	#[spirv(uniform, descriptor_set = 0, binding = 0)] resolution: &Vec2,
+	#[spirv(uniform, descriptor_set = 0, binding = 1)] bloom_intensity: &f32,
+	#[spirv(descriptor_set = 0, binding = 2)] sampler: &Sampler,
 	#[spirv(descriptor_set = 1, binding = 0)] scene_tex: &Image!(2D, type=f32, sampled),
 	#[spirv(descriptor_set = 1, binding = 1)] bloom_tex: &Image!(2D, type=f32, sampled),
 	out: &mut Vec4,
 ) {
-	let uv = vec2(frag_coord.x / 1920.0, frag_coord.y / 1080.0);
+	let uv = frag_coord.xy() / *resolution;
 	let scene = scene_tex.sample(*sampler, uv);
 	let bloom = bloom_tex.sample(*sampler, uv);
 

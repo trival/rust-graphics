@@ -85,6 +85,7 @@ pub fn main() {
 			use_vsync: true,
 			remember_window_dimensions: true,
 			features: Some(wgpu::Features::FLOAT32_FILTERABLE),
+			..default()
 		})
 		.start();
 }

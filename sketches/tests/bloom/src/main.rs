@@ -5,12 +5,12 @@ struct App {
 
 	// Bindings
 	u_time: BindingBuffer<f32>,
-	u_threshold: BindingBuffer<f32>,
-	u_bloom_intensity: BindingBuffer<f32>,
+	u_blur_radius: BindingBuffer<f32>,
 	u_resolution_mip0: BindingBuffer<Vec2>,
 	u_resolution_mip1: BindingBuffer<Vec2>,
 	u_resolution_mip2: BindingBuffer<Vec2>,
 	u_resolution_mip3: BindingBuffer<Vec2>,
+	u_resolution_mip4: BindingBuffer<Vec2>,
 
 	// Layers
 	scene_layer: Layer,
@@ -23,70 +23,90 @@ impl CanvasApp for App {
 		// Create shaders
 		let test_scene_shade = p
 			.shade_effect()
-			.with_bindings([BINDING_BUFFER_FRAG])
+			.with_bindings([BINDING_BUFFER_FRAG, BINDING_BUFFER_FRAG])
 			.create();
-		load_fragment_shader!(test_scene_shade, p, "./shader/test_scene_fs.spv");
+		load_fragment_shader!(test_scene_shade, p, "../shader/test_scene_fs.spv");
 
 		let threshold_shade = p
 			.shade_effect()
-			.with_bindings([BINDING_BUFFER_FRAG, BINDING_SAMPLER_FRAG])
+			.with_bindings([
+				BINDING_BUFFER_FRAG,
+				BINDING_BUFFER_FRAG,
+				BINDING_SAMPLER_FRAG,
+			])
 			.with_layer()
 			.create();
-		load_fragment_shader!(threshold_shade, p, "./shader/threshold_fs.spv");
+		load_fragment_shader!(threshold_shade, p, "../shader/threshold_fs.spv");
 
 		let downsample_shade = p
 			.shade_effect()
-			.with_bindings([BINDING_BUFFER_FRAG, BINDING_SAMPLER_FRAG])
+			.with_bindings([
+				BINDING_BUFFER_FRAG,
+				BINDING_BUFFER_FRAG,
+				BINDING_SAMPLER_FRAG,
+			])
 			.with_layer()
 			.create();
-		load_fragment_shader!(downsample_shade, p, "./shader/downsample_blur_fs.spv");
+		load_fragment_shader!(downsample_shade, p, "../shader/downsample_blur_fs.spv");
 
 		let upsample_shade = p
 			.shade_effect()
-			.with_bindings([BINDING_BUFFER_FRAG, BINDING_SAMPLER_FRAG])
+			.with_bindings([
+				BINDING_BUFFER_FRAG,
+				BINDING_BUFFER_FRAG,
+				BINDING_SAMPLER_FRAG,
+			])
 			.with_layer()
 			.create();
-		load_fragment_shader!(upsample_shade, p, "./shader/upsample_blur_fs.spv");
+		load_fragment_shader!(upsample_shade, p, "../shader/upsample_blur_fs.spv");
 
 		let composite_shade = p
 			.shade_effect()
-			.with_bindings([BINDING_BUFFER_FRAG, BINDING_SAMPLER_FRAG])
+			.with_bindings([
+				BINDING_BUFFER_FRAG,
+				BINDING_BUFFER_FRAG,
+				BINDING_SAMPLER_FRAG,
+			])
 			.with_layers([BINDING_LAYER_FRAG, BINDING_LAYER_FRAG])
 			.create();
-		load_fragment_shader!(composite_shade, p, "./shader/composite_fs.spv");
+		load_fragment_shader!(composite_shade, p, "../shader/composite_fs.spv");
 
 		// Create bindings
 		let u_time = p.bind_f32();
 		let u_threshold = p.bind_f32();
 		let u_bloom_intensity = p.bind_f32();
+		let u_blur_radius = p.bind_f32();
 		let u_resolution_mip0 = p.bind_vec2();
 		let u_resolution_mip1 = p.bind_vec2();
 		let u_resolution_mip2 = p.bind_vec2();
 		let u_resolution_mip3 = p.bind_vec2();
+		let u_resolution_mip4 = p.bind_vec2();
 
 		// Initialize parameter values
 		u_threshold.update(p, 1.0);
-		u_bloom_intensity.update(p, 0.8);
+		u_bloom_intensity.update(p, 0.05);
+		u_blur_radius.update(p, 8.0);
 
 		// Create sampler
-		let sampler = p
-			.sampler()
-			.with_filters(wgpu::FilterMode::Linear)
-			.with_mipmap_filter(wgpu::FilterMode::Linear)
-			.create();
+		let sampler = p.sampler_linear();
 
 		// Create scene layer using single_effect_layer
 		let scene_layer = p
 			.single_effect_layer(test_scene_shade)
-			.with_bindings(vec![(0, u_time.binding())])
+			.with_bindings(vec![
+				(0, u_resolution_mip0.binding()),
+				(1, u_time.binding()),
+			])
+			.with_float16_format()
 			.create();
 
 		// Create threshold effect
 		let threshold_effect = p
 			.effect(threshold_shade)
 			.with_bindings(map! {
-					0 => u_threshold.binding(),
-					1 => sampler.binding(),
+					0 => u_resolution_mip0.binding(),
+					1 => u_threshold.binding(),
+					2 => sampler.binding(),
 			})
 			.with_layers(map! {
 					0 => scene_layer.binding()
@@ -112,7 +132,7 @@ impl CanvasApp for App {
 				0 => u_resolution_mip1.binding(),
 				1 => u_resolution_mip2.binding(),
 				2 => u_resolution_mip3.binding(),
-				3 => u_resolution_mip3.binding(), // mip 4 has same calculation
+				3 => u_resolution_mip4.binding(),
 				_ => unreachable!(),
 			};
 
@@ -120,7 +140,8 @@ impl CanvasApp for App {
 				p.effect(downsample_shade)
 					.with_bindings(map! {
 							0 => res_binding,
-							1 => sampler.binding(),
+							1 => u_blur_radius.binding(),
+							2 => sampler.binding(),
 					})
 					.with_mip_source(i)
 					.with_mip_target(i + 1)
@@ -142,7 +163,8 @@ impl CanvasApp for App {
 				p.effect(upsample_shade)
 					.with_bindings(map! {
 							0 => res_binding,
-							1 => sampler.binding(),
+							1 => u_blur_radius.binding(),
+							2 => sampler.binding(),
 					})
 					.with_mip_source(i + 1)
 					.with_mip_target(i)
@@ -152,27 +174,34 @@ impl CanvasApp for App {
 		}
 
 		// Create bloom layer with all effects
-		let bloom_layer = p.layer().with_effects(effects).with_mips_max(5).create();
+		let bloom_layer = p
+			.layer()
+			.with_effects(effects)
+			.with_mips_max(5)
+			.with_float16_format()
+			.create();
 
 		// Create final composite layer
 		let canvas = p
 			.single_effect_layer(composite_shade)
 			.with_bindings(vec![
-				(0, u_bloom_intensity.binding()),
-				(1, sampler.binding()),
+				(0, u_resolution_mip0.binding()),
+				(1, u_bloom_intensity.binding()),
+				(2, sampler.binding()),
 			])
+			.with_float16_format()
 			.with_layers(vec![(0, scene_layer.binding()), (1, bloom_layer.binding())])
 			.create();
 
 		Self {
 			time: 0.0,
 			u_time,
-			u_threshold,
-			u_bloom_intensity,
+			u_blur_radius,
 			u_resolution_mip0,
 			u_resolution_mip1,
 			u_resolution_mip2,
 			u_resolution_mip3,
+			u_resolution_mip4,
 
 			scene_layer,
 			bloom_layer,
@@ -193,15 +222,20 @@ impl CanvasApp for App {
 		self
 			.u_resolution_mip3
 			.update(p, vec2((width / 8) as f32, (height / 8) as f32));
+		self
+			.u_resolution_mip4
+			.update(p, vec2((width / 16) as f32, (height / 16) as f32));
 	}
 
 	fn frame(&mut self, p: &mut Painter, tpf: f32) {
 		self.time += tpf;
 		self.u_time.update(p, self.time);
+		self.u_blur_radius.update(p, 4.0 + 4.0 * self.time.sin());
 
-		p.paint_and_show(self.scene_layer);
-		// p.paint(self.bloom_layer);
-		// p.paint_and_show(self.canvas);
+		// p.paint_and_show(self.scene_layer);
+		p.paint(self.scene_layer);
+		p.paint(self.bloom_layer);
+		p.paint_and_show(self.canvas);
 
 		p.request_next_frame();
 	}
