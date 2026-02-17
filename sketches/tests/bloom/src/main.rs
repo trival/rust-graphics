@@ -119,17 +119,17 @@ impl CanvasApp for App {
 		// Downsample chain: mip 0→1→2→3→4 (single pass per level)
 		for i in 0..4 {
 			let res_binding = match i {
-				0 => u_resolution_mip1.binding(),
-				1 => u_resolution_mip2.binding(),
-				2 => u_resolution_mip3.binding(),
-				3 => u_resolution_mip4.binding(),
+				0 => u_resolution_mip1,
+				1 => u_resolution_mip2,
+				2 => u_resolution_mip3,
+				3 => u_resolution_mip4,
 				_ => unreachable!(),
 			};
 
 			effects.push(
 				p.effect(downsample_shade)
 					.with_bindings(map! {
-						0 => res_binding,
+						0 => res_binding.binding(),
 						1 => u_blur_radius.binding(),
 						2 => sampler.binding(),
 					})
@@ -152,17 +152,17 @@ impl CanvasApp for App {
 		// Upsample chain: mip 4→3→2→1→0 (single pass per level with additive blending)
 		for i in (0..4).rev() {
 			let res_binding = match i {
-				0 => u_resolution.binding(),
-				1 => u_resolution_mip1.binding(),
-				2 => u_resolution_mip2.binding(),
-				3 => u_resolution_mip3.binding(),
+				0 => u_resolution,
+				1 => u_resolution_mip1,
+				2 => u_resolution_mip2,
+				3 => u_resolution_mip3,
 				_ => unreachable!(),
 			};
 
 			effects.push(
 				p.effect(upsample_shade)
 					.with_bindings(map! {
-						0 => res_binding,
+						0 => res_binding.binding(),
 						1 => u_blur_radius.binding(),
 						2 => sampler.binding(),
 					})
